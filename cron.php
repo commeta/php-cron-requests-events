@@ -79,7 +79,7 @@ if(@filesize(__DIR__ . "/cron.log") >  10 * 1024 * 1024 / 5) {
             
 	foreach(glob(__DIR__ . "/cron.log" . '*') as $file_log_rotate){
 		$log_files_size+= filesize($file_log_rotate);
-		if ($file_log_rotate == $this->log_file) {
+		if ($file_log_rotate == __DIR__ . "/cron.log") {
 			continue;
 		}
 		
