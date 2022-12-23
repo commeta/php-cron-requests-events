@@ -68,10 +68,10 @@ fclose($fp);
 if(@filesize(__DIR__ . "/cron.log") >  10 * 1024 * 1024 / 5) {
 	rename(__DIR__ . "/cron.log", __DIR__ . "/cron.log" . "." . time());
 	@file_put_contents(
-    __DIR__ . "/cron.log", 
-    date('m/d/Y H:i:s',time()) . "INFO: log rotate\n", 
-    FILE_APPEND | LOCK_EX
-  );
+		__DIR__ . "/cron.log", 
+		date('m/d/Y H:i:s',time()) . "INFO: log rotate\n", 
+		FILE_APPEND | LOCK_EX
+	);
 	
 	$the_oldest = time();
 	$log_old_file = '';
@@ -94,9 +94,10 @@ if(@filesize(__DIR__ . "/cron.log") >  10 * 1024 * 1024 / 5) {
 		if (file_exists($log_old_file)) {
 			unlink($log_old_file);
 			@file_put_contents(
-        __DIR__ . "/cron.log", 
-        date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
-        FILE_APPEND | LOCK_EX);
+				__DIR__ . "/cron.log", 
+				date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
+				FILE_APPEND | LOCK_EX
+			);
 		}
 	}
 }
