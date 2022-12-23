@@ -88,6 +88,44 @@ if(flock($fp, LOCK_EX)) {
 		write_cron_session($fp);
 	}
 	
+	// LOG Rotate
+	if(@filesize(__DIR__ . "/cron.log") >  10 * 1024 * 1024 / 5) {
+		rename(__DIR__ . "/cron.log", __DIR__ . "/cron.log" . "." . time());
+		@file_put_contents(
+			__DIR__ . "/cron.log", 
+			date('m/d/Y H:i:s',time()) . "INFO: log rotate\n", 
+			FILE_APPEND | LOCK_EX
+		);
+		
+		$the_oldest = time();
+		$log_old_file = '';
+		$log_files_size = 0;
+				
+		foreach(glob(__DIR__ . "/cron.log" . '*') as $file_log_rotate){
+			$log_files_size+= filesize($file_log_rotate);
+			if ($file_log_rotate == __DIR__ . "/cron.log") {
+				continue;
+			}
+			
+			$log_mtime = filectime($file_log_rotate);
+			if ($log_mtime < $the_oldest) {
+				$log_old_file = $file_log_rotate;
+				$the_oldest = $log_mtime;
+			}
+		}
+
+		if ($log_files_size > 10 * 1024 * 1024) {
+			if (file_exists($log_old_file)) {
+				unlink($log_old_file);
+				@file_put_contents(
+					__DIR__ . "/cron.log", 
+					date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
+					FILE_APPEND | LOCK_EX
+				);
+			}
+		}
+	}
+	
 	// END Jobs
 	flock($fp, LOCK_UN);
 }
@@ -95,45 +133,8 @@ if(flock($fp, LOCK_EX)) {
 fclose($fp);
 
 
-
-if(@filesize(__DIR__ . "/cron.log") >  10 * 1024 * 1024 / 5) {
-	rename(__DIR__ . "/cron.log", __DIR__ . "/cron.log" . "." . time());
-	@file_put_contents(
-		__DIR__ . "/cron.log", 
-		date('m/d/Y H:i:s',time()) . "INFO: log rotate\n", 
-		FILE_APPEND | LOCK_EX
-	);
-	
-	$the_oldest = time();
-	$log_old_file = '';
-	$log_files_size = 0;
-            
-	foreach(glob(__DIR__ . "/cron.log" . '*') as $file_log_rotate){
-		$log_files_size+= filesize($file_log_rotate);
-		if ($file_log_rotate == __DIR__ . "/cron.log") {
-			continue;
-		}
-		
-		$log_mtime = filectime($file_log_rotate);
-		if ($log_mtime < $the_oldest) {
-			$log_old_file = $file_log_rotate;
-			$the_oldest = $log_mtime;
-		}
-	}
-
-	if ($log_files_size > 10 * 1024 * 1024) {
-		if (file_exists($log_old_file)) {
-			unlink($log_old_file);
-			@file_put_contents(
-				__DIR__ . "/cron.log", 
-				date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
-				FILE_APPEND | LOCK_EX
-			);
-		}
-	}
-}
-
-
+////////////////////////////////////////////////////////////////////////
+// Functions
 
 function cron_session_add_event(& $fp, $event){
 	$GLOBALS['cron_session']['finish']= time();
