@@ -74,13 +74,21 @@ if(flock($fp, LOCK_EX)) {
 
 
 	//###########################################
-	// CRON Jobs
+	// CRON Job 1
 
-	cron_session_add_event($fp, [
-		'date'=> date('m/d/Y H:i:s', time()),
-		'message'=> 'INFO: start cron',
-	]);
+	if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
+	if($GLOBALS['cron_session']['job1']['last_update'] + 3600 < time() ){
+		cron_session_add_event($fp, [
+			'date'=> date('m/d/Y H:i:s', time()),
+			'message'=> 'INFO: start cron',
+		]);
+
+		$GLOBALS['cron_session']['job1']['last_update']= time();
+		write_cron_session($fp);
+	}
+	
+	// END Jobs
 	flock($fp, LOCK_UN);
 }
 
