@@ -10,6 +10,7 @@ php crontab based on url requests/event-loop
 - Работает в отдельном процессе с низким приоритетом 15
 
 ## Пример запуска задачи
+В контексте файла /cron/cron.php раздел CRON Job
 ```
 // CRON Job 1
 if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
@@ -28,3 +29,9 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 - Запускает задачу если с последнего запуска прошло более 60 секунд
 - cron_session_add_event сохраняет в логе запись
 - write_cron_session сохраняет переменные в файл
+
+## Параметры запуска
+- $cron_delay= 60; // Тайм аут до следующего запуска в секундах
+- $cron_log_rotate_max_size= 10 * 1024 * 1024; // Максимальный размер логов в МБ
+- $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
+- $cron_url_key= 'Fksn487FLSnmwt'; // Ключ запуска в URI
