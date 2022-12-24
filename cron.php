@@ -25,7 +25,7 @@
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
-$cron_delay= 60;
+$cron_delay= 1;
 $cron_log_rotate_max_size= 10 * 1024 * 1024;
 $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key';
@@ -103,10 +103,6 @@ if(
 		$cs=unserialize(fread($fp, filesize(CRON_SITE_ROOT.'cron/cron.dat')));
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
-			if($GLOBALS['cron_session']['finish'] + $cron_delay > time()){
-				flock($fp, LOCK_UN);
-				die();
-			}
 		} else {
 			$GLOBALS['cron_session']= [
 				'finish'=> time()
@@ -114,7 +110,6 @@ if(
 		}
 
 		$GLOBALS['cron_session']['events']= [];
-		$GLOBALS['cron_session']['finish']= time();
 		write_cron_session($fp);
 
 		
