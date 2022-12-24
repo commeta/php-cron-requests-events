@@ -25,7 +25,7 @@
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
-$cron_delay= 1;
+$cron_delay= 60;
 $cron_log_rotate_max_size= 10 * 1024 * 1024;
 $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key';
