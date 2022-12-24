@@ -86,9 +86,24 @@ if(
 	set_time_limit(600);
 	ini_set('MAX_EXECUTION_TIME', 600);
 	
+	////////////////////////////////////////////////////////////////////////
+	// multithreading
+	if( // job in parallel process
+		isset($_REQUEST["job"]) &&
+		$_REQUEST["job"] == '1'
+	){
+		file_put_contents(
+			CRON_SITE_ROOT . "cron/log/cron.log",
+			implode(' ',  [
+				'date'=> date('m/d/Y H:i:s', time()),
+				'message'=> 'INFO: cron multithreading event',
+			]) . "\n",
+			FILE_APPEND | LOCK_EX
+		);
+		die();
+	}
+	
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
-	if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
-
 	
 	////////////////////////////////////////////////////////////////////////
 	// Init
@@ -106,9 +121,10 @@ if(
 
 		$GLOBALS['cron_session']['events']= [];
 		write_cron_session($fp);
-
 		
-
+		if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
+		
+		
 		//###########################################
 		// CRON Job 1
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
@@ -127,7 +143,31 @@ if(
 		
 
 
-		// CRON Job 1
+		// CRON Job 1, multithreading
+		if(!isset($GLOBALS['cron_session']['job1multithreading']['last_update'])) $GLOBALS['cron_session']['job1multithreading']['last_update']= 0;
+
+		// Job timer
+		if($GLOBALS['cron_session']['job1multithreading']['last_update'] + 60 * 60 * 24 < time() ){ // Trigger an event if the time has expired, in seconds
+			
+			@fclose( // Start job in parallel process
+				@fopen(
+					'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key . "&job=1", 
+					'r', 
+					false, 
+					stream_context_create([
+						'http'=>[
+							'timeout' => 0.04
+						]
+					])
+				)
+			);
+
+			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
+			$GLOBALS['cron_session']['job1multithreading']['last_update']= time();
+			write_cron_session($fp);
+		}
+		
+		
 		// CRON Job 2
 		// CRON Job 3
 		// CRON Job 4
