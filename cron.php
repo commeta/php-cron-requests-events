@@ -87,7 +87,8 @@ if(
 	ini_set('MAX_EXECUTION_TIME', 600);
 	
 	////////////////////////////////////////////////////////////////////////
-	// multithreading
+	// multithreading example
+	/*
 	if( // job in parallel process
 		isset($_REQUEST["job"]) &&
 		$_REQUEST["job"] == '1'
@@ -102,6 +103,10 @@ if(
 		);
 		die();
 	}
+	*/
+	////////////////////////////////////////////////////////////////////////
+	
+	
 	
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
 	
@@ -126,7 +131,7 @@ if(
 		
 		
 		//###########################################
-		// CRON Job 1
+		// CRON Job 1 example
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
 		// Job timer
@@ -143,7 +148,8 @@ if(
 		
 
 
-		// CRON Job 1, multithreading
+		// CRON Job 1, multithreading example
+		/*
 		if(!isset($GLOBALS['cron_session']['job1multithreading']['last_update'])) $GLOBALS['cron_session']['job1multithreading']['last_update']= 0;
 
 		// Job timer
@@ -166,6 +172,7 @@ if(
 			$GLOBALS['cron_session']['job1multithreading']['last_update']= time();
 			write_cron_session($fp);
 		}
+		*/
 		
 		
 		// CRON Job 2
