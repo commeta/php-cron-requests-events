@@ -9,7 +9,7 @@ php crontab based on url requests/event-loop
 - В cron/log/cron.log хранит лог, есть ротация логов
 - Работает в отдельном процессе с низким приоритетом 15
 
-## Пример задачи
+## Пример запуска задачи
 ```
 // CRON Job 1
 if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
