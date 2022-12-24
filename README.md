@@ -44,6 +44,7 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 
 Можно подключать данный CRON к любой CMS, это никак не скажется на производительности. 
 ##### Тестовый стенд:
+- Centos 8
 - Apache/2.4.6 mpm-itk/2.4.7-04 mod_fcgid/2.3.9
 - 1 ядро: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 - PHP 7.4.3 with Zend OPcache
