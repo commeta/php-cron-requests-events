@@ -58,8 +58,7 @@ function write_cron_session(& $fp){
 
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == $cron_url_key &&
-	file_exists(CRON_SITE_ROOT.'cron/cron.dat')
+	$_REQUEST["cron"] == $cron_url_key
 ){
 	ignore_user_abort(true);
 	
@@ -182,9 +181,6 @@ if(
 	fclose($fp);
 
 	die();
-} else {
-	if(!is_dir(CRON_SITE_ROOT.'cron')) mkdir(CRON_SITE_ROOT.'cron', 0755);
-	if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 }
 
 if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
@@ -204,6 +200,8 @@ if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
 	} 
 } else {
 	touch(CRON_SITE_ROOT.'cron/cron.dat');
+	mkdir(CRON_SITE_ROOT.'cron', 0755);
+	mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 }
 
 ?>
