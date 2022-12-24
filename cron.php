@@ -22,9 +22,15 @@
  */
  
 ////////////////////////////////////////////////////////////////////////
-// Functions
+// Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
+$cron_delay= 60;
+$cron_log_rotate_max_size= 10 * 1024 * 1024;
+$cron_log_rotate_max_files= 5;
+$cron_url_key= 'Fksn487FLSnmwt';
 
+
+// Functions
 function cron_session_add_event(& $fp, $event){
 	$GLOBALS['cron_session']['finish']= time();
 	$GLOBALS['cron_session']['events'][]= $event;
@@ -53,10 +59,10 @@ if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == 'Fksn487FLSnmwt' &&
+	$_REQUEST["cron"] == $cron_url_key &&
 	file_exists(CRON_SITE_ROOT.'cron/cron.dat')
 ){
-	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + 60 > time()) die();
+	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Init
@@ -95,7 +101,7 @@ if(
 		$cs=unserialize(fread($fp, filesize(CRON_SITE_ROOT.'cron/cron.dat')));
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
-			if((int)$GLOBALS['cron_session']['finish'] + 60 > time()){
+			if((int)$GLOBALS['cron_session']['finish'] + $cron_delay > time()){
 				flock($fp, LOCK_UN);
 				die();
 			}
@@ -104,7 +110,7 @@ if(
 				'finish'=> time()
 			];
 		}
-			
+
 		$GLOBALS['cron_session']['events']= [];
 		write_cron_session($fp);
 
@@ -115,7 +121,7 @@ if(
 
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
-		if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){
+		if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger an event if the time has expired
 			cron_session_add_event($fp, [
 				'date'=> date('m/d/Y H:i:s', time()),
 				'message'=> 'INFO: start cron',
@@ -125,8 +131,16 @@ if(
 			write_cron_session($fp);
 		}
 		
+		
+		// CRON Job 1
+		// CRON Job 2
+		// CRON Job 3
+		// CRON Job 4
+		// CRON Job 5
+		
+		
 		// LOG Rotate
-		if(@filesize(CRON_SITE_ROOT . "cron/log/cron.log") >  10 * 1024 * 1024 / 5) {
+		if(@filesize(CRON_SITE_ROOT . "cron/log/cron.log") >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
 			rename(CRON_SITE_ROOT . "cron/log/cron.log", CRON_SITE_ROOT . "cron/log/cron.log" . "." . time());
 			@file_put_contents(
 				CRON_SITE_ROOT . "cron/log/cron.log", 
@@ -151,7 +165,7 @@ if(
 				}
 			}
 
-			if ($log_files_size > 10 * 1024 * 1024) {
+			if ($log_files_size >  $cron_log_rotate_max_size) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
 					@file_put_contents(
@@ -173,10 +187,10 @@ if(
 }
 
 if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
-	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + 60 < time()){
+	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay < time()){
 		@fclose(
 			@fopen(
-				'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/?cron=Fksn487FLSnmwt", 
+				'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/?cron=" . $cron_url_key, 
 				'r', 
 				false, 
 				stream_context_create([
