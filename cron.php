@@ -53,7 +53,8 @@ if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == 'Fksn487FLSnmwt'
+	$_REQUEST["cron"] == 'Fksn487FLSnmwt' &&
+	file_exists(CRON_SITE_ROOT.'cron/cron.dat')
 ){
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + 60 > time()) die();
 	
