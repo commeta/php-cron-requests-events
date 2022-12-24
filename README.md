@@ -1,7 +1,7 @@
-![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
-
 # php-cron-requests-events
 php crontab based on url requests/event-loop 
+
+![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 
 ## Планировщик CRON
 - Триггером для запуска задач служит запрос через URI
