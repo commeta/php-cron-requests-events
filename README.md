@@ -10,7 +10,7 @@ php crontab based on url requests/event-loop
 - Работает в отдельном процессе с низким приоритетом 15
 
 ## Пример запуска задачи
-В контексте файла /cron/cron.php раздел CRON Job
+В контексте файла cron.php раздел CRON Job
 ```
 // CRON Job 1
 if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
