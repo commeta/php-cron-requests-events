@@ -68,13 +68,13 @@ if(
 	// Init
 	$fp= fopen(CRON_SITE_ROOT.'cron/cron.dat', "r+");
 	if(flock($fp, LOCK_EX)) {
+		ignore_user_abort(true);
+		
 		// check if fastcgi_finish_request is callable
 		if(is_callable('fastcgi_finish_request')) {
 			session_write_close();
 			fastcgi_finish_request();
 		}
-
-		ignore_user_abort(true);
 
 		ob_start();
 		
