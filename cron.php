@@ -190,7 +190,7 @@ if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay < time()){
 		@fclose(
 			@fopen(
-				'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/?cron=" . $cron_url_key, 
+				'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key, 
 				'r', 
 				false, 
 				stream_context_create([
