@@ -25,7 +25,7 @@
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
-$cron_delay= 60; // bug fix! При низких тайм аутах < 5 запускается несколько копий
+$cron_delay= 60;
 $cron_log_rotate_max_size= 10 * 1024 * 1024;
 $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key';
@@ -64,13 +64,14 @@ if(
 	file_exists(CRON_SITE_ROOT.'cron/cron.dat')
 ){
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
+	ignore_user_abort(true);
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////
 	// Init
 	$fp= fopen(CRON_SITE_ROOT.'cron/cron.dat', "r+");
-	if(flock($fp, LOCK_EX)) {
-		ignore_user_abort(true);
-		
+	if(flock($fp, LOCK_EX | LOCK_NB)) {
 		// check if fastcgi_finish_request is callable
 		if(is_callable('fastcgi_finish_request')) {
 			session_write_close();
@@ -133,7 +134,7 @@ if(
 			write_cron_session($fp);
 		}
 		
-		
+
 		// CRON Job 1
 		// CRON Job 2
 		// CRON Job 3
