@@ -25,10 +25,10 @@
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
-$cron_delay= 60;
-$cron_log_rotate_max_size= 10 * 1024 * 1024;
+$cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
+$cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
 $cron_log_rotate_max_files= 5;
-$cron_url_key= 'my_secret_key';
+$cron_url_key= 'my_secret_key'; // change this!
 
 
 // Functions
@@ -46,7 +46,7 @@ function cron_session_add_event(& $fp, $event){
 
 
 
-function write_cron_session(& $fp){
+function write_cron_session(& $fp){ 
 	$serialized= serialize($GLOBALS['cron_session']);
 
 	rewind($fp);
@@ -55,52 +55,47 @@ function write_cron_session(& $fp){
 	fflush($fp);
 }
 
-if(!is_dir(CRON_SITE_ROOT.'cron')) mkdir(CRON_SITE_ROOT.'cron', 0755);
-if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 
 if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] == $cron_url_key &&
 	file_exists(CRON_SITE_ROOT.'cron/cron.dat')
 ){
-	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
 	ignore_user_abort(true);
 	
+	// check if fastcgi_finish_request is callable
+	if(is_callable('fastcgi_finish_request')) {
+		session_write_close();
+		fastcgi_finish_request();
+	}
+
+	ob_start();
+	
+	header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
+	header('Content-Encoding: none');
+	header('Content-Length: '.ob_get_length());
+	header('Connection: close');
+
+	ob_end_flush();
+	ob_flush();
+	flush();
+
+	if (is_callable('proc_nice')) {
+		proc_nice(15);
+	}
+
+	set_time_limit(600);
+	ini_set('MAX_EXECUTION_TIME', 600);
+	
+	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
 	
 	
 	////////////////////////////////////////////////////////////////////////
 	// Init
 	$fp= fopen(CRON_SITE_ROOT.'cron/cron.dat', "r+");
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		// check if fastcgi_finish_request is callable
-		if(is_callable('fastcgi_finish_request')) {
-			session_write_close();
-			fastcgi_finish_request();
-		}
-
-		ob_start();
-		
-		header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
-		header('Content-Encoding: none');
-		header('Content-Length: '.ob_get_length());
-		header('Connection: close');
-
-		ob_end_flush();
-		ob_flush();
-		flush();
-
-		if (is_callable('proc_nice')) {
-			proc_nice(15);
-		}
-
-		set_time_limit(600);
-		ini_set('MAX_EXECUTION_TIME', 600);
-
-
-		//###########################################
-		// Session init
-		
 		$cs=unserialize(fread($fp, filesize(CRON_SITE_ROOT.'cron/cron.dat')));
+		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
 		} else {
@@ -116,25 +111,30 @@ if(
 
 		//###########################################
 		// CRON Job 1
-
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
-		if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger an event if the time has expired
+		// Job timer
+		if($GLOBALS['cron_session']['job1']['last_update'] + 60 * 60 * 24 < time() ){ // Trigger an event if the time has expired, in seconds
 			cron_session_add_event($fp, [
 				'date'=> date('m/d/Y H:i:s', time()),
 				'message'=> 'INFO: start cron',
 			]);
 
+			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
 			$GLOBALS['cron_session']['job1']['last_update']= time();
 			write_cron_session($fp);
 		}
 		
+
 
 		// CRON Job 1
 		// CRON Job 2
 		// CRON Job 3
 		// CRON Job 4
 		// CRON Job 5
+		
+
+		//###########################################
 		
 		
 		// LOG Rotate
@@ -182,6 +182,9 @@ if(
 	fclose($fp);
 
 	die();
+} else {
+	if(!is_dir(CRON_SITE_ROOT.'cron')) mkdir(CRON_SITE_ROOT.'cron', 0755);
+	if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
 }
 
 if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
