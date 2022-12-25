@@ -38,6 +38,7 @@ $cron_url_key= 'my_secret_key'; // change this!
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
+
 /*
 @file_put_contents(
 	CRON_LOG_FILE, 
@@ -79,9 +80,7 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
 	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
-	
 	$wget= false;
-	
 	if(strtolower(PHP_OS) == 'linux') {
 		foreach(explode(':', getenv('PATH')) as $path){
 			if(is_executable($path.'/wget')) {
@@ -185,6 +184,44 @@ function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){
 }
 
 
+function multithreading_dispatcher(){
+	// Dispatcher init
+	$dat_file= rtrim(CRON_DAT_FILE, 'cron.dat') . md5($_GET["job"]) . '.dat';
+	
+	touch($dat_file);
+	$fp= fopen($dat_file, "r+");
+	
+	if(flock($fp, LOCK_EX | LOCK_NB)) {
+		$cs=unserialize(fread($fp, filesize($dat_file)));
+			
+		if(is_array($cs) ){
+			$GLOBALS['cron_session']= $cs;
+		} else {
+			$GLOBALS['cron_session']= [
+				'finish'=> time()
+			];
+		}
+
+		write_cron_session($fp);
+	
+		file_put_contents(
+			CRON_LOG_FILE,
+			date('m/d/Y H:i:s', time()) . " INFO: cron multithreading event\n",
+			FILE_APPEND | LOCK_EX
+		);
+
+		// Example: include connector
+		// include('hello_world_cron.php');
+ 
+ 
+		// END Job
+		flock($fp, LOCK_UN);
+	}
+
+	fclose($fp);
+	die();
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -198,49 +235,18 @@ if(
 
 
 	////////////////////////////////////////////////////////////////////////
-	// multithreading example job = job2multithreading
-
-	/*
+	// multithreading 
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
-		isset($_GET["job"]) &&
-		$_GET["job"] == 'job2multithreading'
+		isset($_GET["job"])
 	){
-		// Dispatcher init
-		touch(CRON_DAT_FILE . md5($_GET["job"]));
-		
-		$fp= fopen(CRON_DAT_FILE . md5($_GET["job"]), "r+");
-		if(flock($fp, LOCK_EX | LOCK_NB)) {
-			$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE . md5($_GET["job"]))));
+		switch($_GET["job"]){ 
+			// example job = job2multithreading
+			case 'job2multithreading':
+				multithreading_dispatcher();
+			break;
 			
-			if(is_array($cs) ){
-				$GLOBALS['cron_session']= $cs;
-			} else {
-				$GLOBALS['cron_session']= [
-					'finish'=> time()
-				];
-			}
-
-			write_cron_session($fp);
-		
-			file_put_contents(
-				CRON_LOG_FILE,
-				date('m/d/Y H:i:s', time()) . " INFO: cron multithreading event\n",
-				FILE_APPEND | LOCK_EX
-			);
-
-			// Example: include connector
-			// include('hello_world_cron.php');
- 
- 
- 
-			// END Job
-			flock($fp, LOCK_UN);
-		}
-
-		fclose($fp);
-		die();
+		}				
 	}
-	*/
 	////////////////////////////////////////////////////////////////////////
 	
 	
@@ -249,7 +255,9 @@ if(
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
+	touch(CRON_DAT_FILE);
 	$fp= fopen(CRON_DAT_FILE, "r+");
+	
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
 		$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE)));
 		
@@ -290,17 +298,15 @@ if(
 
 		//###########################################
 		// CRON Job 2, multithreading example
-		/*
 		if(!isset($GLOBALS['cron_session']['job2multithreading']['last_update'])) $GLOBALS['cron_session']['job2multithreading']['last_update']= 0;
 
 		// Job timer
 		if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 < time() ){
-			open_cron_socket($cron_url_key, 'job2multithreading');  // start multithreading example job = 2
+			open_cron_socket($cron_url_key, 'job2multithreading');  // start multithreading example
 
 			$GLOBALS['cron_session']['job2multithreading']['last_update']= time();
 			write_cron_session($fp);
 		}
-		*/
 		
 		//###########################################
 		// CRON Job 2
