@@ -36,6 +36,22 @@ $cron_url_key= 'my_secret_key'; // change this!
 
 
 ////////////////////////////////////////////////////////////////////////
+// Debug
+/*
+@file_put_contents(
+	CRON_LOG_FILE, 
+	microtime() . " INFO: start  microtime:" . 
+		print_r([
+			$_SERVER['QUERY_STRING'], 
+			$_SERVER['SERVER_NAME'], 
+			$_SERVER['REQUEST_METHOD'], 
+			$_SERVER['REQUEST_URI']
+		] , true) . " \n",
+	FILE_APPEND | LOCK_EX
+);
+*/
+
+////////////////////////////////////////////////////////////////////////
 // Functions
 function cron_session_add_event(& $fp, $event){
 	$GLOBALS['cron_session']['finish']= time();
@@ -72,7 +88,6 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 			}
 		}
 	}
-	
 	
 	if(
 		is_callable("shell_exec") &&
@@ -224,7 +239,7 @@ if(
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
 		// Job timer
-		if($GLOBALS['cron_session']['job1']['last_update'] + 60 * 60 * 24 < time() ){ // Trigger an event if the time has expired, in seconds
+		if($GLOBALS['cron_session']['job1']['last_update'] + 60 * 60 * 24  < time() ){ // Trigger an event if the time has expired, in seconds
 			cron_session_add_event($fp, [
 				'date'=> date('m/d/Y H:i:s', time()),
 				'message'=> 'INFO: start cron',
