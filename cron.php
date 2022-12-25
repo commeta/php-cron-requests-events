@@ -59,8 +59,6 @@ function write_cron_session(& $fp){
 }
 
 function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in parallel process
-	if(mb_stripos($_SERVER['HTTP_USER_AGENT'], 'wget') !== false && $_REQUEST["cron"] != $cron_url_key) die();
-
 	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
 	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 	
