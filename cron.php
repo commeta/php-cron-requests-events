@@ -248,6 +248,7 @@ if(
 			// example job, set name process_id, 0 to count processor cores
 			default:
 				$process_id= intval($_GET["job"]);
+				if(!$process_id) $process_id= 0;
 				if($process_id > 3) die(); // Max count processor cores
 				
 				$_GET["job"]= $process_id;
