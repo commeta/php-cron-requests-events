@@ -31,6 +31,9 @@ $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key'; // change this!
 
 
+//if(ini_get("auto_append_file") == "cron.php"){}
+
+
 // Functions
 function cron_session_add_event(& $fp, $event){
 	$GLOBALS['cron_session']['finish']= time();
@@ -53,6 +56,24 @@ function write_cron_session(& $fp){
 	fwrite($fp, $serialized);
 	ftruncate($fp, mb_strlen($serialized));
 	fflush($fp);
+}
+
+
+function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in parallel process
+	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
+	
+	@fclose( 
+		@fopen(
+			'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key, 
+			'r', 
+			false, 
+			stream_context_create([
+				'http'=>[
+					'timeout' => 0.04
+				]
+			])
+		)
+	);
 }
 
 
@@ -154,19 +175,7 @@ if(
 
 		// Job timer
 		if($GLOBALS['cron_session']['job1multithreading']['last_update'] + 60 * 60 * 24 < time() ){ // Trigger an event if the time has expired, in seconds
-			
-			@fclose( // Start job in parallel process
-				@fopen(
-					'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key . "&job=1", 
-					'r', 
-					false, 
-					stream_context_create([
-						'http'=>[
-							'timeout' => 0.04
-						]
-					])
-				)
-			);
+			open_cron_socket($cron_url_key, '1');  // start multithreading example job = 1
 
 			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
 			$GLOBALS['cron_session']['job1multithreading']['last_update']= time();
@@ -233,18 +242,7 @@ if(
 
 if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
 	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay < time()){
-		@fclose(
-			@fopen(
-				'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key, 
-				'r', 
-				false, 
-				stream_context_create([
-					'http'=>[
-						'timeout' => 0.04
-					]
-				])
-			)
-		);
+		open_cron_socket($cron_url_key);
 	} 
 } else {
 	mkdir(CRON_SITE_ROOT.'cron', 0755);
