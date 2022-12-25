@@ -40,7 +40,7 @@ $cron_url_key= 'my_secret_key'; // change this!
 /*
 @file_put_contents(
 	CRON_LOG_FILE, 
-	microtime() . " INFO: start  microtime:" . 
+	microtime() . " DEBUG: start  microtime:" . 
 		print_r([
 			$_SERVER['QUERY_STRING'], 
 			$_SERVER['SERVER_NAME'], 
@@ -196,7 +196,7 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// multithreading example job = 2
 	/*
-	if( // job in parallel process
+	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_REQUEST["job"]) &&
 		$_REQUEST["job"] == '2'
 	){
@@ -205,6 +205,10 @@ if(
 			date('m/d/Y H:i:s', time()) . " INFO: cron multithreading event\n",
 			FILE_APPEND | LOCK_EX
 		);
+
+		// Example: include connector
+		// include('hello_world_cron.php');
+ 
 		die();
 	}
 	*/
@@ -215,7 +219,7 @@ if(
 	if(filemtime(CRON_DAT_FILE) + $cron_delay > time()) die();
 	
 	////////////////////////////////////////////////////////////////////////
-	// Init
+	// Dispatcher init
 	$fp= fopen(CRON_DAT_FILE, "r+");
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
 		$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE)));
@@ -244,6 +248,10 @@ if(
 				'date'=> date('m/d/Y H:i:s', time()),
 				'message'=> 'INFO: start cron',
 			]);
+
+			// Example: include connector
+			// include('hello_world_cron.php');
+
 
 			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
 			$GLOBALS['cron_session']['job1']['last_update']= time();
