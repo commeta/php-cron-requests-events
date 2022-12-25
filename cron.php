@@ -68,6 +68,7 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 		foreach(explode(':', getenv('PATH')) as $path){
 			if(is_executable($path.'/wget')) {
 				$wget= $path.'/wget';
+				break 1;
 			}
 		}
 	}
@@ -110,9 +111,9 @@ function fcgi_finish_request(){
 	header('Content-Length: '.ob_get_length());
 	header('Connection: close');
 
-	ob_end_flush();
-	ob_flush();
-	flush();
+	@ob_end_flush();
+	@ob_flush();
+	@flush();
 }
 
 function init_background_cron(){
