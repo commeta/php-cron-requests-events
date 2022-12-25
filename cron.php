@@ -250,7 +250,7 @@ if(
 				$process_id= intval($_GET["job"]);
 				if($process_id > 3) die(); // Max count processor cores
 				
-				$_GET["job"]= intval($_GET["job"]);
+				$_GET["job"]= $process_id;
 				multithreading_dispatcher();
 		}				
 	}
