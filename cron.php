@@ -27,7 +27,8 @@ define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVE
 define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
 define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat");
 
-
+// Callback script, start in job1
+// define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php");
 
 $cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
 $cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
@@ -250,7 +251,7 @@ if(
 			]);
 
 			// Example: include connector
-			// include('hello_world_cron.php');
+			// include(CRON_CALLBACK_PHP_FILE);
 
 
 			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
