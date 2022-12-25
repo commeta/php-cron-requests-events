@@ -3,6 +3,13 @@ php crontab, based on url requests/event-loop, work in background, ready multith
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 
+## Описание
+- Реализация php планировщика с использованием url запросов в качестве триггера событий. 
+- Работает в мультипоточном режиме, не создает нагрузки на сервер.
+- Можно подключать данный CRON к любой CMS, это никак не скажется на производительности.
+- Позволяет выполнять задачи расходующие много ресурсов с низким приоритетом. 
+- Работает в контексте окружения веб сервера, не использует системный CRON.
+
 ## Планировщик CRON
 - Триггером для запуска задач служит запрос через URI
 - Подключается в корневом index.php одной строчкой include('cron.php');
@@ -14,7 +21,7 @@ php crontab, based on url requests/event-loop, work in background, ready multith
 - Предотвращает запуск процесса если предыдущий не завершен
 - Минимальные системные требования: PHP 5.2.1
 
-## Пример запуска задачи
+### Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
 ```
 // CRON Job 1
@@ -38,7 +45,7 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 - cron_session_add_event сохраняет в логе запись
 - write_cron_session сохраняет переменные в файл
 
-## Параметры запуска
+### Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
 - define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat"); // Путь к системному файлу диспетчера потока
 - define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php"); // Путь для PHP callback коннектора
@@ -47,7 +54,7 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 - $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
 - $cron_url_key= 'my_secret_key'; // Ключ запуска в URI
 
-## Потребление ресурсов
+### Потребление ресурсов
 Управляющий задачами процесс, запускается в фоновом режиме с использованием механизма сетевых запросов. cron.php работает в 4-х режимах:
 1. Режим проверки тайм-аута расписания (пока время не вышло) 
 - 328 байт оперативной памяти 0.0004 секунды.
