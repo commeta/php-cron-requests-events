@@ -25,9 +25,9 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
     'date'=> date('m/d/Y H:i:s', time()),
     'message'=> 'INFO: start cron',
   ]);
-
-	// Example: include connector
-	// include(CRON_CALLBACK_PHP_FILE);
+  
+  // Example: include connector
+  // include(CRON_CALLBACK_PHP_FILE);
       
   $GLOBALS['cron_session']['job1']['last_update']= time();
   write_cron_session($fp);
