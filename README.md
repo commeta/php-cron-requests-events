@@ -41,6 +41,7 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 ## Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
 - define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat"); // Путь к системному файлу диспетчера потока
+- define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php"); // Путь для PHP callback коннектора
 - $cron_delay= 60; // Тайм аут до следующего запуска в секундах
 - $cron_log_rotate_max_size= 10 * 1024 * 1024; // Максимальный размер логов в МБ
 - $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
