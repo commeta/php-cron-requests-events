@@ -24,6 +24,10 @@
 ////////////////////////////////////////////////////////////////////////
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
+define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
+define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat");
+
+
 
 $cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
 $cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
@@ -31,9 +35,7 @@ $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key'; // change this!
 
 
-//if(ini_get("auto_append_file") == "cron.php"){}
-
-
+////////////////////////////////////////////////////////////////////////
 // Functions
 function cron_session_add_event(& $fp, $event){
 	$GLOBALS['cron_session']['finish']= time();
@@ -41,13 +43,11 @@ function cron_session_add_event(& $fp, $event){
 	write_cron_session($fp);
 
 	file_put_contents(
-		CRON_SITE_ROOT . "cron/log/cron.log",
+		CRON_LOG_FILE,
 		implode(' ', $event) . "\n",
 		FILE_APPEND | LOCK_EX
 	);
 }
-
-
 
 function write_cron_session(& $fp){ 
 	$serialized= serialize($GLOBALS['cron_session']);
@@ -57,7 +57,6 @@ function write_cron_session(& $fp){
 	ftruncate($fp, mb_strlen($serialized));
 	fflush($fp);
 }
-
 
 function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in parallel process
 	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
@@ -74,15 +73,13 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 			])
 		)
 	);
+	
+	// Test curl_multi time start
+	//if(ini_get("auto_append_file") == "cron.php"){}
+	//if(is_callable("curl_multi_init")){}
 }
 
-
-if(
-	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == $cron_url_key
-){
-	ignore_user_abort(true);
-	
+function fcgi_finish_request(){
 	// check if fastcgi_finish_request is callable
 	if(is_callable('fastcgi_finish_request')) {
 		session_write_close();
@@ -99,6 +96,11 @@ if(
 	ob_end_flush();
 	ob_flush();
 	flush();
+}
+
+function init_background_cron(){
+	ignore_user_abort(true);
+	fcgi_finish_request();
 
 	if (is_callable('proc_nice')) {
 		proc_nice(15);
@@ -106,20 +108,68 @@ if(
 
 	set_time_limit(600);
 	ini_set('MAX_EXECUTION_TIME', 600);
+}
+
+function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
+	if(@filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
+		rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
+		@file_put_contents(
+			CRON_LOG_FILE, 
+			date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
+			FILE_APPEND | LOCK_EX
+		);
+			
+		$the_oldest = time();
+		$log_old_file = '';
+		$log_files_size = 0;
+					
+		foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
+			$log_files_size+= filesize($file_log_rotate);
+			if ($file_log_rotate == CRON_LOG_FILE) {
+				continue;
+			}
+				
+			$log_mtime = filectime($file_log_rotate);
+			if ($log_mtime < $the_oldest) {
+				$log_old_file = $file_log_rotate;
+				$the_oldest = $log_mtime;
+			}
+		}
+
+		if ($log_files_size >  $cron_log_rotate_max_size) {
+			if (file_exists($log_old_file)) {
+				unlink($log_old_file);
+				@file_put_contents(
+					CRON_LOG_FILE, 
+					date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
+					FILE_APPEND | LOCK_EX
+				);
+			}
+		}
+	}
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+// start in background
+if(
+	isset($_REQUEST["cron"]) &&
+	$_REQUEST["cron"] == $cron_url_key
+){
+	init_background_cron();
 	
 	////////////////////////////////////////////////////////////////////////
-	// multithreading example
+	// multithreading example job = 2
 	/*
 	if( // job in parallel process
 		isset($_REQUEST["job"]) &&
-		$_REQUEST["job"] == '1'
+		$_REQUEST["job"] == '2'
 	){
 		file_put_contents(
-			CRON_SITE_ROOT . "cron/log/cron.log",
-			implode(' ',  [
-				'date'=> date('m/d/Y H:i:s', time()),
-				'message'=> 'INFO: cron multithreading event',
-			]) . "\n",
+			CRON_LOG_FILE,
+			date('m/d/Y H:i:s', time()) . " INFO: cron multithreading event\n",
 			FILE_APPEND | LOCK_EX
 		);
 		die();
@@ -129,13 +179,13 @@ if(
 	
 	
 	
-	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay > time()) die();
+	if(filemtime(CRON_DAT_FILE) + $cron_delay > time()) die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Init
-	$fp= fopen(CRON_SITE_ROOT.'cron/cron.dat', "r+");
+	$fp= fopen(CRON_DAT_FILE, "r+");
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs=unserialize(fread($fp, filesize(CRON_SITE_ROOT.'cron/cron.dat')));
+		$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
@@ -148,11 +198,11 @@ if(
 		$GLOBALS['cron_session']['events']= [];
 		write_cron_session($fp);
 		
-		if(!is_dir(CRON_SITE_ROOT.'cron/log')) mkdir(CRON_SITE_ROOT.'cron/log', 0755);
+		if(!is_dir(dirname(CRON_LOG_FILE))) mkdir(dirname(CRON_LOG_FILE), 0755);
 		
 		
 		//###########################################
-		// CRON Job 1 example
+		// CRON Job 1, example
 		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
 		// Job timer
@@ -168,68 +218,36 @@ if(
 		}
 		
 
-
-		// CRON Job 1, multithreading example
+		//###########################################
+		// CRON Job 2, multithreading example
 		/*
-		if(!isset($GLOBALS['cron_session']['job1multithreading']['last_update'])) $GLOBALS['cron_session']['job1multithreading']['last_update']= 0;
+		if(!isset($GLOBALS['cron_session']['job2multithreading']['last_update'])) $GLOBALS['cron_session']['job2multithreading']['last_update']= 0;
 
 		// Job timer
-		if($GLOBALS['cron_session']['job1multithreading']['last_update'] + 60 * 60 * 24 < time() ){ // Trigger an event if the time has expired, in seconds
-			open_cron_socket($cron_url_key, '1');  // start multithreading example job = 1
+		if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 < time() ){
+			open_cron_socket($cron_url_key, '2');  // start multithreading example job = 2
 
-			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
-			$GLOBALS['cron_session']['job1multithreading']['last_update']= time();
+			$GLOBALS['cron_session']['job2multithreading']['last_update']= time();
 			write_cron_session($fp);
 		}
 		*/
 		
-		
+		//###########################################
 		// CRON Job 2
+		
+		//###########################################
 		// CRON Job 3
+		
+		//###########################################
 		// CRON Job 4
+		
+		//###########################################
 		// CRON Job 5
 		
-
 		//###########################################
 		
+		cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files);
 		
-		// LOG Rotate
-		if(@filesize(CRON_SITE_ROOT . "cron/log/cron.log") >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
-			rename(CRON_SITE_ROOT . "cron/log/cron.log", CRON_SITE_ROOT . "cron/log/cron.log" . "." . time());
-			@file_put_contents(
-				CRON_SITE_ROOT . "cron/log/cron.log", 
-				date('m/d/Y H:i:s',time()) . "INFO: log rotate\n", 
-				FILE_APPEND | LOCK_EX
-			);
-			
-			$the_oldest = time();
-			$log_old_file = '';
-			$log_files_size = 0;
-					
-			foreach(glob(CRON_SITE_ROOT . "cron/log/cron.log" . '*') as $file_log_rotate){
-				$log_files_size+= filesize($file_log_rotate);
-				if ($file_log_rotate == CRON_SITE_ROOT . "cron/log/cron.log") {
-					continue;
-				}
-				
-				$log_mtime = filectime($file_log_rotate);
-				if ($log_mtime < $the_oldest) {
-					$log_old_file = $file_log_rotate;
-					$the_oldest = $log_mtime;
-				}
-			}
-
-			if ($log_files_size >  $cron_log_rotate_max_size) {
-				if (file_exists($log_old_file)) {
-					unlink($log_old_file);
-					@file_put_contents(
-						CRON_SITE_ROOT . "cron/log/cron.log", 
-						date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
-						FILE_APPEND | LOCK_EX
-					);
-				}
-			}
-		}
 		
 		// END Jobs
 		flock($fp, LOCK_UN);
@@ -240,13 +258,16 @@ if(
 	die();
 }
 
-if(file_exists(CRON_SITE_ROOT.'cron/cron.dat')){
-	if(filemtime(CRON_SITE_ROOT.'cron/cron.dat') + $cron_delay < time()){
+
+////////////////////////////////////////////////////////////////////////
+// check time out to start in background 
+if(file_exists(CRON_DAT_FILE)){
+	if(filemtime(CRON_DAT_FILE) + $cron_delay < time()){
 		open_cron_socket($cron_url_key);
 	} 
 } else {
-	mkdir(CRON_SITE_ROOT.'cron', 0755);
-	touch(CRON_SITE_ROOT.'cron/cron.dat');
+	mkdir(dirname(CRON_DAT_FILE), 0755);
+	touch(CRON_DAT_FILE);
 }
 
 ?>
