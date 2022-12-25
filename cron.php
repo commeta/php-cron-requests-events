@@ -60,23 +60,36 @@ function write_cron_session(& $fp){
 
 function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in parallel process
 	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
+	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 	
-	@fclose( 
-		@fopen(
-			'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/cron.php?cron=" . $cron_url_key, 
-			'r', 
-			false, 
-			stream_context_create([
-				'http'=>[
-					'timeout' => 0.04
-				]
-			])
-		)
-	);
+	$wget= false;
+	if(strtolower(PHP_OS) == 'linux') {
+		foreach(explode(':', getenv('PATH')) as $path){
+			if(is_executable($path.'/wget')) {
+				$wget= $path.'/wget';
+			}
+		}
+	}
 	
-	// Test curl_multi time start
-	//if(ini_get("auto_append_file") == "cron.php"){}
-	//if(is_callable("curl_multi_init")){}
+	if(
+		is_callable("shell_exec") &&
+		$wget
+	){
+		shell_exec($wget . ' --delete-after -q ' . $cron_url . " > /dev/null &");
+	} else {
+		@fclose( 
+			@fopen(
+				$cron_url, 
+				'r', 
+				false, 
+				stream_context_create([
+					'http'=>[
+						'timeout' => 0.04
+					]
+				])
+			)
+		);
+	}
 }
 
 function fcgi_finish_request(){
@@ -86,6 +99,8 @@ function fcgi_finish_request(){
 		fastcgi_finish_request();
 	}
 
+	while(ob_get_level()) ob_end_clean();
+	
 	ob_start();
 	
 	header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
