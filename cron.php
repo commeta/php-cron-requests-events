@@ -206,11 +206,11 @@ if(
 		$_GET["job"] == 'job2multithreading'
 	){
 		// Dispatcher init
-		touch(CRON_DAT_FILE . $_REQUEST["job"]);
+		touch(CRON_DAT_FILE . $_GET["job"]);
 		
-		$fp= fopen(CRON_DAT_FILE . $_REQUEST["job"], "r+");
+		$fp= fopen(CRON_DAT_FILE . $_GET["job"], "r+");
 		if(flock($fp, LOCK_EX | LOCK_NB)) {
-			$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE . $_REQUEST["job"])));
+			$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE . $_GET["job"])));
 			
 			if(is_array($cs) ){
 				$GLOBALS['cron_session']= $cs;
