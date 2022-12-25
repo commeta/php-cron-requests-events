@@ -25,7 +25,9 @@ php crontab, based on url requests/event-loop, work in background, ready multith
 В контексте файла cron.php раздел CRON Job
 ```
 // CRON Job 1
-if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
+if(
+  !isset($GLOBALS['cron_session']['job1']['last_update'])
+) $GLOBALS['cron_session']['job1']['last_update']= 0;
 
 if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger an event if the time has expired
   cron_session_add_event($fp, [
@@ -44,6 +46,27 @@ if($GLOBALS['cron_session']['job1']['last_update'] + 60 < time() ){ // Trigger a
 - Запускает задачу если с последнего запуска прошло более 60 секунд
 - cron_session_add_event сохраняет в логе запись
 - write_cron_session сохраняет переменные в файл
+
+
+#### Мультипоточный пример
+```
+// CRON Job 2, multithreading example
+if(
+  !isset($GLOBALS['cron_session']['job2multithreading']['last_update'])
+) $GLOBALS['cron_session']['job2multithreading']['last_update']= 0;
+
+// Job timer
+if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 < time() ){
+	open_cron_socket($cron_url_key, 'job2multithreading');  // start multithreading example
+
+	$GLOBALS['cron_session']['job2multithreading']['last_update']= time();
+	write_cron_session($fp);
+}
+```
+- open_cron_socket($cron_url_key, 'job2multithreading'); Запустит задачу job2multithreading в отдельном процессе
+- в диспетчере multithreading_dispatcher() реализован механизм обработки сессии
+- позволяет (в зависимости от количества доступных ядер процессора) запустить несколько параллельных задач
+
 
 ### Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
