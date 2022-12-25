@@ -63,6 +63,7 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 	
 	$wget= false;
+	/*
 	if(strtolower(PHP_OS) == 'linux') {
 		foreach(explode(':', getenv('PATH')) as $path){
 			if(is_executable($path.'/wget')) {
@@ -70,6 +71,7 @@ function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in para
 			}
 		}
 	}
+	*/
 	
 	if(
 		is_callable("shell_exec") &&
