@@ -212,7 +212,7 @@ function multithreading_dispatcher(){
 
 		// Example: include connector
 		// include('hello_world_cron.php');
- 
+		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["job"] . ".php");
  
 		// END Job
 		flock($fp, LOCK_UN);
@@ -245,6 +245,13 @@ if(
 				multithreading_dispatcher();
 			break;
 			
+			// example job, set name process_id, 0 to count processor cores
+			default:
+				$process_id= intval($_GET["job"]);
+				if($process_id > 3) die(); // Max count processor cores
+				
+				$_GET["job"]= intval($_GET["job"]);
+				multithreading_dispatcher();
 		}				
 	}
 	////////////////////////////////////////////////////////////////////////
@@ -309,7 +316,10 @@ if(
 		}
 		
 		//###########################################
-		// CRON Job 2
+		// CRON Job 3, multithreading example, loading 4 core
+		// for($i=0; $i<4; $i++) open_cron_socket($cron_url_key, $i);  // start multithreading example, in the loop
+		
+		
 		
 		//###########################################
 		// CRON Job 3
