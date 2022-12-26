@@ -15,12 +15,9 @@
 	FILE_APPEND | LOCK_EX
 );
 
-// Save sesson variables, in Job name context, autoload in next start session
+// Auto saved sesson variables, in Job name context (multithreading), autoload in next start session
 if(isset($GLOBALS['cron_session']['start_counter'])){
 	$GLOBALS['cron_session']['start_counter']++;
 } else {
 	$GLOBALS['cron_session']['start_counter']= 0;
-}
-
-write_cron_session($fp); 
 ?>
