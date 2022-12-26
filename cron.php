@@ -25,7 +25,8 @@
 // Variables
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
-define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat");
+define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat");
+
 
 // Callback script, start in job1
 // define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php");
@@ -280,7 +281,7 @@ if(
 		$GLOBALS['cron_session']['events']= [];
 		write_cron_session($fp);
 		
-		if(!is_dir(dirname(CRON_LOG_FILE))) mkdir(dirname(CRON_LOG_FILE), 0755);
+		if(!is_dir(dirname(CRON_LOG_FILE))) mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		
 		
 		//###########################################
@@ -353,8 +354,10 @@ if(file_exists(CRON_DAT_FILE)){
 		open_cron_socket($cron_url_key);
 	} 
 } else {
-	mkdir(dirname(CRON_DAT_FILE), 0755);
+	mkdir(dirname(CRON_DAT_FILE), 0755, true);
 	touch(CRON_DAT_FILE);
+	mkdir(dirname(CRON_LOG_FILE), 0755, true);
+	touch(CRON_LOG_FILE);
 }
 
 ?>
