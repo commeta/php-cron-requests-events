@@ -13,9 +13,9 @@ php crontab, based on url requests/event-loop, work in background, ready multith
 ## Планировщик CRON
 - Триггером для запуска задач служит запрос через URI
 - Подключается в корневом index.php одной строчкой include('cron.php');
-- Альтернативный режим подключения в файле .htaccess добавить строку: php_value auto_append_file "cron.php"
-- Создает в корне сайта подкаталоги cron и cron/log
-- При первом запуске создает cron/cron.dat в нем хранит переменные между запусками
+- Альтернативный режим подключения: в файле .htaccess добавить строку: php_value auto_append_file "cron.php"
+- Создает в корне сайта подкаталоги cron/dat и cron/log
+- При первом запуске создает cron/dat/cron.dat в нем хранит переменные между запусками
 - В cron/log/cron.log хранит лог, есть ротация логов
 - Работает в отдельном процессе с низким приоритетом 15
 - Предотвращает запуск процесса если предыдущий не завершен
@@ -70,8 +70,8 @@ if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 
 
 ### Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
-- define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/cron.dat"); // Путь к системному файлу диспетчера потока
-- define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php"); // Путь для PHP callback коннектора
+- define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
+- define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_cron.php"); // Путь для PHP callback коннектора
 - $cron_delay= 60; // Тайм аут до следующего запуска в секундах
 - $cron_log_rotate_max_size= 10 * 1024 * 1024; // Максимальный размер логов в МБ
 - $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
