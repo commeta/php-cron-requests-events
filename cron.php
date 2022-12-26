@@ -76,8 +76,8 @@ function write_cron_session(& $fp){
 	fflush($fp);
 }
 
-function open_cron_socket($cron_url_key, $cron_job= false){ // Start job in parallel process
-	if($cron_job) $cron_url_key= $cron_url_key . '&job=' . $cron_job;
+function open_cron_socket($cron_url_key, $process_id= false){ // Start job in parallel process
+	if($process_id !== false) $cron_url_key.= '&process_id=' . $process_id;
 	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
 	$wget= false;
@@ -186,7 +186,7 @@ function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){
 
 function multithreading_dispatcher(){
 	// Dispatcher init
-	$dat_file= rtrim(CRON_DAT_FILE, 'cron.dat') . md5($_GET["job"]) . '.dat';
+	$dat_file= rtrim(CRON_DAT_FILE, 'cron.dat') . $_GET["process_id"] . '.dat';
 	
 	touch($dat_file);
 	$fp= fopen($dat_file, "r+");
@@ -212,7 +212,7 @@ function multithreading_dispatcher(){
 
 		// Example: include connector
 		// include('hello_world_cron.php');
-		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["job"] . ".php");
+		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["process_id"] . ".php");
  
 		// END Job
 		flock($fp, LOCK_UN);
@@ -237,9 +237,9 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// multithreading 
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
-		isset($_GET["job"])
+		isset($_GET["process_id"])
 	){
-		switch($_GET["job"]){ 
+		switch($_GET["process_id"]){ 
 			// example job = job2multithreading
 			case 'job2multithreading':
 				multithreading_dispatcher();
@@ -247,11 +247,11 @@ if(
 			
 			// example job, set name process_id, 0 to count processor cores
 			default:
-				$process_id= intval($_GET["job"]);
+				$process_id= intval($_GET["process_id"]);
 				if(!$process_id) $process_id= 0;
 				if($process_id > 3) die(); // Max count processor cores
 				
-				$_GET["job"]= $process_id;
+				$_GET["process_id"]= $process_id;
 				multithreading_dispatcher();
 		}				
 	}
