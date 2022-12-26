@@ -21,22 +21,42 @@
  * 
  */
  
+ ////////////////////////////////////////////////////////////////////////
+// Jobs
+define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
+
+
+$GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
+	'name' => 'job1',
+	'interval' => 60 * 60 * 24, // 1 start in 24 hours
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'multithreading' => false,
+	'workers' => 0
+];
+
+$GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
+	'name' => 'job2multithreading',
+	'interval' => 60 * 60 * 24, // 1 start in 24 hours
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php",
+	'multithreading' => true,
+];
+
+ 
+ 
+ 
+ 
+ 
 ////////////////////////////////////////////////////////////////////////
 // Variables
-define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
 define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat");
 
-// Callback script, start in job1
-define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_cron.php");
-
-// Callback script, start in job2 multithreading
-define("CRON_CALLBACK_MULTITHREADING_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php");
-
-$cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
+$cron_delay= 10; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
 $cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
 $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key'; // change this!
+
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -206,25 +226,32 @@ function multithreading_dispatcher(){
 		}
 
 		write_cron_session($fp);
-	
 
-		// include connector
-		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["process_id"] . ".php");
-		if(file_exists(CRON_CALLBACK_MULTITHREADING_PHP_FILE)) {
-			include CRON_CALLBACK_MULTITHREADING_PHP_FILE;
-			
-			file_put_contents(
-				CRON_LOG_FILE,
-				date('m/d/Y H:i:s', time()) . " INFO: include CRON_CALLBACK_MULTITHREADING_PHP_FILE event\n",
-				FILE_APPEND | LOCK_EX
-			);
-		} else {
-			file_put_contents(
-				CRON_LOG_FILE,
-				date('m/d/Y H:i:s', time()) . " EROR: include CRON_CALLBACK_MULTITHREADING_PHP_FILE not found!\n",
-				FILE_APPEND | LOCK_EX
-			);
+
+
+		foreach($GLOBALS['cron_jobs'] as $job) {
+			if($job['name'] == $_GET["process_id"]) {
+				// include connector
+				if(file_exists($job['callback'])) {
+					include $job['callback'];
+
+					file_put_contents(
+						CRON_LOG_FILE,
+						date('m/d/Y H:i:s', time()) . " INFO: " . $job['name'] . ' ' . $job['callback'] . " multithreading\n",
+						FILE_APPEND | LOCK_EX
+					);
+				} else {
+					file_put_contents(
+						CRON_LOG_FILE,
+						date('m/d/Y H:i:s', time()) . " ERROR: " . $job['name'] . ' ' . $job['callback'] . " multithreading\n",
+						FILE_APPEND | LOCK_EX
+					);
+				}
+				
+				break;
+			}
 		}
+		
 
 		// END Job
 		flock($fp, LOCK_UN);
@@ -251,21 +278,16 @@ if(
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["process_id"])
 	){
-		switch($_GET["process_id"]){ 
-			// example job = job2multithreading
-			case 'job2multithreading':
-				multithreading_dispatcher();
-			break;
-			
-			// example job, set name process_id, 0 to count processor cores
-			default:
-				$process_id= intval($_GET["process_id"]);
-				if(!$process_id) $process_id= 0;
-				if($process_id > 3) die(); // Max count processor cores
+		foreach($GLOBALS['cron_jobs'] as $job) {
+			if( $job['name'] == $_GET["process_id"]) multithreading_dispatcher();
+		}
+		
+		$process_id= intval($_GET["process_id"]);
+		if(!$process_id) $process_id= 0;
+		if($process_id > 3) die(); // Max count processor cores
 				
-				$_GET["process_id"]= $process_id;
-				multithreading_dispatcher();
-		}				
+		$_GET["process_id"]= $process_id;
+		multithreading_dispatcher();
 	}
 	////////////////////////////////////////////////////////////////////////
 	
@@ -295,64 +317,50 @@ if(
 		if(!is_dir(dirname(CRON_LOG_FILE))) mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		
 		
+		
+		
 		//###########################################
-		// CRON Job 1, example
-		if(!isset($GLOBALS['cron_session']['job1']['last_update'])) $GLOBALS['cron_session']['job1']['last_update']= 0;
-
-		// Job timer
-		if($GLOBALS['cron_session']['job1']['last_update'] + 60 * 60 * 24  < time() ){ // Trigger an event if the time has expired, in seconds
-			// include connector
-			if(file_exists(CRON_CALLBACK_PHP_FILE)
-			) {
-				include CRON_CALLBACK_PHP_FILE;
-				
-				cron_session_add_event($fp, [
-					'date'=> date('m/d/Y H:i:s', time()),
-					'message'=> 'INFO: include CRON_CALLBACK_PHP_FILE event',
-				]);
-			} else {
-				cron_session_add_event($fp, [
-					'date'=> date('m/d/Y H:i:s', time()),
-					'message'=> ' EROR: include CRON_CALLBACK_PHP_FILE not found!',
-				]);
+		// check jobs
+		
+		foreach($GLOBALS['cron_jobs'] as $job){
+			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) {
+				$GLOBALS['cron_session'][$job['name']]['last_update']= 0;
 			}
-
-
-			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
-			$GLOBALS['cron_session']['job1']['last_update']= time();
-			write_cron_session($fp);
+			
+			// Job timer
+			if($GLOBALS['cron_session'][$job['name']]['last_update'] + $job['interval']  < time()){
+				if($job['multithreading']){  // start multithreading example
+					open_cron_socket($cron_url_key, $job['name']); 
+					
+				} else {
+					// include connector
+					if(file_exists($job['callback'])){
+						include $job['callback'];
+						
+						cron_session_add_event($fp, [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'INFO:',
+							'name' => $job['name'],
+							'callback' => $job['callback']
+						]);
+					} else {
+						cron_session_add_event($fp, [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'ERROR:',
+							'name' => $job['name'],
+							'callback' => $job['callback']
+						]);
+					}
+				}
+				
+				// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
+				$GLOBALS['cron_session'][$job['name']]['last_update']= time();
+				write_cron_session($fp);
+			}
 		}
 		
-
-		//###########################################
-		// CRON Job 2, multithreading example
-		if(!isset($GLOBALS['cron_session']['job2multithreading']['last_update'])) $GLOBALS['cron_session']['job2multithreading']['last_update']= 0;
-
-		// Job timer
-		if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 < time() ){
-			open_cron_socket($cron_url_key, 'job2multithreading');  // start multithreading example
-
-			$GLOBALS['cron_session']['job2multithreading']['last_update']= time();
-			write_cron_session($fp);
-		}
 		
 		//###########################################
-		// CRON Job 3, multithreading example, loading 4 core
-		// for($i=0; $i<4; $i++) open_cron_socket($cron_url_key, $i);  // start multithreading example, in the loop
-		
-		
-		
-		//###########################################
-		// CRON Job 3
-		
-		//###########################################
-		// CRON Job 4
-		
-		//###########################################
-		// CRON Job 5
-		
-		//###########################################
-		
 		cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files);
 		
 		
