@@ -207,7 +207,7 @@ function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){
 
 function multithreading_dispatcher(){
 	// Dispatcher init
-	$dat_file= rtrim(CRON_DAT_FILE, 'cron.dat') . $_GET["process_id"] . '.dat';
+	$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 	
 	touch($dat_file);
 	$fp= fopen($dat_file, "r+");
