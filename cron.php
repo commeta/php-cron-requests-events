@@ -30,15 +30,14 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
 	'interval' => 60 * 60 * 24, // 1 start in 24 hours
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
-	'multithreading' => false,
-	'workers' => 0
+	'multithreading' => false
 ];
 
 $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 60 * 60 * 24, // 1 start in 24 hours
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php",
-	'multithreading' => true,
+	'multithreading' => true
 ];
 
  
@@ -51,7 +50,7 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
 define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat");
 
-$cron_delay= 10; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
+$cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
 $cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
 $cron_log_rotate_max_files= 5;
 $cron_url_key= 'my_secret_key'; // change this!
