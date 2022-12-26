@@ -350,6 +350,7 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
+		
 		//###########################################
 		// check jobs
 		
@@ -358,11 +359,18 @@ if(
 				$GLOBALS['cron_session'][$job['name']]['last_update']= 0;
 			}
 			
+			if($job['multithreading']){ // refresh last update
+				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+				if(file_exists($dat_file)){
+					$GLOBALS['cron_session'][$job['name']]['last_update']= filemtime($dat_file);
+				}
+			}
+			
+			
 			// Job timer
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] + $job['interval']  < time()){
 				if($job['multithreading']){  // start multithreading example
 					open_cron_socket(CRON_URL_KEY, $job['name']); 
-					
 				} else {
 					// include connector
 					if(file_exists($job['callback'])){
@@ -395,6 +403,10 @@ if(
 		
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+		
+		
+		
+		
 		
 		$GLOBALS['cron_session']['finish']= time();
 		write_cron_session($fp);
