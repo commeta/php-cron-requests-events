@@ -230,17 +230,21 @@ function multithreading_dispatcher(){
 				if(file_exists($job['callback'])) {
 					include $job['callback'];
 
-					file_put_contents(
-						CRON_LOG_FILE,
-						date('m/d/Y H:i:s', time()) . " INFO: " . $job['name'] . ' ' . $job['callback'] . " multithreading\n",
-						FILE_APPEND | LOCK_EX
-					);
+					cron_session_add_event($fp, [
+						'date'=> date('m/d/Y H:i:s', time()),
+						'message'=> 'INFO:',
+						'name' => $job['name'],
+						'callback' => $job['callback'],
+						'mode' => 'multithreading'
+					]);
 				} else {
-					file_put_contents(
-						CRON_LOG_FILE,
-						date('m/d/Y H:i:s', time()) . " ERROR: " . $job['name'] . ' ' . $job['callback'] . " multithreading\n",
-						FILE_APPEND | LOCK_EX
-					);
+					cron_session_add_event($fp, [
+						'date'=> date('m/d/Y H:i:s', time()),
+						'message'=> 'ERROR:',
+						'name' => $job['name'],
+						'callback' => $job['callback'],
+						'mode' => 'multithreading'
+					]);
 				}
 				
 				break;
@@ -337,14 +341,16 @@ if(
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'INFO:',
 							'name' => $job['name'],
-							'callback' => $job['callback']
+							'callback' => $job['callback'],
+							'mode' => 'singlethreading'
 						]);
 					} else {
 						cron_session_add_event($fp, [
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
 							'name' => $job['name'],
-							'callback' => $job['callback']
+							'callback' => $job['callback'],
+							'mode' => 'singlethreading'
 						]);
 					}
 				}
@@ -358,6 +364,8 @@ if(
 		
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+		
+		$GLOBALS['cron_session']['finish']= time();
 		write_cron_session($fp);
 		
 		// END Jobs
