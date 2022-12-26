@@ -39,10 +39,10 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 ];
 
 ```
-- name - Имя задачи
+- name - Имя задачи (только буквы и цифры латиницей)
 - interval - Задержка перед запуском
 - callback - PHP скрипт, будет выполнен по истечении интервала
-- multithreading - true\false Запуск в фоновом режиме
+- multithreading - Запуск в фоновом режиме true\false
 
 ### Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
