@@ -207,16 +207,24 @@ function multithreading_dispatcher(){
 
 		write_cron_session($fp);
 	
-		file_put_contents(
-			CRON_LOG_FILE,
-			date('m/d/Y H:i:s', time()) . " INFO: cron multithreading event\n",
-			FILE_APPEND | LOCK_EX
-		);
 
-		// Example: include connector
-		// include('hello_world_cron.php');
+		// include connector
 		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["process_id"] . ".php");
-		if(file_exists(CRON_CALLBACK_PHP_FILE)) include CRON_CALLBACK_PHP_FILE;
+		if(file_exists(CRON_CALLBACK_MULTITHREADING_PHP_FILE)) {
+			include CRON_CALLBACK_MULTITHREADING_PHP_FILE;
+			
+			file_put_contents(
+				CRON_LOG_FILE,
+				date('m/d/Y H:i:s', time()) . " INFO: include CRON_CALLBACK_MULTITHREADING_PHP_FILE event\n",
+				FILE_APPEND | LOCK_EX
+			);
+		} else {
+			file_put_contents(
+				CRON_LOG_FILE,
+				date('m/d/Y H:i:s', time()) . " EROR: include CRON_CALLBACK_MULTITHREADING_PHP_FILE not found!\n",
+				FILE_APPEND | LOCK_EX
+			);
+		}
 
 		// END Job
 		flock($fp, LOCK_UN);
@@ -293,13 +301,21 @@ if(
 
 		// Job timer
 		if($GLOBALS['cron_session']['job1']['last_update'] + 60 * 60 * 24  < time() ){ // Trigger an event if the time has expired, in seconds
-			cron_session_add_event($fp, [
-				'date'=> date('m/d/Y H:i:s', time()),
-				'message'=> 'INFO: start cron',
-			]);
-
-			// Example: include connector
-			if(file_exists(CRON_CALLBACK_PHP_FILE)) include CRON_CALLBACK_PHP_FILE;
+			// include connector
+			if(file_exists(CRON_CALLBACK_PHP_FILE)
+			) {
+				include CRON_CALLBACK_PHP_FILE;
+				
+				cron_session_add_event($fp, [
+					'date'=> date('m/d/Y H:i:s', time()),
+					'message'=> 'INFO: include CRON_CALLBACK_PHP_FILE event',
+				]);
+			} else {
+				cron_session_add_event($fp, [
+					'date'=> date('m/d/Y H:i:s', time()),
+					'message'=> ' EROR: include CRON_CALLBACK_PHP_FILE not found!',
+				]);
+			}
 
 
 			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
