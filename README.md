@@ -34,7 +34,7 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 60 * 60 * 24, // 1 start in 24 hours
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php",
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 
