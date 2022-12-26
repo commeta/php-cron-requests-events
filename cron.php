@@ -37,7 +37,7 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 60 * 60 * 24, // 1 start in 24 hours
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php",
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 
@@ -210,6 +210,7 @@ function multithreading_dispatcher(){
 	
 	touch($dat_file);
 	$fp= fopen($dat_file, "r+");
+	
 	
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
 		$cs=unserialize(@fread($fp, filesize($dat_file)));
@@ -386,4 +387,5 @@ if(file_exists(CRON_DAT_FILE)){
 	touch(CRON_LOG_FILE);
 }
 
+unset($GLOBALS['cron_jobs']);
 ?>
