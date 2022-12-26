@@ -25,6 +25,7 @@
 // Jobs
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
+$GLOBALS['cron_jobs']= [];
 
 $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
@@ -41,21 +42,19 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 ];
 
  
- 
+
  
  
  
 ////////////////////////////////////////////////////////////////////////
 // Variables
-define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
-define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat");
+define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log');
+define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 
-$cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
-$cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
-$cron_log_rotate_max_files= 5;
-$cron_url_key= 'my_secret_key'; // change this!
-
-
+define("CRON_DELAY", 180);  // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
+define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
+define("CRON_LOG_ROTATE_MAX_FILES", 5);
+define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -266,7 +265,7 @@ function multithreading_dispatcher(){
 // start in background
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == $cron_url_key
+	$_REQUEST["cron"] == CRON_URL_KEY
 ){
 	init_background_cron();
 	
@@ -292,7 +291,7 @@ if(
 	
 	
 	
-	if(filemtime(CRON_DAT_FILE) + $cron_delay > time()) die();
+	if(filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
@@ -329,7 +328,7 @@ if(
 			// Job timer
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] + $job['interval']  < time()){
 				if($job['multithreading']){  // start multithreading example
-					open_cron_socket($cron_url_key, $job['name']); 
+					open_cron_socket(CRON_URL_KEY, $job['name']); 
 					
 				} else {
 					// include connector
@@ -352,7 +351,7 @@ if(
 					}
 				}
 				
-				// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
+				// write_cron_session reset CRON_DELAY counter, strongly recommend call this after every job!
 				$GLOBALS['cron_session'][$job['name']]['last_update']= time();
 				write_cron_session($fp);
 			}
@@ -360,7 +359,7 @@ if(
 		
 		
 		//###########################################
-		cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files);
+		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
 		
 		
 		// END Jobs
@@ -376,12 +375,12 @@ if(
 ////////////////////////////////////////////////////////////////////////
 // check time out to start in background 
 if(file_exists(CRON_DAT_FILE)){
-	if(filemtime(CRON_DAT_FILE) + $cron_delay < time()){
-		open_cron_socket($cron_url_key);
+	if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
+		open_cron_socket(CRON_URL_KEY);
 	} 
 } else {
 	@mkdir(dirname(CRON_DAT_FILE), 0755, true);
-	touch(CRON_DAT_FILE, time() - $cron_delay);
+	touch(CRON_DAT_FILE, time() - CRON_DELAY);
 	
 	@mkdir(dirname(CRON_LOG_FILE), 0755, true);
 	touch(CRON_LOG_FILE);
