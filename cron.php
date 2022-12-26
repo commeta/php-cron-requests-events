@@ -58,7 +58,6 @@ define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
-
 /*
 @file_put_contents(
 	CRON_LOG_FILE, 
@@ -75,201 +74,210 @@ define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
-function cron_session_add_event(& $fp, $event){
-	$GLOBALS['cron_session']['finish']= time();
-	$GLOBALS['cron_session']['events'][]= $event;
-	write_cron_session($fp);
+if(!function_exists('open_cron_socket')) { 
+	function open_cron_socket($cron_url_key, $process_id= false){ // Start job in parallel process
+		if($process_id !== false) $cron_url_key.= '&process_id=' . $process_id;
+		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
-	file_put_contents(
-		CRON_LOG_FILE,
-		implode(' ', $event) . "\n",
-		FILE_APPEND | LOCK_EX
-	);
-}
-
-function write_cron_session(& $fp){ 
-	$serialized= serialize($GLOBALS['cron_session']);
-
-	rewind($fp);
-	fwrite($fp, $serialized);
-	ftruncate($fp, mb_strlen($serialized));
-	fflush($fp);
-}
-
-function open_cron_socket($cron_url_key, $process_id= false){ // Start job in parallel process
-	if($process_id !== false) $cron_url_key.= '&process_id=' . $process_id;
-	$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
-
-	$wget= false;
-	if(strtolower(PHP_OS) == 'linux') {
-		foreach(explode(':', getenv('PATH')) as $path){
-			if(is_executable($path.'/wget')) {
-				$wget= $path.'/wget';
-				break 1;
-			}
-		}
-	}
-	
-	if(
-		is_callable("shell_exec") &&
-		$wget
-	){
-		shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
-	} else {
-		@fclose( 
-			@fopen(
-				$cron_url, 
-				'r', 
-				false, 
-				stream_context_create([
-					'http'=>[
-						'timeout' => 0.04
-					]
-				])
-			)
-		);
-	}
-}
-
-function fcgi_finish_request(){
-	// check if fastcgi_finish_request is callable
-	if(is_callable('fastcgi_finish_request')) {
-		session_write_close();
-		fastcgi_finish_request();
-	}
-
-	while(ob_get_level()) ob_end_clean();
-	
-	ob_start();
-	
-	header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
-	header('Content-Encoding: none');
-	header('Content-Length: '.ob_get_length());
-	header('Connection: close');
-
-	@ob_end_flush();
-	@ob_flush();
-	@flush();
-}
-
-function init_background_cron(){
-	ignore_user_abort(true);
-	fcgi_finish_request();
-
-	if (is_callable('proc_nice')) {
-		proc_nice(15);
-	}
-
-	set_time_limit(600);
-	ini_set('MAX_EXECUTION_TIME', 600);
-}
-
-function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
-	if(@filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
-		rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
-		@file_put_contents(
-			CRON_LOG_FILE, 
-			date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
-			FILE_APPEND | LOCK_EX
-		);
-			
-		$the_oldest = time();
-		$log_old_file = '';
-		$log_files_size = 0;
-					
-		foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
-			$log_files_size+= filesize($file_log_rotate);
-			if ($file_log_rotate == CRON_LOG_FILE) {
-				continue;
-			}
-				
-			$log_mtime = filectime($file_log_rotate);
-			if ($log_mtime < $the_oldest) {
-				$log_old_file = $file_log_rotate;
-				$the_oldest = $log_mtime;
-			}
-		}
-
-		if ($log_files_size >  $cron_log_rotate_max_size) {
-			if (file_exists($log_old_file)) {
-				unlink($log_old_file);
-				@file_put_contents(
-					CRON_LOG_FILE, 
-					date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
-					FILE_APPEND | LOCK_EX
-				);
-			}
-		}
-	}
-}
-
-
-function multithreading_dispatcher(){
-	// Dispatcher init
-	$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
-	
-	touch($dat_file);
-	$fp= fopen($dat_file, "r+");
-	
-	
-	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs=unserialize(@fread($fp, filesize($dat_file)));
-			
-		if(is_array($cs) ){
-			$GLOBALS['cron_session']= $cs;
-		} else {
-			$GLOBALS['cron_session']= [
-				'finish'=> 0
-			];
-		}
-
-
-		foreach($GLOBALS['cron_jobs'] as $job) {
-			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				// include connector
-				if(file_exists($job['callback'])) {
-					include $job['callback'];
-
-					cron_session_add_event($fp, [
-						'date'=> date('m/d/Y H:i:s', time()),
-						'message'=> 'INFO:',
-						'name' => $job['name'],
-						'callback' => $job['callback'],
-						'mode' => 'multithreading'
-					]);
-				} else {
-					cron_session_add_event($fp, [
-						'date'=> date('m/d/Y H:i:s', time()),
-						'message'=> 'ERROR:',
-						'name' => $job['name'],
-						'callback' => $job['callback'],
-						'mode' => 'multithreading'
-					]);
+		$wget= false;
+		if(strtolower(PHP_OS) == 'linux') {
+			foreach(explode(':', getenv('PATH')) as $path){
+				if(is_executable($path.'/wget')) {
+					$wget= $path.'/wget';
+					break 1;
 				}
-				
-				break;
 			}
 		}
 		
-		$GLOBALS['cron_session']['finish']= time();
-		write_cron_session($fp);
-
-		// END Job
-		flock($fp, LOCK_UN);
+		if(
+			is_callable("shell_exec") &&
+			$wget
+		){
+			shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
+		} else {
+			@fclose( 
+				@fopen(
+					$cron_url, 
+					'r', 
+					false, 
+					stream_context_create([
+						'http'=>[
+							'timeout' => 0.04
+						]
+					])
+				)
+			);
+		}
 	}
-
-	fclose($fp);
-	die();
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////
-// start in background
+// main
 if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] == CRON_URL_KEY
 ){
+	
+	////////////////////////////////////////////////////////////////////////
+	// Functions
+	function cron_session_add_event(& $fp, $event){
+		$GLOBALS['cron_session']['finish']= time();
+		$GLOBALS['cron_session']['events'][]= $event;
+		write_cron_session($fp);
+
+		file_put_contents(
+			CRON_LOG_FILE,
+			implode(' ', $event) . "\n",
+			FILE_APPEND | LOCK_EX
+		);
+	}
+
+	function write_cron_session(& $fp){ 
+		$serialized= serialize($GLOBALS['cron_session']);
+
+		rewind($fp);
+		fwrite($fp, $serialized);
+		ftruncate($fp, mb_strlen($serialized));
+		fflush($fp);
+	}
+
+
+	function fcgi_finish_request(){
+		// check if fastcgi_finish_request is callable
+		if(is_callable('fastcgi_finish_request')) {
+			session_write_close();
+			fastcgi_finish_request();
+		}
+
+		while(ob_get_level()) ob_end_clean();
+		
+		ob_start();
+		
+		header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
+		header('Content-Encoding: none');
+		header('Content-Length: '.ob_get_length());
+		header('Connection: close');
+
+		@ob_end_flush();
+		@ob_flush();
+		@flush();
+	}
+
+	function init_background_cron(){
+		ignore_user_abort(true);
+		fcgi_finish_request();
+
+		if (is_callable('proc_nice')) {
+			proc_nice(15);
+		}
+
+		set_time_limit(600);
+		ini_set('MAX_EXECUTION_TIME', 600);
+	}
+
+	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
+		if(@filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
+			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
+			@file_put_contents(
+				CRON_LOG_FILE, 
+				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
+				FILE_APPEND | LOCK_EX
+			);
+				
+			$the_oldest = time();
+			$log_old_file = '';
+			$log_files_size = 0;
+						
+			foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
+				$log_files_size+= filesize($file_log_rotate);
+				if ($file_log_rotate == CRON_LOG_FILE) {
+					continue;
+				}
+					
+				$log_mtime = filectime($file_log_rotate);
+				if ($log_mtime < $the_oldest) {
+					$log_old_file = $file_log_rotate;
+					$the_oldest = $log_mtime;
+				}
+			}
+
+			if ($log_files_size >  $cron_log_rotate_max_size) {
+				if (file_exists($log_old_file)) {
+					unlink($log_old_file);
+					@file_put_contents(
+						CRON_LOG_FILE, 
+						date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
+						FILE_APPEND | LOCK_EX
+					);
+				}
+			}
+		}
+	}
+
+
+	function multithreading_dispatcher(){
+		// Dispatcher init
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+		
+		touch($dat_file);
+		$fp= fopen($dat_file, "r+");
+		
+		
+		if(flock($fp, LOCK_EX | LOCK_NB)) {
+			$cs=unserialize(@fread($fp, filesize($dat_file)));
+				
+			if(is_array($cs) ){
+				$GLOBALS['cron_session']= $cs;
+			} else {
+				$GLOBALS['cron_session']= [
+					'finish'=> 0
+				];
+			}
+
+
+			foreach($GLOBALS['cron_jobs'] as $job) {
+				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
+					// include connector
+					if(file_exists($job['callback'])) {
+						include $job['callback'];
+
+						cron_session_add_event($fp, [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'INFO:',
+							'name' => $job['name'],
+							'callback' => $job['callback'],
+							'mode' => 'multithreading'
+						]);
+					} else {
+						cron_session_add_event($fp, [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'ERROR:',
+							'name' => $job['name'],
+							'callback' => $job['callback'],
+							'mode' => 'multithreading'
+						]);
+					}
+					
+					break;
+				}
+			}
+			
+			$GLOBALS['cron_session']['finish']= time();
+			write_cron_session($fp);
+
+			// END Job
+			flock($fp, LOCK_UN);
+		}
+
+		fclose($fp);
+		die();
+	}
+
+	
+	////////////////////////////////////////////////////////////////////////
+	// start in background
 	init_background_cron();
 	foreach($GLOBALS['cron_jobs'] as $k => $job){
 		$GLOBALS['cron_jobs'][$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
@@ -376,6 +384,7 @@ if(
 
 	die();
 } else {
+	
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
