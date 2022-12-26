@@ -280,15 +280,12 @@ if(
 		isset($_GET["process_id"])
 	){
 		foreach($GLOBALS['cron_jobs'] as $job) {
-			if( $job['name'] == $_GET["process_id"] && $job['multithreading']) multithreading_dispatcher();
+			if( $job['name'] == $_GET["process_id"] && $job['multithreading']) {
+				multithreading_dispatcher();
+			}
 		}
 		
-		$process_id= intval($_GET["process_id"]);
-		if(!$process_id) $process_id= 0;
-		if($process_id > 3) die(); // Max count processor cores
-				
-		$_GET["process_id"]= $process_id;
-		multithreading_dispatcher();
+		die();
 	}
 	////////////////////////////////////////////////////////////////////////
 	
