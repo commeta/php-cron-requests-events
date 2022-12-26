@@ -235,6 +235,8 @@ if(
 					'finish'=> 0
 				];
 			}
+			
+			$GLOBALS['cron_session']['events']= [];
 
 
 			foreach($GLOBALS['cron_jobs'] as $job) {
