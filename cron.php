@@ -229,7 +229,7 @@ function multithreading_dispatcher(){
 
 
 		foreach($GLOBALS['cron_jobs'] as $job) {
-			if($job['name'] == $_GET["process_id"]) {
+			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 				// include connector
 				if(file_exists($job['callback'])) {
 					include $job['callback'];
@@ -278,7 +278,7 @@ if(
 		isset($_GET["process_id"])
 	){
 		foreach($GLOBALS['cron_jobs'] as $job) {
-			if( $job['name'] == $_GET["process_id"]) multithreading_dispatcher();
+			if( $job['name'] == $_GET["process_id"] && $job['multithreading']) multithreading_dispatcher();
 		}
 		
 		$process_id= intval($_GET["process_id"]);
