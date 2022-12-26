@@ -22,7 +22,7 @@
  */
  
  ////////////////////////////////////////////////////////////////////////
-// Jobs
+// CRON Jobs
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
 $GLOBALS['cron_jobs']= [];
@@ -41,7 +41,19 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'multithreading' => true
 ];
 
- 
+
+for( // CRON job 3, multithreading example, four core
+	$i= 0;
+	$i< 4; // Max processor cores
+	$i++	
+) {
+	$GLOBALS['cron_jobs'][]= [ // CRON Job 3, multithreading example
+		'name' => 'multithreading_' . $i,
+		'interval' => 60 * 60 * 24, // 1 start in 24 hours
+		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+		'multithreading' => true
+	];
+}
 
  
  
