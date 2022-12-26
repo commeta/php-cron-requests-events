@@ -47,10 +47,10 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 ### Параметры запуска
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
 - define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
-- $cron_delay= 60; // Тайм аут до следующего запуска в секундах
-- $cron_log_rotate_max_size= 10 * 1024 * 1024; // Максимальный размер логов в МБ
-- $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
-- $cron_url_key= 'my_secret_key'; // Ключ запуска в URI
+- define("CRON_DELAY", 180); // Тайм аут до следующего запуска в секундах
+- define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
+- define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
+- define("CRON_URL_KEY", 'my_secret_key'); // Ключ запуска в URI
 
 ### Потребление ресурсов
 Управляющий задачами процесс запускается в фоновом режиме с использованием механизма сетевых запросов. 
