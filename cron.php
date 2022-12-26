@@ -27,9 +27,11 @@ define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVE
 define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log");
 define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat");
 
-
 // Callback script, start in job1
-// define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/callback_cron.php");
+define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_cron.php");
+
+// Callback script, start in job2 multithreading
+define("CRON_CALLBACK_MULTITHREADING_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php");
 
 $cron_delay= 180; // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
 $cron_log_rotate_max_size= 10 * 1024 * 1024; // 10 in MB
@@ -214,7 +216,8 @@ function multithreading_dispatcher(){
 		// Example: include connector
 		// include('hello_world_cron.php');
 		// include(CRON_SITE_ROOT . 'cron/inc/' . $_GET["process_id"] . ".php");
- 
+		if(file_exists(CRON_CALLBACK_PHP_FILE)) include CRON_CALLBACK_PHP_FILE;
+
 		// END Job
 		flock($fp, LOCK_UN);
 	}
@@ -296,7 +299,7 @@ if(
 			]);
 
 			// Example: include connector
-			// include(CRON_CALLBACK_PHP_FILE);
+			if(file_exists(CRON_CALLBACK_PHP_FILE)) include CRON_CALLBACK_PHP_FILE;
 
 
 			// write_cron_session reset $cron_delay counter, strongly recommend call this after every job!
@@ -354,10 +357,10 @@ if(file_exists(CRON_DAT_FILE)){
 		open_cron_socket($cron_url_key);
 	} 
 } else {
-	mkdir(dirname(CRON_DAT_FILE), 0755, true);
+	@mkdir(dirname(CRON_DAT_FILE), 0755, true);
 	touch(CRON_DAT_FILE, time() - $cron_delay);
 	
-	mkdir(dirname(CRON_LOG_FILE), 0755, true);
+	@mkdir(dirname(CRON_LOG_FILE), 0755, true);
 	touch(CRON_LOG_FILE);
 }
 
