@@ -219,12 +219,9 @@ function multithreading_dispatcher(){
 			$GLOBALS['cron_session']= $cs;
 		} else {
 			$GLOBALS['cron_session']= [
-				'finish'=> time()
+				'finish'=> 0
 			];
 		}
-
-		write_cron_session($fp);
-
 
 
 		foreach($GLOBALS['cron_jobs'] as $job) {
@@ -250,6 +247,8 @@ function multithreading_dispatcher(){
 			}
 		}
 		
+		$GLOBALS['cron_session']['finish']= time();
+		write_cron_session($fp);
 
 		// END Job
 		flock($fp, LOCK_UN);
@@ -300,23 +299,21 @@ if(
 	$fp= fopen(CRON_DAT_FILE, "r+");
 	
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs=unserialize(@fread($fp, filesize(CRON_DAT_FILE)));
+		$cs= unserialize(@fread($fp, filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
 		} else {
 			$GLOBALS['cron_session']= [
-				'finish'=> time()
+				'finish'=> 0
 			];
 		}
 
 		$GLOBALS['cron_session']['events']= [];
-		write_cron_session($fp);
 		
-		if(!is_dir(dirname(CRON_LOG_FILE))) mkdir(dirname(CRON_LOG_FILE), 0755, true);
-		
-		
-		
+		if(!is_dir(dirname(CRON_LOG_FILE))) {
+			mkdir(dirname(CRON_LOG_FILE), 0755, true);
+		}
 		
 		//###########################################
 		// check jobs
@@ -361,7 +358,7 @@ if(
 		
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
-		
+		write_cron_session($fp);
 		
 		// END Jobs
 		flock($fp, LOCK_UN);
@@ -370,22 +367,21 @@ if(
 	fclose($fp);
 
 	die();
-}
-
-
-////////////////////////////////////////////////////////////////////////
-// check time out to start in background 
-if(file_exists(CRON_DAT_FILE)){
-	if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
-		open_cron_socket(CRON_URL_KEY);
-	} 
 } else {
-	@mkdir(dirname(CRON_DAT_FILE), 0755, true);
-	touch(CRON_DAT_FILE, time() - CRON_DELAY);
-	
-	@mkdir(dirname(CRON_LOG_FILE), 0755, true);
-	touch(CRON_LOG_FILE);
-}
+	////////////////////////////////////////////////////////////////////////
+	// check time out to start in background 
+	if(file_exists(CRON_DAT_FILE)){
+		if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
+			open_cron_socket(CRON_URL_KEY);
+		} 
+	} else {
+		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
+		touch(CRON_DAT_FILE, time() - CRON_DELAY);
+		
+		@mkdir(dirname(CRON_LOG_FILE), 0755, true);
+		touch(CRON_LOG_FILE);
+	}
 
-unset($GLOBALS['cron_jobs']);
+	unset($GLOBALS['cron_jobs']);
+}
 ?>
