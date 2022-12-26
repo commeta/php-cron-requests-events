@@ -233,6 +233,15 @@ if(
 		// Dispatcher init
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		
+		
+		// Check interval
+		foreach($GLOBALS['cron_jobs'] as $job) {
+			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
+				if(@filemtime($dat_file) + $job['interval'] > time()) die();
+			}
+		}
+
+		
 		touch($dat_file);
 		$fp= fopen($dat_file, "r+");
 		
@@ -317,7 +326,7 @@ if(
 	
 	
 	
-	if(filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) die();
+	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
