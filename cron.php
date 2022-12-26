@@ -355,7 +355,8 @@ if(file_exists(CRON_DAT_FILE)){
 	} 
 } else {
 	mkdir(dirname(CRON_DAT_FILE), 0755, true);
-	touch(CRON_DAT_FILE);
+	touch(CRON_DAT_FILE, time() - $cron_delay);
+	
 	mkdir(dirname(CRON_LOG_FILE), 0755, true);
 	touch(CRON_LOG_FILE);
 }
