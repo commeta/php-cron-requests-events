@@ -6,7 +6,7 @@
 	CRON_LOG_FILE, 
 	microtime() . " DEBUG: start  microtime:" . 
 		print_r([
-			$GLOBALS['cron_session']['my_var'],
+			$GLOBALS['cron_session']['start_counter'],
 			$_SERVER['QUERY_STRING'], 
 			$_SERVER['SERVER_NAME'], 
 			$_SERVER['REQUEST_METHOD'], 
@@ -16,7 +16,7 @@
 );
 
 // Save sesson variables, in Job name context, autoload in next start session
-$GLOBALS['cron_session']['my_var']= 'example parameter';
+$GLOBALS['cron_session']['start_counter']++;
 write_cron_session($fp); 
 
 ?>
