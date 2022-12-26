@@ -19,5 +19,4 @@
 $GLOBALS['cron_session']['my_var']= 'example parameter';
 write_cron_session($fp); 
 
-
 ?>
