@@ -213,7 +213,7 @@ function multithreading_dispatcher(){
 	$fp= fopen($dat_file, "r+");
 	
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs=unserialize(fread($fp, filesize($dat_file)));
+		$cs=unserialize(@fread($fp, filesize($dat_file)));
 			
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
@@ -299,7 +299,7 @@ if(
 	$fp= fopen(CRON_DAT_FILE, "r+");
 	
 	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs=unserialize(fread($fp, filesize(CRON_DAT_FILE)));
+		$cs=unserialize(@fread($fp, filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
