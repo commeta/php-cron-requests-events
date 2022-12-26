@@ -72,6 +72,7 @@ if($GLOBALS['cron_session']['job2multithreading']['last_update'] + 60 * 60 * 24 
 - define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
 - define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
 - define("CRON_CALLBACK_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_cron.php"); // Путь для PHP callback коннектора
+- define("CRON_CALLBACK_MULTITHREADING_PHP_FILE", CRON_SITE_ROOT . "cron/inc/callback_multithreading_cron.php"); // Multithreading callback
 - $cron_delay= 60; // Тайм аут до следующего запуска в секундах
 - $cron_log_rotate_max_size= 10 * 1024 * 1024; // Максимальный размер логов в МБ
 - $cron_log_rotate_max_files= 5; // Хранить максимум 5 файлов архивных журналов
