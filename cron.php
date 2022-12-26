@@ -45,7 +45,6 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 
  
  
- 
 ////////////////////////////////////////////////////////////////////////
 // Variables
 define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log');
@@ -268,6 +267,10 @@ if(
 	$_REQUEST["cron"] == CRON_URL_KEY
 ){
 	init_background_cron();
+	foreach($GLOBALS['cron_jobs'] as $k => $job){
+		$GLOBALS['cron_jobs'][$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
+	}
+
 	
 
 
