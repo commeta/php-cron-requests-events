@@ -360,7 +360,7 @@ if(
 			}
 			
 			if($job['multithreading']){ // refresh last update
-				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 				if(file_exists($dat_file)){
 					$GLOBALS['cron_session'][$job['name']]['last_update']= filemtime($dat_file);
 				}
