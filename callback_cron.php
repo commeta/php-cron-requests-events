@@ -16,7 +16,11 @@
 );
 
 // Save sesson variables, in Job name context, autoload in next start session
-$GLOBALS['cron_session']['start_counter']++;
-write_cron_session($fp); 
+if(isset($GLOBALS['cron_session']['start_counter'])){
+	$GLOBALS['cron_session']['start_counter']++;
+} else {
+	$GLOBALS['cron_session']['start_counter']= 0;
+}
 
+write_cron_session($fp); 
 ?>
