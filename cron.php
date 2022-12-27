@@ -29,10 +29,11 @@ $GLOBALS['cron_jobs']= [];
 
 $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'interval' => 60 * 60 * 24, // 1 start in 24 hours
+	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
+
 
 $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
@@ -49,17 +50,16 @@ for( // CRON job 3, multithreading example, four core
 ) {
 	$GLOBALS['cron_jobs'][]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
-		'interval' => 60 * 60 * 24, // 1 start in 24 hours
+		'time' => '07:20:00', // "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
 	];
 }
-
  
  
 ////////////////////////////////////////////////////////////////////////
 // Variables
-define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log');
+define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 
 define("CRON_DELAY", 180);  // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
@@ -139,11 +139,13 @@ if(
 		$GLOBALS['cron_session']['events'][]= $event;
 		write_cron_session($fp);
 
-		file_put_contents(
-			CRON_LOG_FILE,
-			implode(' ', $event) . "\n",
-			FILE_APPEND | LOCK_EX
-		);
+		if(CRON_LOG_FILE){
+			file_put_contents(
+				CRON_LOG_FILE,
+				implode(' ', $event) . "\n",
+				FILE_APPEND | LOCK_EX
+			);
+		}
 	}
 
 	function write_cron_session(& $fp){ 
@@ -190,9 +192,9 @@ if(
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
-		if(@filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
+		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
 			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
-			@file_put_contents(
+			file_put_contents(
 				CRON_LOG_FILE, 
 				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
 				FILE_APPEND | LOCK_EX
@@ -218,7 +220,7 @@ if(
 			if ($log_files_size >  $cron_log_rotate_max_size) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
-					@file_put_contents(
+					file_put_contents(
 						CRON_LOG_FILE, 
 						date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
 						FILE_APPEND | LOCK_EX
@@ -228,7 +230,8 @@ if(
 		}
 	}
 
-
+	//function queue_manager(){}
+	
 	function multithreading_dispatcher(){
 		// Dispatcher init
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
@@ -240,7 +243,6 @@ if(
 				if(@filemtime($dat_file) + $job['interval'] > time()) die();
 			}
 		}
-
 		
 		touch($dat_file);
 		$fp= fopen($dat_file, "r+");
@@ -302,11 +304,11 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// start in background
 	init_background_cron();
-	foreach($GLOBALS['cron_jobs'] as $k => $job){
+	
+	foreach($GLOBALS['cron_jobs'] as $k => $job){ // check job name symbols
 		$GLOBALS['cron_jobs'][$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
 
-	
 
 
 	////////////////////////////////////////////////////////////////////////
@@ -315,7 +317,7 @@ if(
 		isset($_GET["process_id"])
 	){
 		foreach($GLOBALS['cron_jobs'] as $job) {
-			if( $job['name'] == $_GET["process_id"] && $job['multithreading']) {
+			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 				multithreading_dispatcher();
 			}
 		}
@@ -346,7 +348,7 @@ if(
 
 		$GLOBALS['cron_session']['events']= [];
 		
-		if(!is_dir(dirname(CRON_LOG_FILE))) {
+		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
@@ -355,9 +357,75 @@ if(
 		// check jobs
 		
 		foreach($GLOBALS['cron_jobs'] as $job){
-			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) {
+			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) { // init
 				$GLOBALS['cron_session'][$job['name']]['last_update']= 0;
 			}
+
+
+			if(!isset($GLOBALS['cron_session'][$job['name']]['complete'])){
+				$GLOBALS['cron_session'][$job['name']]['complete']= false;
+			}
+			
+			
+			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
+					$job['interval']= 0;
+					$t= explode(':', $job['time']);
+				
+					if(
+						!$GLOBALS['cron_session'][$job['name']]['complete'] && 
+						$job['date'] == date('d-m-Y', time()) &&
+						(
+							intval($t[0]) + 1 == intval(date("H")) ||
+							(
+								intval($t[0]) == intval(date("H"))  &&
+								intval($t[1]) <= intval(date("i")) 
+							)
+						)
+					){
+						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
+					} else {// lock job forever
+						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+					}
+			} else {
+				if(isset($job['date'])){ // check date, one - time
+					$job['interval']= 0;
+					
+					if(
+						!$GLOBALS['cron_session'][$job['name']]['complete'] && 
+						$job['date'] == date('d-m-Y', time())
+					){
+						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
+					} else {// lock job forever
+						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+					}
+				}
+				
+				if(isset($job['time'])){ // check time, every day
+					$t= explode(':', $job['time']);
+					$job['interval']= 0;
+									
+					if( 
+						intval($t[0]) + 1 == intval(date("H")) ||
+						(
+							intval($t[0]) == intval(date("H"))  &&
+							intval($t[1]) <= intval(date("i")) 
+						)
+					){
+						if(!$GLOBALS['cron_session'][$job['name']]['complete']){
+							$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
+						} else {// lock job
+							$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+						}
+					} else {// lock job
+						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+					}
+					
+					// unlock job
+					if(intval($t[0]) > intval(date("H"))) $GLOBALS['cron_session'][$job['name']]['complete']= false;
+				}
+			}
+			
+			
 			
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
@@ -369,6 +437,9 @@ if(
 			
 			// Job timer
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] + $job['interval']  < time()){
+				$GLOBALS['cron_session'][$job['name']]['complete']= true;
+
+				
 				if($job['multithreading']){  // start multithreading example
 					open_cron_socket(CRON_URL_KEY, $job['name']); 
 				} else {
@@ -396,6 +467,7 @@ if(
 				
 				// write_cron_session reset CRON_DELAY counter, strongly recommend call this after every job!
 				$GLOBALS['cron_session'][$job['name']]['last_update']= time();
+				
 				write_cron_session($fp);
 			}
 		}
@@ -430,8 +502,10 @@ if(
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
 		touch(CRON_DAT_FILE, time() - CRON_DELAY);
 		
-		@mkdir(dirname(CRON_LOG_FILE), 0755, true);
-		touch(CRON_LOG_FILE);
+		if(CRON_LOG_FILE) {
+			mkdir(dirname(CRON_LOG_FILE), 0755, true);
+			touch(CRON_LOG_FILE);
+		}
 	}
 
 	unset($GLOBALS['cron_jobs']);
