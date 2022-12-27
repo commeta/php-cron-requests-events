@@ -27,22 +27,28 @@ define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVE
 
 $GLOBALS['cron_jobs']= [];
 
+###########################
+# EXAMPLES
+
+##########
 $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
-	'multithreading' => false
-];
-
-
-$GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
-	'name' => 'job2multithreading',
 	'interval' => 1, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
+##########
 
+##########
+$GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
+	'name' => 'job2multithreading',
+	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'multithreading' => true
+];
+##########
 
+##########
 for( // CRON job 3, multithreading example, four core
 	$i= 0;
 	$i< 4; // Max processor cores
@@ -55,7 +61,7 @@ for( // CRON job 3, multithreading example, four core
 		'multithreading' => true
 	];
 }
- 
+##########
  
 ////////////////////////////////////////////////////////////////////////
 // Variables
@@ -86,7 +92,7 @@ define("CRON_URL_KEY", 'my_secret_key'); // change this!
 	FILE_APPEND | LOCK_EX
 );
 */
-
+ 
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
@@ -524,12 +530,18 @@ if(
 			$GLOBALS['cron_session']['memory_get_usage']= memory_get_usage();
 			$GLOBALS['cron_session']['events']= [];
 			
-			cron_session_add_event([
-				'date'=> date('m/d/Y H:i:s', time()),
-				'message'=> 'INFO:',
-				'name' => 'memory_get_usage',
-				'value' => $GLOBALS['cron_session']['memory_get_usage'],
-			]);
+			if(CRON_LOG_FILE){
+				file_put_contents(
+					CRON_LOG_FILE,
+					implode(' ', [
+						'date'=> date('m/d/Y H:i:s', time()),
+						'message'=> 'INFO:',
+						'name' => 'memory_get_usage',
+						'value' => $GLOBALS['cron_session']['memory_get_usage'],
+					]) . "\n",
+					FILE_APPEND | LOCK_EX
+				);
+			}
 			
 			// if($GLOBALS['cron_session']['memory_get_usage'] > 1024 * 1024 * 64){}
 		}
