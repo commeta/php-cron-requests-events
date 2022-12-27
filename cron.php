@@ -342,24 +342,19 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
-							cron_session_add_event([
-								'date'=> date('m/d/Y H:i:s', time()),
-								'message'=> 'INFO:',
-								'name' => $job['name'],
-								'callback' => $job['callback'],
-								'mode' => 'multithreading'
-							]);
-						}
 					} else {
-						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
-							cron_session_add_event([
-								'date'=> date('m/d/Y H:i:s', time()),
-								'message'=> 'ERROR:',
-								'name' => $job['name'],
-								'callback' => $job['callback'],
-								'mode' => 'multithreading'
-							]);
+						if(CRON_LOG_FILE){
+							file_put_contents(
+								CRON_LOG_FILE,
+								implode(' ', [
+									'date'=> date('m/d/Y H:i:s', time()),
+									'message'=> 'ERROR:',
+									'name' => $job['name'],
+									'callback' => $job['callback'],
+									'mode' => 'multithreading'
+								]) . "\n",
+								FILE_APPEND | LOCK_EX
+							);
 						}
 					}
 					
@@ -385,25 +380,18 @@ if(
 		foreach($GLOBALS['cron_jobs'] as $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 			
-			
 			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) { // init
 				$GLOBALS['cron_session'][$job['name']]['last_update']= 0;
 			}
-
 
 			if(!isset($GLOBALS['cron_session'][$job['name']]['complete'])){
 				$GLOBALS['cron_session'][$job['name']]['complete']= false;
 			}
 			
-			
 			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 					$job['interval']= 0;
 					$t= explode(':', $job['time']);
 					$d= explode('-', $job['date']);
-				
-				
-				
-				
 				
 					if(
 						!$GLOBALS['cron_session'][$job['name']]['complete'] && 
@@ -427,11 +415,6 @@ if(
 						$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
 						
 					}
-					
-					
-					
-					
-					
 			} else {
 				if(isset($job['date'])){ // check date, one - time
 					$job['interval']= 0;
@@ -478,13 +461,9 @@ if(
 				}
 			}
 			
-			
-			
-			
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] == PHP_INT_MAX) {
 				continue;
 			}
-			
 			
 			if($job['multithreading']){ // refresh last update
 				if(file_exists($dat_file)){
@@ -492,37 +471,29 @@ if(
 				}
 			}
 			
-			
 			// Job timer
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] + $job['interval']  < time()){
 				$GLOBALS['cron_session'][$job['name']]['complete']= true;
-
 				
 				if($job['multithreading']){  // start multithreading example
 					open_cron_socket(CRON_URL_KEY, $job['name']); 
 				} else {
 					// include connector
-					if(file_exists($job['callback'])){
+					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						
-						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
-							cron_session_add_event([
-								'date'=> date('m/d/Y H:i:s', time()),
-								'message'=> 'INFO:',
-								'name' => $job['name'],
-								'callback' => $job['callback'],
-								'mode' => 'singlethreading'
-							]);
-						}
 					} else {
-						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
-							cron_session_add_event([
-								'date'=> date('m/d/Y H:i:s', time()),
-								'message'=> 'ERROR:',
-								'name' => $job['name'],
-								'callback' => $job['callback'],
-								'mode' => 'singlethreading'
-							]);
+						if(CRON_LOG_FILE){
+							file_put_contents(
+								CRON_LOG_FILE,
+								implode(' ', [
+									'date'=> date('m/d/Y H:i:s', time()),
+									'message'=> 'ERROR:',
+									'name' => $job['name'],
+									'callback' => $job['callback'],
+									'mode' => 'multithreading'
+								]) . "\n",
+								FILE_APPEND | LOCK_EX
+							);
 						}
 					}
 				}
@@ -562,8 +533,6 @@ if(
 			
 			// if($GLOBALS['cron_session']['memory_get_usage'] > 1024 * 1024 * 64){}
 		}
-		
-		
 	}
 	
 	
