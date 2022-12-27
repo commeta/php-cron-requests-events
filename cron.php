@@ -524,6 +524,26 @@ if(
 		
 	}
 	
+	
+	function memory_profiler(){
+		if(!isset($GLOBALS['cron_session']['memory_get_usage'])){
+			$GLOBALS['cron_session']['memory_get_usage']= 0;
+		}
+		
+		if($GLOBALS['cron_session']['memory_get_usage'] < memory_get_usage()){
+			$GLOBALS['cron_session']['memory_get_usage']= memory_get_usage();
+			$GLOBALS['cron_session']['events']= [];
+			
+			cron_session_add_event([
+				'date'=> date('m/d/Y H:i:s', time()),
+				'message'=> 'INFO:',
+				'name' => 'memory_get_usage',
+				'value' => $GLOBALS['cron_session']['memory_get_usage'],
+			]);
+		}
+	}
+	
+	
 	////////////////////////////////////////////////////////////////////////
 	// start in background
 	init_background_cron();
@@ -587,6 +607,7 @@ if(
 				main_job_dispatcher();
 				write_cron_session();
 				sleep(1);
+				memory_profiler();
 			}
 		}
 		
