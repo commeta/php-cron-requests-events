@@ -189,6 +189,10 @@ if(
 
 		set_time_limit(600);
 		ini_set('MAX_EXECUTION_TIME', 600);
+		
+		ini_set('error_reporting', E_ALL);
+		ini_set('display_errors', 1); // 1 to debug
+		ini_set('display_startup_errors', 1);
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
@@ -389,9 +393,10 @@ if(
 						)
 					){
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
+						if(file_exists($dat_file)) touch($dat_file, time());
 					} else {// lock job forever, dat!
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
+						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
 					}
 			} else {
 				if(isset($job['date'])){ // check date, one - time
@@ -404,7 +409,7 @@ if(
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
 					} else {// lock job forever
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
+						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
 					}
 				}
 				
@@ -423,17 +428,17 @@ if(
 							$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
 						} else {// lock job
 							$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
-							if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
+							if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
 						}
 					} else {// lock job
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
+						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
 					}
 					
 					// unlock job
 					if(intval($t[0]) > intval(date("H"))) {
 						$GLOBALS['cron_session'][$job['name']]['complete']= false;
-						if(file_exists($dat_file))	touch($dat_file, time());
+						if(file_exists($dat_file)) touch($dat_file, time());
 					}
 				}
 			}
