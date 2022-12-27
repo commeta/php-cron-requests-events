@@ -62,7 +62,7 @@ for( // CRON job 3, multithreading example, four core
 - multithreading - Запуск в фоновом режиме true\false
 
 ### Параметры запуска
-- define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала
+- define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала, false - отключает журнал
 - define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
 - define("CRON_DELAY", 180); // Тайм аут до следующего запуска в секундах
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
