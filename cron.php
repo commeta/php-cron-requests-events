@@ -133,11 +133,35 @@ if(
 ){
 	
 	////////////////////////////////////////////////////////////////////////
-	// Functions
-	function cron_session_add_event(& $fp, $event){
+	// Classes: system api
+	class time_limit_exception { // Exit if time exceed time_limit
+		protected $enabled= false;
+
+		public function __construct() {
+			register_shutdown_function( array($this, 'onShutdown') );
+		}
+		
+		public function enable() {
+			$this->enabled= true;
+		}   
+		
+		public function disable() {
+			$this->enabled= false;
+		}   
+		
+		public function onShutdown() { 
+			if ($this->enabled) { //Maximum execution time of $time_limit$ second exceeded
+				_die();
+			}   
+		}   
+	}
+	
+	
+	// Functions: system api
+	function cron_session_add_event($event){
 		$GLOBALS['cron_session']['finish']= time();
 		$GLOBALS['cron_session']['events'][]= $event;
-		write_cron_session($fp);
+		write_cron_session();
 
 		if(CRON_LOG_FILE){
 			file_put_contents(
@@ -148,15 +172,27 @@ if(
 		}
 	}
 
-	function write_cron_session(& $fp){ 
+	function write_cron_session(){ 
 		$serialized= serialize($GLOBALS['cron_session']);
 
-		rewind($fp);
-		fwrite($fp, $serialized);
-		ftruncate($fp, mb_strlen($serialized));
-		fflush($fp);
+		rewind($GLOBALS['cron_resource']);
+		fwrite($GLOBALS['cron_resource'], $serialized);
+		ftruncate($GLOBALS['cron_resource'], mb_strlen($serialized));
+		fflush($GLOBALS['cron_resource']);
+	}
+	
+	function tick_interrupt($s= false){
+			if(!isset($GLOBALS['cron_resource'])){
+				return true;
+			}
+			write_cron_session();
 	}
 
+	function _die($return= ''){
+		tick_interrupt('_die');
+		$GLOBALS['cron_limit_exception']->disable();
+		die($return);
+	}
 
 	function fcgi_finish_request(){
 		// check if fastcgi_finish_request is callable
@@ -173,11 +209,13 @@ if(
 		header('Content-Encoding: none');
 		header('Content-Length: '.ob_get_length());
 		header('Connection: close');
+		http_response_code(200);
 
 		@ob_end_flush();
 		@ob_flush();
 		@flush();
 	}
+
 
 	function init_background_cron(){
 		ignore_user_abort(true);
@@ -193,6 +231,12 @@ if(
 		ini_set('error_reporting', E_ALL);
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
+		
+		$GLOBALS['cron_limit_exception']= new time_limit_exception;
+		$GLOBALS['cron_limit_exception']->enable();
+		
+		declare(ticks=1);
+		register_tick_function('tick_interrupt', 'register_tick_function');
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
@@ -247,16 +291,16 @@ if(
 				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
 				else $interval= $job['interval'];
 				
-				if(filemtime($dat_file) + $interval > time()) die();
+				if(filemtime($dat_file) + $interval > time()) _die();
 			}
 		}
 		
 		touch($dat_file);
-		$fp= fopen($dat_file, "r+");
+		$GLOBALS['cron_resource']= fopen($dat_file, "r+");
 		
 		
-		if(flock($fp, LOCK_EX | LOCK_NB)) {
-			$cs=unserialize(@fread($fp, filesize($dat_file)));
+		if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+			$cs=unserialize(@fread($GLOBALS['cron_resource'], filesize($dat_file)));
 				
 			if(is_array($cs) ){
 				$GLOBALS['cron_session']= $cs;
@@ -275,7 +319,7 @@ if(
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
 
-						cron_session_add_event($fp, [
+						cron_session_add_event([
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'INFO:',
 							'name' => $job['name'],
@@ -283,7 +327,7 @@ if(
 							'mode' => 'multithreading'
 						]);
 					} else {
-						cron_session_add_event($fp, [
+						cron_session_add_event([
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
 							'name' => $job['name'],
@@ -297,14 +341,16 @@ if(
 			}
 			
 			$GLOBALS['cron_session']['finish']= time();
-			write_cron_session($fp);
+			write_cron_session();
 
 			// END Job
-			flock($fp, LOCK_UN);
+			flock($GLOBALS['cron_resource'], LOCK_UN);
 		}
 
-		fclose($fp);
-		die();
+		fclose($GLOBALS['cron_resource']);
+		unset($GLOBALS['cron_resource']);
+		
+		_die();
 	}
 
 	
@@ -329,21 +375,21 @@ if(
 			}
 		}
 		
-		die();
+		_die();
 	}
 	////////////////////////////////////////////////////////////////////////
 	
 	
 	
-	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) die();
+	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
 	touch(CRON_DAT_FILE);
-	$fp= fopen(CRON_DAT_FILE, "r+");
+	$GLOBALS['cron_resource']= fopen(CRON_DAT_FILE, "r+");
 	
-	if(flock($fp, LOCK_EX | LOCK_NB)) {
-		$cs= unserialize(@fread($fp, filesize(CRON_DAT_FILE)));
+	if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+		$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
@@ -362,7 +408,6 @@ if(
 		
 		//###########################################
 		// check jobs
-		
 		foreach($GLOBALS['cron_jobs'] as $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 			
@@ -380,10 +425,15 @@ if(
 			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 					$job['interval']= 0;
 					$t= explode(':', $job['time']);
+					$d= explode('-', $job['date']);
+				
+				
+				
+				
 				
 					if(
 						!$GLOBALS['cron_session'][$job['name']]['complete'] && 
-						$job['date'] == date('d-m-Y', time()) &&
+						$job['date'] == date('d-m-Y', time()) && // 23 over check
 						(
 							intval($t[0]) + 1 == intval(date("H")) ||
 							(
@@ -398,6 +448,16 @@ if(
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
 						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
 					}
+					
+					if(is_array($t) && is_array($d)){
+						$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+						
+					}
+					
+					
+					
+					
+					
 			} else {
 				if(isset($job['date'])){ // check date, one - time
 					$job['interval']= 0;
@@ -448,7 +508,6 @@ if(
 			
 			
 			if($GLOBALS['cron_session'][$job['name']]['last_update'] == PHP_INT_MAX) {
-				write_cron_session($fp);
 				continue;
 			}
 			
@@ -472,7 +531,7 @@ if(
 					if(file_exists($job['callback'])){
 						include $job['callback'];
 						
-						cron_session_add_event($fp, [
+						cron_session_add_event([
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'INFO:',
 							'name' => $job['name'],
@@ -480,7 +539,7 @@ if(
 							'mode' => 'singlethreading'
 						]);
 					} else {
-						cron_session_add_event($fp, [
+						cron_session_add_event([
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
 							'name' => $job['name'],
@@ -490,10 +549,7 @@ if(
 					}
 				}
 				
-				// write_cron_session reset CRON_DELAY counter, strongly recommend call this after every job!
 				$GLOBALS['cron_session'][$job['name']]['last_update']= time();
-				
-				write_cron_session($fp);
 			}
 		}
 		
@@ -506,15 +562,16 @@ if(
 		
 		
 		$GLOBALS['cron_session']['finish']= time();
-		write_cron_session($fp);
+		write_cron_session();
 		
 		// END Jobs
-		flock($fp, LOCK_UN);
+		flock($GLOBALS['cron_resource'], LOCK_UN);
 	}
 
-	fclose($fp);
+	fclose($GLOBALS['cron_resource']);
+	unset($GLOBALS['cron_resource']);
 
-	die();
+	_die();
 } else {
 	
 	////////////////////////////////////////////////////////////////////////
