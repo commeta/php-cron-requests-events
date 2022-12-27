@@ -62,7 +62,7 @@ for( // CRON job 3, multithreading example, four core
 define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 
-define("CRON_DELAY", 180);  // interval between requests in seconds, 1 to max int, increases the accuracy of the job timer hit
+define("CRON_DELAY", 180);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
@@ -182,10 +182,17 @@ if(
 	}
 	
 	function tick_interrupt($s= false){
-			if(!isset($GLOBALS['cron_resource'])){
+			if(!isset($GLOBALS['cron_dat_file'])){ // update mtime stream descriptor file
+				touch($GLOBALS['cron_dat_file']);
 				return true;
 			}
-			write_cron_session();
+			
+			/*
+			if(isset($GLOBALS['cron_resource'])){ // debug, auto save system variables
+				write_cron_session();
+				return true;
+			}
+			*/
 	}
 
 	function _die($return= ''){
@@ -283,7 +290,7 @@ if(
 	function multithreading_dispatcher(){
 		// Dispatcher init
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
-		
+		$GLOBALS['cron_dat_file']= $dat_file;
 		
 		// Check interval
 		foreach($GLOBALS['cron_jobs'] as $job) {
@@ -387,6 +394,7 @@ if(
 	// Dispatcher init
 	touch(CRON_DAT_FILE);
 	$GLOBALS['cron_resource']= fopen(CRON_DAT_FILE, "r+");
+	$GLOBALS['cron_dat_file']= CRON_DAT_FILE;
 	
 	if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
 		$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize(CRON_DAT_FILE)));
