@@ -33,7 +33,7 @@ $GLOBALS['cron_jobs']= [];
 ##########
 $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'interval' => 1, // start interval 1 sec
+	'interval' => 0, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
@@ -594,7 +594,9 @@ if(
 				write_cron_session();
 				sleep(1);
 				memory_profiler();
-				cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+				if(CRON_LOG_FILE){
+					cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+				}
 			}
 		}
 		
