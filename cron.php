@@ -530,6 +530,16 @@ if(
 			$GLOBALS['cron_session']['memory_get_usage']= 0;
 		}
 		
+		if(!isset($GLOBALS['cron_session']['filemtime'])){
+			$GLOBALS['cron_session']['filemtime']= filemtime(__FILE__);
+		}
+		
+		if($GLOBALS['cron_session']['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
+			$GLOBALS['cron_session']['filemtime']= filemtime(__FILE__);
+			_die();
+		}
+		
+		
 		if($GLOBALS['cron_session']['memory_get_usage'] < memory_get_usage()){
 			$GLOBALS['cron_session']['memory_get_usage']= memory_get_usage();
 			$GLOBALS['cron_session']['events']= [];
@@ -540,7 +550,11 @@ if(
 				'name' => 'memory_get_usage',
 				'value' => $GLOBALS['cron_session']['memory_get_usage'],
 			]);
+			
+			// if($GLOBALS['cron_session']['memory_get_usage'] > 1024 * 1024 * 64){}
 		}
+		
+		
 	}
 	
 	
