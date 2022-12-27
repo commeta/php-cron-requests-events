@@ -243,7 +243,9 @@ if(
 		$GLOBALS['cron_limit_exception']->enable();
 		
 		declare(ticks=1);
-		register_tick_function('tick_interrupt', 'register_tick_function');
+		if(is_callable('register_tick_function')) {
+			register_tick_function('tick_interrupt', 'register_tick_function');
+		}
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
