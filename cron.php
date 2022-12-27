@@ -199,6 +199,11 @@ if(
 	function _die($return= ''){
 		tick_interrupt('_die');
 		$GLOBALS['cron_limit_exception']->disable();
+		
+		if(isset($GLOBALS['cron_resource'])){
+			write_cron_session();
+		}
+		
 		die($return);
 	}
 
