@@ -39,7 +39,7 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 1, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
-	'multithreading' => true
+	'multithreading' => false
 ];
 
 
@@ -66,6 +66,8 @@ define("CRON_DELAY", 180);  // interval between requests in seconds, 0 to max in
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
+define("CRON_LOG_LEVEL", 3);
+
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
 
@@ -340,22 +342,25 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-
-						cron_session_add_event([
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'INFO:',
-							'name' => $job['name'],
-							'callback' => $job['callback'],
-							'mode' => 'multithreading'
-						]);
+						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
+							cron_session_add_event([
+								'date'=> date('m/d/Y H:i:s', time()),
+								'message'=> 'INFO:',
+								'name' => $job['name'],
+								'callback' => $job['callback'],
+								'mode' => 'multithreading'
+							]);
+						}
 					} else {
-						cron_session_add_event([
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'ERROR:',
-							'name' => $job['name'],
-							'callback' => $job['callback'],
-							'mode' => 'multithreading'
-						]);
+						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
+							cron_session_add_event([
+								'date'=> date('m/d/Y H:i:s', time()),
+								'message'=> 'ERROR:',
+								'name' => $job['name'],
+								'callback' => $job['callback'],
+								'mode' => 'multithreading'
+							]);
+						}
 					}
 					
 					break;
@@ -500,21 +505,25 @@ if(
 					if(file_exists($job['callback'])){
 						include $job['callback'];
 						
-						cron_session_add_event([
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'INFO:',
-							'name' => $job['name'],
-							'callback' => $job['callback'],
-							'mode' => 'singlethreading'
-						]);
+						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
+							cron_session_add_event([
+								'date'=> date('m/d/Y H:i:s', time()),
+								'message'=> 'INFO:',
+								'name' => $job['name'],
+								'callback' => $job['callback'],
+								'mode' => 'singlethreading'
+							]);
+						}
 					} else {
-						cron_session_add_event([
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'ERROR:',
-							'name' => $job['name'],
-							'callback' => $job['callback'],
-							'mode' => 'singlethreading'
-						]);
+						if(CRON_LOG_FILE && CRON_LOG_LEVEL < 2){
+							cron_session_add_event([
+								'date'=> date('m/d/Y H:i:s', time()),
+								'message'=> 'ERROR:',
+								'name' => $job['name'],
+								'callback' => $job['callback'],
+								'mode' => 'singlethreading'
+							]);
+						}
 					}
 				}
 				
