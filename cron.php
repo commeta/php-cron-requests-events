@@ -68,7 +68,7 @@ for( // CRON job 3, multithreading example, four core
 define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 
-define("CRON_DELAY", 180);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
+define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
@@ -167,20 +167,6 @@ if(
 	
 	
 	// Functions: system api
-	function cron_session_add_event($event){
-		$GLOBALS['cron_session']['finish']= time();
-		$GLOBALS['cron_session']['events'][]= $event;
-		write_cron_session();
-
-		if(CRON_LOG_FILE){
-			file_put_contents(
-				CRON_LOG_FILE,
-				implode(' ', $event) . "\n",
-				FILE_APPEND | LOCK_EX
-			);
-		}
-	}
-
 	function write_cron_session(){ 
 		$serialized= serialize($GLOBALS['cron_session']);
 
@@ -340,8 +326,6 @@ if(
 				];
 			}
 			
-			$GLOBALS['cron_session']['events']= [];
-
 
 			foreach($GLOBALS['cron_jobs'] as $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
@@ -528,7 +512,6 @@ if(
 		
 		if($GLOBALS['cron_session']['memory_get_usage'] < memory_get_usage()){
 			$GLOBALS['cron_session']['memory_get_usage']= memory_get_usage();
-			$GLOBALS['cron_session']['events']= [];
 			
 			if(CRON_LOG_FILE){
 				file_put_contents(
@@ -595,7 +578,6 @@ if(
 			];
 		}
 
-		$GLOBALS['cron_session']['events']= [];
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
