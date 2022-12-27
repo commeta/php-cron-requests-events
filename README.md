@@ -26,22 +26,25 @@ php crontab, based on url requests/event-loop, work in background, multithreadin
 ### Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
 ```
+##########
 $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
+	'interval' => 1, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
+##########
 
-
+##########
 $GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
-	'interval' => 1, // start interval 1 sec
+	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
+##########
 
-
+##########
 for( // CRON job 3, multithreading example, four core
 	$i= 0;
 	$i< 4; // Max processor cores
@@ -54,6 +57,7 @@ for( // CRON job 3, multithreading example, four core
 		'multithreading' => true
 	];
 }
+##########
 
 ```
 - name - Имя задачи (только буквы и цифры латиницей)
