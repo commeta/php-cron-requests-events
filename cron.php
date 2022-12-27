@@ -383,7 +383,7 @@ if(
 						)
 					){
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
-					} else {// lock job forever
+					} else {// lock job forever, dat!
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
 					}
 			} else {
@@ -429,7 +429,7 @@ if(
 			
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
-				if(file_exists($dat_file)){
+				if(file_exists($dat_file) && $GLOBALS['cron_session'][$job['name']]['last_update'] != PHP_INT_MAX){
 					$GLOBALS['cron_session'][$job['name']]['last_update']= filemtime($dat_file);
 				}
 			}
