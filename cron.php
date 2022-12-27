@@ -240,7 +240,10 @@ if(
 		// Check interval
 		foreach($GLOBALS['cron_jobs'] as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				if(@filemtime($dat_file) + $job['interval'] > time()) die();
+				if(!isset($job['interval'])) $interval= 0;
+				else $interval= $job['interval'];
+				
+				if(filemtime($dat_file) + $interval > time()) die();
 			}
 		}
 		
@@ -357,6 +360,9 @@ if(
 		// check jobs
 		
 		foreach($GLOBALS['cron_jobs'] as $job){
+			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
+			
+			
 			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) { // init
 				$GLOBALS['cron_session'][$job['name']]['last_update']= 0;
 			}
@@ -385,6 +391,7 @@ if(
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
 					} else {// lock job forever, dat!
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
 					}
 			} else {
 				if(isset($job['date'])){ // check date, one - time
@@ -397,6 +404,7 @@ if(
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
 					} else {// lock job forever
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
 					}
 				}
 				
@@ -415,21 +423,32 @@ if(
 							$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
 						} else {// lock job
 							$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+							if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
 						}
 					} else {// lock job
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
+						if(file_exists($dat_file))	touch($dat_file, time() + 60 * 60 * 24);
 					}
 					
 					// unlock job
-					if(intval($t[0]) > intval(date("H"))) $GLOBALS['cron_session'][$job['name']]['complete']= false;
+					if(intval($t[0]) > intval(date("H"))) {
+						$GLOBALS['cron_session'][$job['name']]['complete']= false;
+						if(file_exists($dat_file))	touch($dat_file, time());
+					}
 				}
 			}
 			
 			
 			
+			
+			if($GLOBALS['cron_session'][$job['name']]['last_update'] == PHP_INT_MAX) {
+				write_cron_session($fp);
+				continue;
+			}
+			
+			
 			if($job['multithreading']){ // refresh last update
-				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
-				if(file_exists($dat_file) && $GLOBALS['cron_session'][$job['name']]['last_update'] != PHP_INT_MAX){
+				if(file_exists($dat_file)){
 					$GLOBALS['cron_session'][$job['name']]['last_update']= filemtime($dat_file);
 				}
 			}
