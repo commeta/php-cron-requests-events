@@ -244,7 +244,7 @@ if(
 		// Check interval
 		foreach($GLOBALS['cron_jobs'] as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				if(!isset($job['interval'])) $interval= 0;
+				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
 				else $interval= $job['interval'];
 				
 				if(filemtime($dat_file) + $interval > time()) die();
