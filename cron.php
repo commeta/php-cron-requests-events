@@ -490,7 +490,7 @@ if(
 									'message'=> 'ERROR:',
 									'name' => $job['name'],
 									'callback' => $job['callback'],
-									'mode' => 'multithreading'
+									'mode' => 'singlethreading'
 								]) . "\n",
 								FILE_APPEND | LOCK_EX
 							);
