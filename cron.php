@@ -393,7 +393,7 @@ if(
 						)
 					){
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
-						if(file_exists($dat_file)) touch($dat_file, time());
+						if(file_exists($dat_file)) touch($dat_file, time() - 1);
 					} else {// lock job forever, dat!
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
 						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
@@ -407,6 +407,7 @@ if(
 						$job['date'] == date('d-m-Y', time())
 					){
 						$GLOBALS['cron_session'][$job['name']]['last_update']= time() - 1;
+						if(file_exists($dat_file)) touch($dat_file, time() - 1);
 					} else {// lock job forever
 						$GLOBALS['cron_session'][$job['name']]['last_update']= PHP_INT_MAX;
 						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
@@ -438,7 +439,7 @@ if(
 					// unlock job
 					if(intval($t[0]) > intval(date("H"))) {
 						$GLOBALS['cron_session'][$job['name']]['complete']= false;
-						if(file_exists($dat_file)) touch($dat_file, time());
+						if(file_exists($dat_file)) touch($dat_file, time() - 1);
 					}
 				}
 			}
