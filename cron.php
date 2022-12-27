@@ -290,7 +290,7 @@ if(
 	function multithreading_dispatcher(){
 		// Dispatcher init
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
-		$GLOBALS['cron_dat_file']= $dat_file;
+		
 		
 		// Check interval
 		foreach($GLOBALS['cron_jobs'] as $job) {
@@ -307,6 +307,8 @@ if(
 		
 		
 		if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+			$GLOBALS['cron_dat_file']= $dat_file;
+			
 			$cs=unserialize(@fread($GLOBALS['cron_resource'], filesize($dat_file)));
 				
 			if(is_array($cs) ){
@@ -388,15 +390,16 @@ if(
 	
 	
 	
-	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
+	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
+
 	touch(CRON_DAT_FILE);
 	$GLOBALS['cron_resource']= fopen(CRON_DAT_FILE, "r+");
-	$GLOBALS['cron_dat_file']= CRON_DAT_FILE;
 	
 	if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+		$GLOBALS['cron_dat_file']= CRON_DAT_FILE;
 		$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
