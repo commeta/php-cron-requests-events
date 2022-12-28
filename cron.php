@@ -294,7 +294,7 @@ if(
 
 	//function queue_manager(){}
 	
-	function multithreading_dispatcher($cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
+	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
 		// Dispatcher init
 		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		
@@ -525,12 +525,12 @@ if(
 	
 	////////////////////////////////////////////////////////////////////////
 	// start in background
+	$cron_dat_file= CRON_DAT_FILE;
+	init_background_cron();
+
 	foreach($cron_jobs as $k => $job){ // check job name symbols
 		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
-
-	$cron_dat_file= CRON_DAT_FILE;
-	init_background_cron();
 
 	$cron_limit_exception= new time_limit_exception;
 	$cron_limit_exception->enable();
