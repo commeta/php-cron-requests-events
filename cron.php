@@ -369,7 +369,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						write_cron_session($cron_resource, $cron_session);
+						if(!TICK_INTERRUPT) _touch($cron_dat_file);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -505,6 +505,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
+						
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
