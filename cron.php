@@ -43,8 +43,6 @@ $cron_jobs[]= [ // CRON Job 1, example
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 10, // start interval 1 sec
-	
-	//'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -58,14 +56,22 @@ for( // CRON job 3, multithreading example, four core
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
-		'time' => '07:20:00', // "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '00:20:00', // "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
 	];
 }
 ##########
 
-  
+##########
+$cron_jobs[]= [ // CRON Job 4, multithreading example
+	'name' => 'job4multithreading',
+	'date' => '29-12-2022', // "day-month-year" execute job on the specified date
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'multithreading' => true
+];
+##########
+
 ////////////////////////////////////////////////////////////////////////
 // Variables
 define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
@@ -494,7 +500,7 @@ if(
 	
 
 	function main_job_dispatcher(& $cron_jobs, & $cron_session){
-		foreach($cron_jobs as $job){
+		foreach($cron_jobs as & $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 			
 			if(!isset($cron_session[$job['name']]['last_update'])) { // init
