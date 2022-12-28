@@ -364,7 +364,7 @@ if(
 		}
 		
 		
-		touch($cron_dat_file);
+		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
