@@ -355,7 +355,7 @@ if(
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			_touch($cron_dat_file);
+			if(!TICK_INTERRUPT) _touch($cron_dat_file);
 			
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
@@ -365,7 +365,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						_touch($cron_dat_file);
+						if(!TICK_INTERRUPT) _touch($cron_dat_file);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -585,6 +585,12 @@ if(
 	$cron_session= [];
 	
 
+	if(is_callable('register_tick_function')) {
+		define("TICK_INTERRUPT", true);
+	} else {
+		define("TICK_INTERRUPT", false);
+	}
+
 	foreach($cron_jobs as $k => $job){ // check job name symbols
 		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
@@ -615,7 +621,7 @@ if(
 
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		_touch(CRON_DAT_FILE);
+		if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 		
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		if(is_array($cs)) $cron_session= $cs;
@@ -628,13 +634,13 @@ if(
 		//###########################################
 		// check jobs
 		main_job_dispatcher($cron_jobs, $cron_session);
-		_touch(CRON_DAT_FILE);
+		if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 
 		if(CRON_DELAY == 0){
 			while(true){
 				main_job_dispatcher($cron_jobs, $cron_session);
 				
-				_touch(CRON_DAT_FILE);
+				if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_session, $cron_jobs);
 				
@@ -643,7 +649,7 @@ if(
 				}
 				
 				sleep(1);
-				_touch(CRON_DAT_FILE);
+				if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 			}
 		}
 		
