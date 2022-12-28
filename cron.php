@@ -177,8 +177,9 @@ if(
 	}
 	
 	function tick_interrupt($s= false){
-			if(isset($GLOBALS['cron_dat_file'])){ // update mtime stream descriptor file
-				touch($GLOBALS['cron_dat_file']);
+		global $cron_dat_file;
+			if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
+				touch($cron_dat_file);
 			}
 			
 			/*
@@ -190,10 +191,10 @@ if(
 	}
 
 	function _die($return= ''){
-		global $cron_resource, $cron_session;
+		global $cron_resource, $cron_session, $cron_limit_exception;
 		
 		tick_interrupt('_die');
-		$GLOBALS['cron_limit_exception']->disable();
+		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
 			write_cron_session($cron_resource, $cron_session);
@@ -245,9 +246,6 @@ if(
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
 		
-		$GLOBALS['cron_limit_exception']= new time_limit_exception;
-		$GLOBALS['cron_limit_exception']->enable();
-		
 		if(is_callable('register_tick_function')) {
 			declare(ticks=1);
 			register_tick_function('tick_interrupt', 'register_tick_function');
@@ -295,9 +293,9 @@ if(
 
 	//function queue_manager(){}
 	
-	function multithreading_dispatcher($cron_jobs, & $cron_resource, & $cron_session){
+	function multithreading_dispatcher($cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
 		// Dispatcher init
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		
 		
 		// Check interval
@@ -314,7 +312,6 @@ if(
 		$cron_resource= fopen($dat_file, "r+");
 		
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$GLOBALS['cron_dat_file']= $dat_file;
 			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
 				
 			if(is_array($cs) ){
@@ -533,7 +530,10 @@ if(
 		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
 
+	$cron_dat_file= CRON_DAT_FILE;
 
+	$cron_limit_exception= new time_limit_exception;
+	$cron_limit_exception->enable();
 
 	////////////////////////////////////////////////////////////////////////
 	// multithreading 
@@ -544,7 +544,7 @@ if(
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 				$cron_resource= true;
 				$cron_session= [];
-				multithreading_dispatcher($cron_jobs, $cron_resource, $cron_session);
+				multithreading_dispatcher($cron_jobs, $cron_resource, $cron_session, $cron_dat_file);
 			}
 		}
 		
@@ -563,7 +563,6 @@ if(
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		$GLOBALS['cron_dat_file']= CRON_DAT_FILE;
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
