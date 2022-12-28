@@ -176,6 +176,15 @@ if(
 		fflush($cron_resource);
 	}
 	
+	function _touch($dat_file){
+		static $old_time= 0;
+		
+		if($old_time != time()){
+			$old_time= time();
+			touch($dat_file);
+		}
+	}
+	
 	function tick_interrupt($s= false){
 		static $counter= 0;
 		global $cron_dat_file;
@@ -190,7 +199,7 @@ if(
 		}
 
 		if(is_file($cron_dat_file)){ // update mtime stream descriptor file
-			touch($cron_dat_file);
+			_touch($cron_dat_file);
 		}
 
 		/*
@@ -237,6 +246,7 @@ if(
 		open_cron_socket(CRON_URL_KEY);
 		die();
 	}
+	
 
 	function fcgi_finish_request(){
 		// check if fastcgi_finish_request is callable
@@ -345,7 +355,7 @@ if(
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			touch($cron_dat_file);
+			_touch($cron_dat_file);
 			
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
@@ -355,7 +365,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						touch($cron_dat_file);
+						_touch($cron_dat_file);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -605,7 +615,7 @@ if(
 
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		touch(CRON_DAT_FILE);
+		_touch(CRON_DAT_FILE);
 		
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		if(is_array($cs)) $cron_session= $cs;
@@ -618,13 +628,13 @@ if(
 		//###########################################
 		// check jobs
 		main_job_dispatcher($cron_jobs, $cron_session);
-		touch(CRON_DAT_FILE);
+		_touch(CRON_DAT_FILE);
 
 		if(CRON_DELAY == 0){
 			while(true){
 				main_job_dispatcher($cron_jobs, $cron_session);
 				
-				touch(CRON_DAT_FILE);
+				_touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_session, $cron_jobs);
 				
@@ -633,7 +643,7 @@ if(
 				}
 				
 				sleep(1);
-				touch(CRON_DAT_FILE);
+				_touch(CRON_DAT_FILE);
 			}
 		}
 		
