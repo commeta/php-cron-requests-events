@@ -505,7 +505,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						
+						if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
