@@ -7,7 +7,7 @@ if(CRON_LOG_FILE){
 		CRON_LOG_FILE, 
 		microtime() . " DEBUG: start  microtime:" . 
 			print_r([
-				$GLOBALS['cron_session']['start_counter'],
+				$cron_session['start_counter'],
 				$_SERVER['QUERY_STRING'], 
 				$_SERVER['SERVER_NAME'], 
 				$_SERVER['REQUEST_METHOD'], 
@@ -19,10 +19,10 @@ if(CRON_LOG_FILE){
 */
 
 // Save sesson variables, in Job name context (multithreading), autoload in next start session
-if(isset($GLOBALS['cron_session']['start_counter'])){
-	$GLOBALS['cron_session']['start_counter']++;
+if(isset($cron_session['start_counter'])){
+	$cron_session['start_counter']++;
 } else {
-	$GLOBALS['cron_session']['start_counter']= 0;
+	$cron_session['start_counter']= 0;
 }
 
 
