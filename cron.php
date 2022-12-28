@@ -451,8 +451,8 @@ if(
 				if($job['multithreading']){  // start multithreading example
 					$c_resource= fopen($dat_file, "r+");
 					if(flock($c_resource, LOCK_EX | LOCK_NB)) {
-						open_cron_socket(CRON_URL_KEY, $job['name']); 
 						flock($c_resource, LOCK_UN);
+						open_cron_socket(CRON_URL_KEY, $job['name']); 
 						fclose($c_resource);
 					}
 					
@@ -620,8 +620,8 @@ if(
 		if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
 			$cron_resource= fopen(CRON_DAT_FILE, "r+");
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-				open_cron_socket(CRON_URL_KEY);
 				flock($cron_resource, LOCK_UN);
+				open_cron_socket(CRON_URL_KEY);
 				fclose($cron_resource);
 			}
 		} 
