@@ -454,9 +454,9 @@ if(
 					
 					if(flock($c_resource, LOCK_EX | LOCK_NB)) {
 							$cron_started= false ;
+							flock($c_resource, LOCK_UN);
 					}
 					
-					flock($c_resource, LOCK_UN);
 					fclose($c_resource);
 					
 					if(!$cron_started) open_cron_socket(CRON_URL_KEY, $job['name']); 
@@ -624,9 +624,9 @@ if(
 			
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 					$cron_started= false;
+					flock($cron_resource, LOCK_UN);
 			}
 			
-			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 			
 			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
