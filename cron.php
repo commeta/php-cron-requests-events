@@ -501,7 +501,6 @@ if(
 		}
 		
 		if($profiler['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
-			$profiler['filemtime']= filemtime(__FILE__);
 			cron_restart();
 		}
 		
@@ -532,7 +531,6 @@ if(
 				}
 				
 				if($profiler['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
-					$profiler['filemtime_' . $job['callback']]= filemtime($job['callback']);
 					cron_restart();
 				}
 			}
