@@ -483,7 +483,7 @@ if(
 	}
 	
 	
-	function memory_profiler(& $cron_session){
+	function memory_profiler(& $cron_session, & $cron_jobs){
 		if(!isset($cron_session['memory_get_usage'])){
 			$cron_session['memory_get_usage']= 0;
 		}
@@ -514,6 +514,20 @@ if(
 			}
 			
 			// if($cron_session['memory_get_usage'] > 1024 * 1024 * 64){}
+		}
+		
+		
+		foreach($cron_jobs as $job){
+			if(is_file($job['callback'])){
+				if(!isset($cron_session['filemtime_' . $job['callback']])){
+					$cron_session['filemtime_' . $job['callback']]= filemtime($job['callback']);
+				}
+				
+				if($cron_session['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
+					$cron_session['filemtime_' . $job['callback']]= filemtime($job['callback']);
+					_die();
+				}
+			}
 		}
 	}
 	
@@ -551,7 +565,6 @@ if(
 	
 	
 	
-	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
 	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
@@ -579,7 +592,7 @@ if(
 				
 				touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
-				memory_profiler($cron_session);
+				memory_profiler($cron_session, $cron_jobs);
 				
 				if(CRON_LOG_FILE){
 					cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
