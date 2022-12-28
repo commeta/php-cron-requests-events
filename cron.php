@@ -183,8 +183,8 @@ if(
 		if(!isset($cron_dat_file)  && $cron_dat_file === false) return;
 		
 		$counter++;
-		if($counter < 30) return;
-		if($counter > 30) {
+		if($counter < 20) return;
+		if($counter > 20) {
 			$counter= 0;
 			return;
 		}
@@ -633,6 +633,7 @@ if(
 				}
 				
 				sleep(1);
+				touch(CRON_DAT_FILE);
 			}
 		}
 		
