@@ -42,7 +42,9 @@ $cron_jobs[]= [ // CRON Job 1, example
 ##########
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
-	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
+	'interval' => 10, // start interval 1 sec
+	
+	//'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -397,18 +399,8 @@ if(
 	}
 
 
-	function main_job_dispatcher(& $cron_jobs, & $cron_session){
-		foreach($cron_jobs as $job){
-			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
-			
-			if(!isset($cron_session[$job['name']]['last_update'])) { // init
-				$cron_session[$job['name']]['last_update']= 0;
-			}
-
-			if(!isset($cron_session[$job['name']]['complete'])){
-				$cron_session[$job['name']]['complete']= false;
-			}
-			
+	function check_date_time(& $job, & $cron_session, $dat_file){
+		
 			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 					$job['interval']= 0;
 					$t= explode(':', $job['time']);
@@ -480,6 +472,26 @@ if(
 					}
 				}
 			}
+		
+		
+	}
+	
+	
+	
+
+	function main_job_dispatcher(& $cron_jobs, & $cron_session){
+		foreach($cron_jobs as $job){
+			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
+			
+			if(!isset($cron_session[$job['name']]['last_update'])) { // init
+				$cron_session[$job['name']]['last_update']= 0;
+			}
+
+			if(!isset($cron_session[$job['name']]['complete'])){
+				$cron_session[$job['name']]['complete']= false;
+			}
+			
+			check_date_time($job, $cron_session, $dat_file);
 			
 			if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
 				continue;
@@ -496,18 +508,8 @@ if(
 				$cron_session[$job['name']]['complete']= true;
 				
 				if($job['multithreading']){  // start multithreading example
-					$c_resource= fopen($dat_file, "r");
-					$cron_started= true;
+					open_cron_socket(CRON_URL_KEY, $job['name']); 
 					
-					if(flock($c_resource, LOCK_EX | LOCK_NB)) {
-							$cron_started= false ;
-							flock($c_resource, LOCK_UN);
-					}
-					
-					fclose($c_resource);
-					
-					if(!$cron_started) open_cron_socket(CRON_URL_KEY, $job['name']); 
-					unset($c_resource);
 				} else {
 					// include connector
 					if(file_exists($job['callback'])) {
@@ -651,7 +653,7 @@ if(
 		}
 		
 		//###########################################
-		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+		if(CRON_LOG_FILE) cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
 		
 		// END Jobs
 		flock($cron_resource, LOCK_UN);
