@@ -179,7 +179,7 @@ if(
 	function tick_interrupt($s= false){
 		global $cron_dat_file;
 		
-		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
+		if(isset($cron_dat_file) && $cron_dat_file && is_file($cron_dat_file)){ // update mtime stream descriptor file
 			touch($cron_dat_file);
 		}
 			
