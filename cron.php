@@ -304,15 +304,15 @@ if(
 				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
 				else $interval= $job['interval'];
 				
-				if(filemtime($dat_file) + $interval > time()) _die();
+				if(filemtime($cron_dat_file) + $interval > time()) _die();
 			}
 		}
 		
-		touch($dat_file);
-		$cron_resource= fopen($dat_file, "r+");
+		touch($cron_dat_file);
+		$cron_resource= fopen($cron_dat_file, "r+");
 		
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
+			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 				
 			if(is_array($cs) ){
 				$cron_session= $cs;
