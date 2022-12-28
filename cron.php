@@ -62,6 +62,7 @@ for( // CRON job 3, multithreading example, four core
 	];
 }
 ##########
+
   
 ////////////////////////////////////////////////////////////////////////
 // Variables
@@ -183,8 +184,10 @@ if(
 			$old_time= time();
 			touch($dat_file);
 		}
+		
+		// Note: if TICK_INTERRUPT is false, this function must be run per second
+		// Description: function _touch() an update session file timestamp, to prevent start process
 	}
-	
 	
 	
 	function tick_interrupt($s= false){
@@ -203,12 +206,11 @@ if(
 			}
 		}
 
-		/*
-		if(isset($cron_resource)){ // debug, auto save system variables
-			write_cron_session($cron_resource, $cron_session);
-			return true;
-		}
-		*/
+		// Note: use block interrupt operations with minimal delays
+		// Example: sleep(10);
+		// for($i=0;$i<10;$i++) sleep($i);
+		// Description: function tick_interrupt() an update session file timestamp, to prevent start process
+		//  sleep() blocking tick_interrupt()
 	}
 	
 
@@ -367,7 +369,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						if(!TICK_INTERRUPT) _touch($cron_dat_file);
+						write_cron_session($cron_resource, $cron_session);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -561,7 +563,7 @@ if(
 				);
 			}
 			
-			// if($cron_session['memory_get_usage'] > 1024 * 1024 * 64){}
+			// if($cron_session['memory_get_usage'] > 1024 * 1024 * 64){} 
 		} 
 		
 		
@@ -638,13 +640,11 @@ if(
 		//###########################################
 		// check jobs
 		main_job_dispatcher($cron_jobs, $cron_session);
-		if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
+		write_cron_session($cron_resource, $cron_session);
 
 		if(CRON_DELAY == 0){
 			while(true){
 				main_job_dispatcher($cron_jobs, $cron_session);
-				
-				if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_jobs);
 				
@@ -671,7 +671,7 @@ if(
 
 	_die();
 } else {
-	
+
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
