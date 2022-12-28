@@ -185,6 +185,8 @@ if(
 		}
 	}
 	
+	
+	
 	function tick_interrupt($s= false){
 		static $old_time= 0;
 		global $cron_dat_file;
@@ -208,6 +210,7 @@ if(
 		}
 		*/
 	}
+	
 
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception;
@@ -526,22 +529,24 @@ if(
 	}
 	
 	
-	function memory_profiler(& $cron_session, & $cron_jobs){
-		if(!isset($cron_session['memory_get_usage'])){
-			$cron_session['memory_get_usage']= 0;
+	function memory_profiler(& $cron_jobs){
+		static  $profiler= [];
+		
+		if(!isset($profiler['memory_get_usage'])){
+			$profiler['memory_get_usage']= 0;
 		}
 		
-		if(!isset($cron_session['filemtime'])){
-			$cron_session['filemtime']= filemtime(__FILE__);
+		if(!isset($profiler['filemtime'])){
+			$profiler['filemtime']= filemtime(__FILE__);
 		}
 		
-		if($cron_session['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
-			$cron_session['filemtime']= filemtime(__FILE__);
+		if($profiler['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
+			$profiler['filemtime']= filemtime(__FILE__);
 			cron_restart();
 		}
 		
-		if($cron_session['memory_get_usage'] < memory_get_usage()){
-			$cron_session['memory_get_usage']= memory_get_usage();
+		if($profiler['memory_get_usage'] < memory_get_usage()){
+			$profiler['memory_get_usage']= memory_get_usage();
 			
 			if(CRON_LOG_FILE){
 				file_put_contents(
@@ -550,24 +555,24 @@ if(
 						'date'=> date('m/d/Y H:i:s', time()),
 						'message'=> 'INFO:',
 						'name' => 'memory_get_usage',
-						'value' => $cron_session['memory_get_usage'],
+						'value' => $profiler['memory_get_usage'],
 					]) . "\n",
 					FILE_APPEND | LOCK_EX
 				);
 			}
 			
 			// if($cron_session['memory_get_usage'] > 1024 * 1024 * 64){}
-		}
+		} 
 		
 		
 		foreach($cron_jobs as $job){
 			if(is_file($job['callback'])){
-				if(!isset($cron_session['filemtime_' . $job['callback']])){
-					$cron_session['filemtime_' . $job['callback']]= filemtime($job['callback']);
+				if(!isset($profiler['filemtime_' . $job['callback']])){
+					$profiler['filemtime_' . $job['callback']]= filemtime($job['callback']);
 				}
 				
-				if($cron_session['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
-					$cron_session['filemtime_' . $job['callback']]= filemtime($job['callback']);
+				if($profiler['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
+					$profiler['filemtime_' . $job['callback']]= filemtime($job['callback']);
 					cron_restart();
 				}
 			}
@@ -641,7 +646,7 @@ if(
 				
 				if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
-				memory_profiler($cron_session, $cron_jobs);
+				memory_profiler($cron_jobs);
 				
 				if(CRON_LOG_FILE){
 					cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
