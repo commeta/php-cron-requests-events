@@ -56,7 +56,7 @@ for( // CRON job 3, multithreading example, four core
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
-		'time' => '00:20:00', // "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '02:05:00', // "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
 	];
@@ -365,7 +365,7 @@ if(
 					$cron_session[$job['name']]['complete']= false;
 				}
 					
-				check_date_time($job, $cron_session, false);
+				if(isset($job['date']) || isset($job['time'])) check_date_time($job, $cron_session, false);
 				
 				if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
 					_die();
@@ -409,7 +409,7 @@ if(
 						}
 						
 						$cron_session[$job['name']]['last_update']= time();
-						check_date_time($job, $cron_session, false);
+						if(isset($job['date']) || isset($job['time'])) check_date_time($job, $cron_session, false);
 					}
 					
 					write_cron_session($cron_resource, $cron_session);
