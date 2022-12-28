@@ -350,8 +350,6 @@ if(
 	//function queue_manager(){}
 	
 	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
-		global $cron_limit_exception;
-		
 		// Dispatcher init
 		$cron_dat_file= false;
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
@@ -368,6 +366,10 @@ if(
 				}
 					
 				check_date_time($job, $cron_session, false);
+				
+				if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
+					_die();
+				}
 					
 				if(file_exists(filemtime($dat_file) + $job['interval'] > time())) _die();
 			}
@@ -407,6 +409,7 @@ if(
 						}
 						
 						$cron_session[$job['name']]['last_update']= time();
+						check_date_time($job, $cron_session, false);
 					}
 					
 					write_cron_session($cron_resource, $cron_session);
