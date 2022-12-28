@@ -177,12 +177,22 @@ if(
 	}
 	
 	function tick_interrupt($s= false){
+		static $counter= 0;
 		global $cron_dat_file;
 		
-		if(isset($cron_dat_file) && $cron_dat_file && is_file($cron_dat_file)){ // update mtime stream descriptor file
+		if(!isset($cron_dat_file)  && $cron_dat_file === false) return;
+		
+		$counter++;
+		if($counter < 30) return;
+		if($counter > 30) {
+			$counter= 0;
+			return;
+		}
+
+		if(is_file($cron_dat_file)){ // update mtime stream descriptor file
 			touch($cron_dat_file);
 		}
-			
+
 		/*
 		if(isset($cron_resource)){ // debug, auto save system variables
 			write_cron_session($cron_resource, $cron_session);
