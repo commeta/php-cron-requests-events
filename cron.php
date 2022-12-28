@@ -449,7 +449,14 @@ if(
 				$cron_session[$job['name']]['complete']= true;
 				
 				if($job['multithreading']){  // start multithreading example
-					open_cron_socket(CRON_URL_KEY, $job['name']); 
+					$c_resource= fopen($dat_file, "r+");
+					if(flock($c_resource, LOCK_EX | LOCK_NB)) {
+						open_cron_socket(CRON_URL_KEY, $job['name']); 
+						flock($c_resource, LOCK_UN);
+						fclose($c_resource);
+					}
+					
+					unset($c_resource);
 				} else {
 					// include connector
 					if(file_exists($job['callback'])) {
@@ -614,9 +621,9 @@ if(
 			$cron_resource= fopen(CRON_DAT_FILE, "r+");
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 				open_cron_socket(CRON_URL_KEY);
+				flock($cron_resource, LOCK_UN);
+				fclose($cron_resource);
 			}
-			flock($cron_resource, LOCK_UN);
-			fclose($cron_resource);
 		} 
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
