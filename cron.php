@@ -350,21 +350,32 @@ if(
 	//function queue_manager(){}
 	
 	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
+		global $cron_limit_exception;
+		
 		// Dispatcher init
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+		$cron_dat_file= false;
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		
 		// Check interval
-		foreach($cron_jobs as $job) {
+		foreach($cron_jobs as & $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
-				else $interval= $job['interval'];
-				
-				if(@filemtime($cron_dat_file) + $interval > time()) _die();
+				if(!isset($cron_session[$job['name']]['last_update'])) { // init
+					$cron_session[$job['name']]['last_update']= 0;
+				}
+					
+				if(!isset($cron_session[$job['name']]['complete'])){
+					$cron_session[$job['name']]['complete']= false;
+				}
+					
+				check_date_time($job, $cron_session, false);
+					
+				if(file_exists(filemtime($dat_file) + $job['interval'] > time())) _die();
 			}
 		}
 		
-		
+		$cron_dat_file= $dat_file;
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
+
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
@@ -373,20 +384,6 @@ if(
 
 			foreach($cron_jobs as & $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-					if(!isset($cron_session[$job['name']]['last_update'])) { // init
-						$cron_session[$job['name']]['last_update']= 0;
-					}
-					
-					if(!isset($cron_session[$job['name']]['complete'])){
-						$cron_session[$job['name']]['complete']= false;
-					}
-					
-					check_date_time($job, $cron_session, false);
-					
-					if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
-						continue;
-					}
-					
 					if($cron_session[$job['name']]['last_update'] + $job['interval'] < time()){
 						$cron_session[$job['name']]['complete']= true;
 					
