@@ -42,7 +42,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ##########
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
-	'interval' => 10, // start interval 1 sec
+	'interval' => 10, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -492,8 +492,6 @@ if(
 					}
 				}
 			}
-		
-		
 	}
 	
 	
@@ -511,7 +509,7 @@ if(
 				$cron_session[$job['name']]['complete']= false;
 			}
 			
-			check_date_time($job, $cron_session, $cron_dat_file);
+			check_date_time($job, $cron_session, $dat_file);
 			
 			if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
 				continue;
