@@ -62,7 +62,7 @@ for( // CRON job 3, multithreading example, four core
 	];
 }
 ##########
- 
+  
 ////////////////////////////////////////////////////////////////////////
 // Variables
 define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
@@ -179,7 +179,6 @@ if(
 	function tick_interrupt($s= false){
 			if(isset($GLOBALS['cron_dat_file'])){ // update mtime stream descriptor file
 				touch($GLOBALS['cron_dat_file']);
-				return true;
 			}
 			
 			/*
@@ -312,20 +311,15 @@ if(
 		touch($dat_file);
 		$GLOBALS['cron_resource']= fopen($dat_file, "r+");
 		
-		
 		if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
 			$GLOBALS['cron_dat_file']= $dat_file;
-			
-			$cs=unserialize(@fread($GLOBALS['cron_resource'], filesize($dat_file)));
+			$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize($dat_file)));
 				
 			if(is_array($cs) ){
 				$GLOBALS['cron_session']= $cs;
 			} else {
-				$GLOBALS['cron_session']= [
-					'finish'=> 0
-				];
+				$GLOBALS['cron_session']= [];
 			}
-			
 
 			foreach($GLOBALS['cron_jobs'] as $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
@@ -352,7 +346,6 @@ if(
 				}
 			}
 			
-			$GLOBALS['cron_session']['finish']= time();
 			write_cron_session();
 
 			// END Job
@@ -573,9 +566,7 @@ if(
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
 		} else {
-			$GLOBALS['cron_session']= [
-				'finish'=> 0
-			];
+			$GLOBALS['cron_session']= [];
 		}
 
 		
@@ -603,7 +594,6 @@ if(
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
 		
-		$GLOBALS['cron_session']['finish']= time();
 		write_cron_session();
 		
 		// END Jobs
