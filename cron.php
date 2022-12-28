@@ -219,7 +219,7 @@ if(
 		
 		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
 			$dat_file= $cron_dat_file;
-			unset($cron_dat_file);
+			$cron_dat_file= false; // disable interrupt
 			
 			touch($dat_file, time() - 1);
 		}
