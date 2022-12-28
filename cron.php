@@ -389,8 +389,6 @@ if(
 					break;
 				}
 			}
-			
-			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
 			flock($cron_resource, LOCK_UN);
@@ -659,8 +657,6 @@ if(
 		
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
-		
-		write_cron_session($cron_resource, $cron_session);
 		
 		// END Jobs
 		flock($cron_resource, LOCK_UN);
