@@ -309,10 +309,10 @@ if(
 			}
 		}
 		
-		touch($cron_dat_file);
 		$cron_resource= fopen($cron_dat_file, "r+");
-		
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+			touch($cron_dat_file);
+			
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 
@@ -321,6 +321,7 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
+						touch($cron_dat_file);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -555,10 +556,10 @@ if(
 	// Dispatcher init
 	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
 
-	touch(CRON_DAT_FILE);
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
-	
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+		touch(CRON_DAT_FILE);
+		
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		if(is_array($cs)) $cron_session= $cs;
 		
@@ -570,16 +571,21 @@ if(
 		//###########################################
 		// check jobs
 		main_job_dispatcher($cron_jobs, $cron_session);
-		
+		touch(CRON_DAT_FILE);
+
 		if(CRON_DELAY == 0){
 			while(true){
 				main_job_dispatcher($cron_jobs, $cron_session);
+				
+				touch(CRON_DAT_FILE);
 				write_cron_session($cron_resource, $cron_session);
-				sleep(1);
 				memory_profiler($cron_session);
+				
 				if(CRON_LOG_FILE){
 					cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
 				}
+				
+				sleep(1);
 			}
 		}
 		
