@@ -203,6 +203,27 @@ if(
 		
 		die($return);
 	}
+	
+	function cron_restart(){// restart cron
+		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
+		
+		$cron_limit_exception->disable();
+		
+		if(isset($cron_resource) && is_resource($cron_resource)){
+			write_cron_session($cron_resource, $cron_session);
+			
+			flock($cron_resource, LOCK_UN);
+			fclose($cron_resource);
+			unset($cron_resource);
+		}
+		
+		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
+			touch($cron_dat_file, time() - 1);
+		}
+		
+		open_cron_socket(CRON_URL_KEY);
+		die();
+	}
 
 	function fcgi_finish_request(){
 		// check if fastcgi_finish_request is callable
@@ -494,7 +515,7 @@ if(
 		
 		if($cron_session['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
 			$cron_session['filemtime']= filemtime(__FILE__);
-			_die();
+			cron_restart();
 		}
 		
 		if($cron_session['memory_get_usage'] < memory_get_usage()){
@@ -525,7 +546,7 @@ if(
 				
 				if($cron_session['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
 					$cron_session['filemtime_' . $job['callback']]= filemtime($job['callback']);
-					_die();
+					cron_restart();
 				}
 			}
 		}
