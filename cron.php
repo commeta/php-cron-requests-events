@@ -176,48 +176,11 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 		fflush($cron_resource);
 	}
-	
-	function _touch($dat_file){
-		static $old_time= 0;
-		
-		if($old_time != time()){
-			$old_time= time();
-			touch($dat_file);
-		}
-		
-		// Note: if TICK_INTERRUPT is false, this function must be run per second
-		// Description: function _touch() an update session file timestamp, to prevent start process
-	}
-	
-	
-	function tick_interrupt($s= false){
-		static $old_time= 0;
-		global $cron_dat_file;
-		
-		if(
-			$old_time != time() && 
-			isset($cron_dat_file) &&
-			$cron_dat_file !== false
-		){
-			$old_time= time();
-			
-			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
-				_touch($cron_dat_file);
-			}
-		}
 
-		// Note: use block interrupt operations with minimal delays
-		// Example: sleep(10);
-		// for($i=0;$i<10;$i++) sleep($i);
-		// Description: function tick_interrupt() an update session file timestamp, to prevent start process
-		//  sleep() blocking tick_interrupt()
-	}
-	
 
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception;
 		
-		tick_interrupt('_die');
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
@@ -238,13 +201,6 @@ if(
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 			unset($cron_resource);
-		}
-		
-		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
-			$dat_file= $cron_dat_file;
-			$cron_dat_file= false; // disable interrupt
-			
-			touch($dat_file, time() - 1);
 		}
 		
 		open_cron_socket(CRON_URL_KEY);
@@ -294,16 +250,12 @@ if(
 		ini_set('error_reporting', E_ALL);
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
-		
-		if(is_callable('register_tick_function')) {
-			declare(ticks=1);
-			register_tick_function('tick_interrupt', 'register_tick_function');
-		}
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
 		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
 			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
+			
 			file_put_contents(
 				CRON_LOG_FILE, 
 				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
@@ -359,8 +311,6 @@ if(
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			if(!TICK_INTERRUPT) _touch($cron_dat_file);
-			
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 
@@ -369,7 +319,6 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						if(!TICK_INTERRUPT) _touch($cron_dat_file);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -505,7 +454,6 @@ if(
 					// include connector
 					if(file_exists($job['callback'])) {
 						include $job['callback'];
-						if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 					} else {
 						if(CRON_LOG_FILE){
 							file_put_contents(
@@ -589,13 +537,6 @@ if(
 	$cron_resource= true;
 	$cron_session= [];
 	
-
-	if(is_callable('register_tick_function')) {
-		define("TICK_INTERRUPT", true);
-	} else {
-		define("TICK_INTERRUPT", false);
-	}
-
 	foreach($cron_jobs as $k => $job){ // check job name symbols
 		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
@@ -626,8 +567,6 @@ if(
 
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
-		
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		if(is_array($cs)) $cron_session= $cs;
 		
@@ -652,7 +591,6 @@ if(
 				}
 				
 				sleep(1);
-				if(!TICK_INTERRUPT) _touch(CRON_DAT_FILE);
 			}
 		}
 		
@@ -673,7 +611,12 @@ if(
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
 		if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
-			open_cron_socket(CRON_URL_KEY);
+			$cron_resource= fopen(CRON_DAT_FILE, "r+");
+			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+				open_cron_socket(CRON_URL_KEY);
+			}
+			flock($cron_resource, LOCK_UN);
+			fclose($cron_resource);
 		} 
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
