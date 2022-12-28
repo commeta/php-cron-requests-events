@@ -25,13 +25,13 @@
 // CRON Jobs
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 
-$GLOBALS['cron_jobs']= [];
+$cron_jobs= [];
 
 ###########################
 # EXAMPLES
 
 ##########
-$GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
+$cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
 	'interval' => 0, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
@@ -40,7 +40,7 @@ $GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
 ##########
 
 ##########
-$GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
+$cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
@@ -54,7 +54,7 @@ for( // CRON job 3, multithreading example, four core
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$GLOBALS['cron_jobs'][]= [ // CRON Job 3, multithreading example
+	$cron_jobs[]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
 		'time' => '07:20:00', // "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
@@ -167,13 +167,13 @@ if(
 	
 	
 	// Functions: system api
-	function write_cron_session(){ 
+	function write_cron_session(& $cron_resource){ 
 		$serialized= serialize($GLOBALS['cron_session']);
 
-		rewind($GLOBALS['cron_resource']);
-		fwrite($GLOBALS['cron_resource'], $serialized);
-		ftruncate($GLOBALS['cron_resource'], mb_strlen($serialized));
-		fflush($GLOBALS['cron_resource']);
+		rewind($cron_resource);
+		fwrite($cron_resource, $serialized);
+		ftruncate($cron_resource, mb_strlen($serialized));
+		fflush($cron_resource);
 	}
 	
 	function tick_interrupt($s= false){
@@ -182,19 +182,21 @@ if(
 			}
 			
 			/*
-			if(isset($GLOBALS['cron_resource'])){ // debug, auto save system variables
-				write_cron_session();
+			if(isset($cron_resource)){ // debug, auto save system variables
+				write_cron_session($cron_resource);
 				return true;
 			}
 			*/
 	}
 
 	function _die($return= ''){
+		global $cron_resource;
+		
 		tick_interrupt('_die');
 		$GLOBALS['cron_limit_exception']->disable();
 		
-		if(isset($GLOBALS['cron_resource'])){
-			write_cron_session();
+		if(isset($cron_resource) && is_resource($cron_resource)){
+			write_cron_session($cron_resource);
 		}
 		
 		die($return);
@@ -293,13 +295,13 @@ if(
 
 	//function queue_manager(){}
 	
-	function multithreading_dispatcher(){
+	function multithreading_dispatcher($cron_jobs, & $cron_resource){
 		// Dispatcher init
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		
 		
 		// Check interval
-		foreach($GLOBALS['cron_jobs'] as $job) {
+		foreach($cron_jobs as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
 				else $interval= $job['interval'];
@@ -309,11 +311,11 @@ if(
 		}
 		
 		touch($dat_file);
-		$GLOBALS['cron_resource']= fopen($dat_file, "r+");
+		$cron_resource= fopen($dat_file, "r+");
 		
-		if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 			$GLOBALS['cron_dat_file']= $dat_file;
-			$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize($dat_file)));
+			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
 				
 			if(is_array($cs) ){
 				$GLOBALS['cron_session']= $cs;
@@ -321,7 +323,7 @@ if(
 				$GLOBALS['cron_session']= [];
 			}
 
-			foreach($GLOBALS['cron_jobs'] as $job) {
+			foreach($cron_jobs as $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 					// include connector
 					if(file_exists($job['callback'])) {
@@ -346,21 +348,21 @@ if(
 				}
 			}
 			
-			write_cron_session();
+			write_cron_session($cron_resource);
 
 			// END Job
-			flock($GLOBALS['cron_resource'], LOCK_UN);
+			flock($cron_resource, LOCK_UN);
 		}
 
-		fclose($GLOBALS['cron_resource']);
-		unset($GLOBALS['cron_resource']);
+		fclose($cron_resource);
+		unset($cron_resource);
 		
 		_die();
 	}
 
 
-	function main_job_dispatcher(){
-		foreach($GLOBALS['cron_jobs'] as $job){
+	function main_job_dispatcher(& $cron_jobs){
+		foreach($cron_jobs as $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 			
 			if(!isset($GLOBALS['cron_session'][$job['name']]['last_update'])) { // init
@@ -528,8 +530,8 @@ if(
 	// start in background
 	init_background_cron();
 	
-	foreach($GLOBALS['cron_jobs'] as $k => $job){ // check job name symbols
-		$GLOBALS['cron_jobs'][$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
+	foreach($cron_jobs as $k => $job){ // check job name symbols
+		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
 	}
 
 
@@ -539,9 +541,10 @@ if(
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["process_id"])
 	){
-		foreach($GLOBALS['cron_jobs'] as $job) {
+		foreach($cron_jobs as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				multithreading_dispatcher();
+				$cron_resource= true;
+				multithreading_dispatcher($cron_jobs, $cron_resource);
 			}
 		}
 		
@@ -557,11 +560,11 @@ if(
 	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
 
 	touch(CRON_DAT_FILE);
-	$GLOBALS['cron_resource']= fopen(CRON_DAT_FILE, "r+");
+	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	
-	if(flock($GLOBALS['cron_resource'], LOCK_EX | LOCK_NB)) {
+	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$GLOBALS['cron_dat_file']= CRON_DAT_FILE;
-		$cs= unserialize(@fread($GLOBALS['cron_resource'], filesize(CRON_DAT_FILE)));
+		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
 		
 		if(is_array($cs) ){
 			$GLOBALS['cron_session']= $cs;
@@ -577,12 +580,12 @@ if(
 		
 		//###########################################
 		// check jobs
-		main_job_dispatcher();
+		main_job_dispatcher($cron_jobs);
 		
 		if(CRON_DELAY == 0){
 			while(true){
-				main_job_dispatcher();
-				write_cron_session();
+				main_job_dispatcher($cron_jobs);
+				write_cron_session($cron_resource);
 				sleep(1);
 				memory_profiler();
 				if(CRON_LOG_FILE){
@@ -594,14 +597,14 @@ if(
 		//###########################################
 		cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
 		
-		write_cron_session();
+		write_cron_session($cron_resource);
 		
 		// END Jobs
-		flock($GLOBALS['cron_resource'], LOCK_UN);
+		flock($cron_resource, LOCK_UN);
 	}
 
-	fclose($GLOBALS['cron_resource']);
-	unset($GLOBALS['cron_resource']);
+	fclose($cron_resource);
+	unset($cron_resource);
 
 	_die();
 } else {
@@ -622,6 +625,6 @@ if(
 		}
 	}
 
-	unset($GLOBALS['cron_jobs']);
+	unset($cron_jobs);
 }
 ?>
