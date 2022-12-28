@@ -27,16 +27,16 @@ php crontab, based on url requests/event-loop, work in background, multithreadin
 В контексте файла cron.php раздел CRON Job
 ```
 ##########
-$GLOBALS['cron_jobs'][]= [ // CRON Job 1, example
+$cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'interval' => 1, // start interval 1 sec
+	'interval' => 0, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
 ##########
 
 ##########
-$GLOBALS['cron_jobs'][]= [ // CRON Job 2, multithreading example
+$cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
@@ -50,7 +50,7 @@ for( // CRON job 3, multithreading example, four core
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$GLOBALS['cron_jobs'][]= [ // CRON Job 3, multithreading example
+	$cron_jobs[]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
 		'time' => '07:20:00', // "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
