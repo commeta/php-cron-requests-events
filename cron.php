@@ -186,20 +186,19 @@ if(
 	}
 	
 	function tick_interrupt($s= false){
-		static $counter= 0;
+		static $old_time= 0;
 		global $cron_dat_file;
 		
-		if(!isset($cron_dat_file)  && $cron_dat_file === false) return;
-		
-		$counter++;
-		if($counter < 20) return;
-		if($counter > 20) {
-			$counter= 0;
-			return;
-		}
-
-		if(is_file($cron_dat_file)){ // update mtime stream descriptor file
-			_touch($cron_dat_file);
+		if(
+			$old_time != time() && 
+			isset($cron_dat_file) &&
+			$cron_dat_file !== false
+		){
+			$old_time= time();
+			
+			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
+				_touch($cron_dat_file);
+			}
 		}
 
 		/*
