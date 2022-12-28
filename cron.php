@@ -177,6 +177,41 @@ if(
 		fflush($cron_resource);
 	}
 
+	function _touch($dat_file){
+		static $old_time= 0;
+		
+		if($old_time != time()){
+			$old_time= time();
+			touch($dat_file);
+		}
+		
+		// Note: if TICK_INTERRUPT is false, this function must be run per second
+		// Description: function _touch() an update session file timestamp, to prevent start process
+	}
+	
+	
+	function tick_interrupt($s= false){
+		static $old_time= 0;
+		global $cron_dat_file;
+		
+		if(
+			$old_time != time() && 
+			isset($cron_dat_file) &&
+			$cron_dat_file !== false
+		){
+			$old_time= time();
+			
+			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
+				_touch($cron_dat_file);
+			}
+		}
+
+		// Note: use block interrupt operations with minimal delays
+		// Example: sleep(10);
+		// for($i=0;$i<10;$i++) sleep($i);
+		// Description: function tick_interrupt() an update session file timestamp, to prevent start process
+		//  sleep() blocking tick_interrupt()
+	}
 
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception;
@@ -201,6 +236,13 @@ if(
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 			unset($cron_resource);
+		}
+		
+		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
+			$dat_file= $cron_dat_file;
+			$cron_dat_file= false; // disable interrupt
+			
+			touch($dat_file, time() - 1);
 		}
 		
 		open_cron_socket(CRON_URL_KEY);
@@ -250,6 +292,11 @@ if(
 		ini_set('error_reporting', E_ALL);
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
+		
+		if(is_callable('register_tick_function')) {
+			declare(ticks=1);
+			register_tick_function('tick_interrupt');
+		}
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
