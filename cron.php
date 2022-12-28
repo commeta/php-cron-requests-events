@@ -314,12 +314,7 @@ if(
 		
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
-				
-			if(is_array($cs) ){
-				$cron_session= $cs;
-			} else {
-				$cron_session= [];
-			}
+			if(is_array($cs)) $cron_session= $cs;
 
 			foreach($cron_jobs as $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
@@ -396,7 +391,6 @@ if(
 					
 					if(is_array($t) && is_array($d)){
 						$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
-						
 					}
 			} else {
 				if(isset($job['date'])){ // check date, one - time
@@ -525,8 +519,12 @@ if(
 	
 	////////////////////////////////////////////////////////////////////////
 	// start in background
-	$cron_dat_file= CRON_DAT_FILE;
 	init_background_cron();
+	
+	$cron_dat_file= CRON_DAT_FILE;
+	$cron_resource= true;
+	$cron_session= [];
+	
 
 	foreach($cron_jobs as $k => $job){ // check job name symbols
 		$cron_jobs[$k]['name']= mb_eregi_replace("[^a-zA-Z0-9_]", '', $job['name']);
@@ -542,8 +540,6 @@ if(
 	){
 		foreach($cron_jobs as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				$cron_resource= true;
-				$cron_session= [];
 				multithreading_dispatcher($cron_jobs, $cron_resource, $cron_session, $cron_dat_file);
 			}
 		}
@@ -564,13 +560,7 @@ if(
 	
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
-		
-		if(is_array($cs) ){
-			$cron_session= $cs;
-		} else {
-			$cron_session= [];
-		}
-
+		if(is_array($cs)) $cron_session= $cs;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
