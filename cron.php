@@ -359,7 +359,7 @@ if(
 				if(!isset($job['interval']) || isset($job['date']) ||  isset($job['time'])) $interval= 0;
 				else $interval= $job['interval'];
 				
-				if(filemtime($cron_dat_file) + $interval > time()) _die();
+				if(@filemtime($cron_dat_file) + $interval > time()) _die();
 			}
 		}
 		
@@ -377,7 +377,11 @@ if(
 						$cron_session[$job['name']]['last_update']= 0;
 					}
 					
-					check_date_time($job, $cron_session, $cron_dat_file);
+					if(!isset($cron_session[$job['name']]['complete'])){
+						$cron_session[$job['name']]['complete']= false;
+					}
+					
+					check_date_time($job, $cron_session, false);
 					
 					if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
 						continue;
