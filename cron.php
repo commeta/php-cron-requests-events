@@ -449,13 +449,17 @@ if(
 				$cron_session[$job['name']]['complete']= true;
 				
 				if($job['multithreading']){  // start multithreading example
-					$c_resource= fopen($dat_file, "r+");
+					$c_resource= fopen($dat_file, "r");
+					$cron_started= true;
+					
 					if(flock($c_resource, LOCK_EX | LOCK_NB)) {
-						flock($c_resource, LOCK_UN);
-						open_cron_socket(CRON_URL_KEY, $job['name']); 
-						fclose($c_resource);
+							$cron_started= false ;
 					}
 					
+					flock($c_resource, LOCK_UN);
+					fclose($c_resource);
+					
+					if(!$cron_started) open_cron_socket(CRON_URL_KEY, $job['name']); 
 					unset($c_resource);
 				} else {
 					// include connector
@@ -613,17 +617,21 @@ if(
 
 	_die();
 } else {
-
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
 		if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
-			$cron_resource= fopen(CRON_DAT_FILE, "r+");
+			$cron_resource= fopen(CRON_DAT_FILE, "r");
+			$cron_started= true;
+			
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-				flock($cron_resource, LOCK_UN);
-				open_cron_socket(CRON_URL_KEY);
-				fclose($cron_resource);
+					$cron_started= false;
 			}
+			
+			flock($cron_resource, LOCK_UN);
+			fclose($cron_resource);
+			
+			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
 		} 
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
