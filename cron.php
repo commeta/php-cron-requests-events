@@ -33,7 +33,7 @@ $cron_jobs= [];
 ##########
 $cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
-	'interval' => 999990, // start interval 1 sec
+	'interval' => 0, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
@@ -42,7 +42,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ##########
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
-	'interval' => 9999910, // start interval 10 sec
+	'interval' => 10, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
