@@ -360,13 +360,6 @@ if(
 			$cron_session[$job['name']]['complete']= false;
 		}
 		
-		if(!isset($cron_session[$job['name']]['unlock'])){
-			$cron_session[$job['name']]['unlock']= false;
-		}
-			
-		if(!isset($cron_session[$job['name']]['unlocked'])){
-			$cron_session[$job['name']]['unlocked']= false;
-		}
 		
 		
 		if(isset($job['date'])) {
@@ -382,6 +375,14 @@ if(
 			isset($job['time'])
 		) {
 			$cron_session[$job['name']]['mode']= false;
+			
+			if(!isset($cron_session[$job['name']]['unlock'])){
+				$cron_session[$job['name']]['unlock']= false;
+			}
+				
+			if(!isset($cron_session[$job['name']]['unlocked'])){
+				$cron_session[$job['name']]['unlocked']= false;
+			}
 		} else {
 			$cron_session[$job['name']]['mode']= true;
 		}
@@ -528,7 +529,7 @@ if(
 				$cron_session[$job['name']]['unlocked']= false;
 			}
 			
-			if($main && isset($cron_session[$job['name']]['unlock'])) {
+			if($main && $cron_session[$job['name']]['mode'] === false) {
 				lock_unlock_everday_time($cron_session, $job);
 			}
 	}
