@@ -26,7 +26,7 @@ php crontab, based on url requests/event-loop, daemon mode, multithreading, seco
 ### Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
 ```
-##########
+###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
 	'interval' => 0, // start interval 1 sec
@@ -35,16 +35,16 @@ $cron_jobs[]= [ // CRON Job 1, example
 ];
 ##########
 
-##########
+###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
-	'date' => '31-12-2022', // "day-month-year" execute job on the specified date
+	'interval' => 10, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
 
-##########
+###########################
 for( // CRON job 3, multithreading example, four core
 	$i= 0;
 	$i< 4; // Max processor cores
@@ -52,11 +52,21 @@ for( // CRON job 3, multithreading example, four core
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multithreading example
 		'name' => 'multithreading_' . $i,
-		'time' => '07:20:00', // "hours:minutes:seconds" execute job on the specified time every day
+		'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
 	];
 }
+##########
+
+
+###########################
+$cron_jobs[]= [ // CRON Job 4, multithreading example
+	'name' => 'job4multithreading',
+	'time' => '21:03:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'multithreading' => true
+];
 ##########
 
 ```
@@ -86,7 +96,7 @@ for( // CRON job 3, multithreading example, four core
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
 - define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
 - define("CRON_URL_KEY", 'my_secret_key'); // Ключ запуска в URI
-- define("CRON_CLEAN_SESSION", false); // Если true, будет очищать сессии при смене настроек в файле (время модификации), как при первом запуске, текущие задачи будут выполнены повторно!
+- define("CRON_CLEAN_SESSION", true); // Если true, будет очищать сессии при смене настроек в файле (время модификации), как при первом запуске, текущие задачи будут выполнены повторно!
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
