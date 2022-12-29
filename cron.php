@@ -30,6 +30,7 @@ $cron_jobs= [];
 ###########################
 # EXAMPLES
 
+
 ##########
 $cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
@@ -63,10 +64,11 @@ for( // CRON job 3, multithreading example, four core
 }
 ##########
 
+
 ##########
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
-	'time' => '03:31:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '19:03:00', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -349,184 +351,132 @@ if(
 
 	//function queue_manager(){}
 	
-	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
-		// Dispatcher init
-		$cron_dat_file= false;
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
-		
-		if(file_exists($dat_file)){
-			$cs= unserialize(file_get_contents($dat_file));
-			if(is_array($cs)) $cron_session= $cs;
+	function check_date_time(& $job, & $cron_session){
+		if(!isset($cron_session[$job['name']]['last_update'])) { // init
+			$cron_session[$job['name']]['last_update']= 0;
 		}
-		
-		// Check interval
-		foreach($cron_jobs as & $job) {
-			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				if(!isset($cron_session[$job['name']]['last_update'])) { // init
-					$cron_session[$job['name']]['last_update']= 0;
-				}
-					
-				if(!isset($cron_session[$job['name']]['complete'])){
-					$cron_session[$job['name']]['complete']= false;
-				}
-				
-				check_date_time($job, $cron_session, false);
-				
-				if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) _die();
-				if(file_exists(filemtime($dat_file) + $job['interval'] > time())) _die();
-			}
-		}
-		
-		$cron_dat_file= $dat_file;
-		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
-
-		
-		$cron_resource= fopen($cron_dat_file, "r+");
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			foreach($cron_jobs as & $job) {
-				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-					if($cron_session[$job['name']]['last_update'] + $job['interval'] < time()){
-						$cron_session[$job['name']]['complete']= true;
-					
-						// include connector
-						if(file_exists($job['callback'])) {
-							include $job['callback'];
-						} else {
-							if(CRON_LOG_FILE){
-								file_put_contents(
-									CRON_LOG_FILE,
-									implode(' ', [
-										'date'=> date('m/d/Y H:i:s', time()),
-										'message'=> 'ERROR:',
-										'name' => $job['name'],
-										'callback' => $job['callback'],
-										'mode' => 'multithreading'
-									]) . "\n",
-									FILE_APPEND | LOCK_EX
-								);
-							}
-						}
 						
-						$cron_session[$job['name']]['last_update']= time();
-						if(isset($job['date']) || isset($job['time'])) check_date_time($job, $cron_session, false);
-					}
-					
-					write_cron_session($cron_resource, $cron_session);
+		if(!isset($cron_session[$job['name']]['complete'])){
+			$cron_session[$job['name']]['complete']= false;
+		}
+		
+		if(!isset($cron_session[$job['name']]['unlock'])){
+			$cron_session[$job['name']]['unlock']= false;
+		}
+		
+		if(!isset($cron_session[$job['name']]['unlocked'])){
+			$cron_session[$job['name']]['unlocked']= false;
+		}
+		
+		if(isset($job['date'])) {
+			$d= explode('-', $job['date']);
+		}
+		if(isset($job['time'])) {
+			$t= explode(':', $job['time']);
+		}
+		
+		if(
+			isset($job['date']) || 
+			isset($job['time'])
+		) {
+			$cron_session[$job['name']]['mode']= false;
+		} else {
+			$cron_session[$job['name']]['mode']= true;
+		}
+		
+		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
+			if(
+				!$cron_session[$job['name']]['complete'] && 
+				$job['date'] == date('d-m-Y', time()) && // 23 over check
+				(
+					intval($t[0]) + 1 == intval(date("H")) ||
+					(
+						intval($t[0]) == intval(date("H"))  &&
+						intval($t[1]) <= intval(date("i")) 
+					)
+				)
+			){
+				$cron_session[$job['name']]['lock']= false;
+			} else {// lock job forever, dat!
+				$cron_session[$job['name']]['lock']= true;
+			}
+		} else {
+			if(isset($job['date'])){ // check date, one - time
+				if(
+					!$cron_session[$job['name']]['complete'] && 
+					$job['date'] == date('d-m-Y', time())
+				){
+					$cron_session[$job['name']]['lock']= false;
+				} else {// lock job forever
+					$cron_session[$job['name']]['lock']= true;
 				}
 			}
-
-			// END Job
-			flock($cron_resource, LOCK_UN);
-		}
-
-		fclose($cron_resource);
-		unset($cron_resource);
-		
-		_die();
-	}
-
-
-	function check_date_time(& $job, & $cron_session, $dat_file){
-			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
-					$t= explode(':', $job['time']);
-					$job['interval']= 0;
-					if(
-						!$cron_session[$job['name']]['complete'] && 
-						$job['date'] == date('d-m-Y', time()) && // 23 over check
-						(
-							intval($t[0]) + 1 == intval(date("H")) ||
-							(
-								intval($t[0]) == intval(date("H"))  &&
-								intval($t[1]) <= intval(date("i")) 
-							)
-						)
-					){
-						$cron_session[$job['name']]['last_update']= time() - 1;
-						if(file_exists($dat_file)) touch($dat_file, time() - 1);
-					} else {// lock job forever, dat!
-						$cron_session[$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
-					}
-					
-					if(is_array($t) && is_array($d)){
-						$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
-					}
-			} else {
-				if(isset($job['date'])){ // check date, one - time
-					$d= explode('-', $job['date']);
-					$job['interval']= 0;
-					if(
-						!$cron_session[$job['name']]['complete'] && 
-						$job['date'] == date('d-m-Y', time())
-					){
-						$cron_session[$job['name']]['last_update']= time() - 1;
-						if(file_exists($dat_file)) touch($dat_file, time() - 1);
-					} else {// lock job forever
-						$cron_session[$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
-					}
-				}
 				
-				if(isset($job['time'])){ // check time, every day
-					$t= explode(':', $job['time']);
-					$job['interval']= 0;
-					if( 
-						intval($t[0]) + 1 == intval(date("H")) ||
-						(
-							intval($t[0]) == intval(date("H"))  &&
-							intval($t[1]) <= intval(date("i")) 
-						)
-					){
-						if(!$cron_session[$job['name']]['complete']){
-							$cron_session[$job['name']]['last_update']= time() - 1;
-						} else {// lock job
-							$cron_session[$job['name']]['last_update']= PHP_INT_MAX;
-							if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
-						}
+			if(isset($job['time'])){ // check time, every day
+				if( 
+					intval($t[0]) + 1 == intval(date("H")) ||
+					(
+						intval($t[0]) == intval(date("H"))  &&
+						intval($t[1]) <= intval(date("i")) 
+					)
+				){
+					if(!$cron_session[$job['name']]['complete']){
+						$cron_session[$job['name']]['lock']= false;
 					} else {// lock job
-						$cron_session[$job['name']]['last_update']= PHP_INT_MAX;
-						if(file_exists($dat_file)) touch($dat_file, time() + 60 * 60 * 24);
+						$cron_session[$job['name']]['lock']= true;
 					}
-					
-					// unlock job
-					if(intval($t[0]) > intval(date("H"))){
-						$cron_session[$job['name']]['complete']= false;
-						
-						if(file_exists($dat_file) && filemtime($dat_file) > time()){
-							$cs= unserialize(file_get_contents($dat_file));
-							
-							if(is_array($cs)) {
-								$cs[$job['name']]['complete']= false;
-								file_put_contents($dat_file, serialize($cs));
-								touch($dat_file, time() - 1);
-							}
-						}
-						
-					}
+				} else {// lock job
+					$cron_session[$job['name']]['lock']= true;
+				}
+				
+				// unlock job
+				if(intval($t[0]) > intval(date("H")) && $cron_session[$job['name']]['unlocked'] === false){
+					$cron_session[$job['name']]['unlock']= true;
+					$cron_session[$job['name']]['lock']= true;
 				}
 			}
+			
+			//if(is_array($t) && is_array($d)){
+				//$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+			//}
+		}
 	}
 	
 	
-	
+	function callback_connector(& $job, & $cron_session, $mode= false){
+		$cron_session[$job['name']]['complete']= true;
+		
+		if($mode){ // multithreading\singlethreading
+			open_cron_socket(CRON_URL_KEY, $job['name']); 
+		} else {
+			// include connector
+			if(file_exists($job['callback'])) {
+				include $job['callback'];
+			} else {
+				if(CRON_LOG_FILE){
+					file_put_contents(
+						CRON_LOG_FILE,
+						implode(' ', [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'ERROR:',
+							'name' => $job['name'],
+							'callback' => $job['callback'],
+							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
+						]) . "\n",
+						FILE_APPEND | LOCK_EX
+					);
+				}
+			}
+		}
 
-	function main_job_dispatcher(& $cron_jobs, & $cron_session){
+		$cron_session[$job['name']]['last_update']= time();
+	}
+	
+	
+	function singlethreading_dispatcher(& $cron_jobs, & $cron_session){
 		foreach($cron_jobs as & $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
-			
-			if(!isset($cron_session[$job['name']]['last_update'])) { // init
-				$cron_session[$job['name']]['last_update']= 0;
-			}
-
-			if(!isset($cron_session[$job['name']]['complete'])){
-				$cron_session[$job['name']]['complete']= false;
-			}
-			
-			check_date_time($job, $cron_session, $dat_file);
-			
-			if($cron_session[$job['name']]['last_update'] == PHP_INT_MAX) {
-				continue;
-			}
+			check_date_time($job, $cron_session);
 			
 			if($job['multithreading']){ // refresh last update
 				if(file_exists($dat_file)){
@@ -534,39 +484,85 @@ if(
 				}
 			}
 			
-			// Job timer
-			if($cron_session[$job['name']]['last_update'] + $job['interval']  < time()){
-				$cron_session[$job['name']]['complete']= true;
-				
-				if($job['multithreading']){  // start multithreading example
-					open_cron_socket(CRON_URL_KEY, $job['name']); 
-				} else {
-					// include connector
-					if(file_exists($job['callback'])) {
-						include $job['callback'];
-					} else {
-						if(CRON_LOG_FILE){
-							file_put_contents(
-								CRON_LOG_FILE,
-								implode(' ', [
-									'date'=> date('m/d/Y H:i:s', time()),
-									'message'=> 'ERROR:',
-									'name' => $job['name'],
-									'callback' => $job['callback'],
-									'mode' => 'singlethreading'
-								]) . "\n",
-								FILE_APPEND | LOCK_EX
-							);
-						}
-					}
-				}
-				
-				$cron_session[$job['name']]['last_update']= time();
-			}
+			cron_start_date_time($cron_session, $job);
+			cron_start_interval($cron_session,  $job, $job['multithreading']);
 		}
-		
 	}
 	
+	function cron_start_date_time(& $cron_session, & $job){
+			if(
+				$cron_session[$job['name']]['mode'] === false &&
+				$cron_session[$job['name']]['lock'] === false &&
+				$cron_session[$job['name']]['complete'] === false
+			){
+				callback_connector($job, $cron_session, $job['multithreading']);
+				$cron_session[$job['name']]['unlocked']= false;
+			}
+
+			if(
+				$cron_session[$job['name']]['unlock'] === true  &&
+				$cron_session[$job['name']]['unlocked'] === false &&
+				$cron_session[$job['name']]['complete'] === true
+			) {
+				$cron_session[$job['name']]['complete']= false;
+				$cron_session[$job['name']]['unlock']= false;
+				$cron_session[$job['name']]['unlocked']= true;
+				
+				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
+				if(file_exists($dat_file)) $job_session= unserialize(file_get_contents($dat_file));
+				if(is_array($job_session)){
+					$job_session[$job['name']]['complete']= false;
+					file_put_contents($dat_file, serialize($job_session));
+				}
+			}
+	}
+	
+	function cron_start_interval(& $cron_session, & $job, $mode= false){
+			if(
+				$cron_session[$job['name']]['mode'] === true && 
+				$cron_session[$job['name']]['last_update'] + $job['interval'] < time()
+			){
+				callback_connector($job, $cron_session, $mode);
+			}
+	}
+	
+	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){
+		// Dispatcher init
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
+
+		
+		$cron_resource= fopen($cron_dat_file, "r+");
+		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
+			if(is_array($cs)) $cron_session= $cs;
+			
+			foreach($cron_jobs as & $job) {
+				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
+					check_date_time($job, $cron_session);
+					
+					if(
+						$cron_session[$job['name']]['mode'] === false &&
+						$cron_session[$job['name']]['lock'] === false &&
+						$cron_session[$job['name']]['complete'] === false
+					){
+						callback_connector($job, $cron_session);
+					}
+					
+					cron_start_interval($cron_session,  $job);
+				}
+			}
+
+			write_cron_session($cron_resource, $cron_session);
+
+			// END Job
+			flock($cron_resource, LOCK_UN);
+		}
+
+		fclose($cron_resource);
+		_die();
+	}
+
 	
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
@@ -644,9 +640,7 @@ if(
 		
 		_die();
 	}
-	////////////////////////////////////////////////////////////////////////
-	
-	
+
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
@@ -664,12 +658,12 @@ if(
 		
 		//###########################################
 		// check jobs
-		main_job_dispatcher($cron_jobs, $cron_session);
+		singlethreading_dispatcher($cron_jobs, $cron_session);
 		write_cron_session($cron_resource, $cron_session);
 
 		if(CRON_DELAY == 0){
 			while(true){
-				main_job_dispatcher($cron_jobs, $cron_session);
+				singlethreading_dispatcher($cron_jobs, $cron_session);
 				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_jobs);
 				
