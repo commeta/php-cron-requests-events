@@ -66,7 +66,7 @@ for( // CRON job 3, multithreading example, four core
 ##########
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
-	'time' => '02:35:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:31:00', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -489,19 +489,19 @@ if(
 					}
 					
 					// unlock job
-					if(intval($t[0]) > intval(date("H"))) {
+					if(intval($t[0]) > intval(date("H"))){
 						$cron_session[$job['name']]['complete']= false;
 						
-						if(file_exists($dat_file)){
+						if(file_exists($dat_file) && filemtime($dat_file) > time()){
 							$cs= unserialize(file_get_contents($dat_file));
 							
 							if(is_array($cs)) {
 								$cs[$job['name']]['complete']= false;
 								file_put_contents($dat_file, serialize($cs));
+								touch($dat_file, time() - 1);
 							}
 						}
 						
-						if(file_exists($dat_file)) touch($dat_file, time() - 1);
 					}
 				}
 			}
