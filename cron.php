@@ -68,7 +68,7 @@ for( // CRON job 3, multithreading example, four core
 ##########
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
-	'time' => '19:03:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '21:03:00', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -473,28 +473,50 @@ if(
 	}
 	
 	
+	function save_value_to_cron_session($job_name, $key, $value){
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_name . '.dat';
+		
+		$job_session= [];
+		
+		if(!file_exists($dat_file)) {
+			$job_session[$job_name][$key]=  $value;
+			file_put_contents($dat_file, serialize($job_session), LOCK_EX | LOCK_NB);
+			return true;
+		}
+		
+		$cron_resource= fopen($dat_file, "r+");
+		$blocked= false;
+		
+		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
+			if(is_array($cs)) $job_session= $cs;
+			
+			$job_session[$job_name][$key]=  $value;
+			$blocked= true;
+			
+			write_cron_session($cron_resource, $job_session);
+			flock($cron_resource, LOCK_UN);
+		}
+		
+		fclose($cron_resource);
+		return $blocked;
+	}
 	
 	function lock_unlock_everday_time(& $cron_session, & $job){ // lock\unlock job to prevent next start
-			if(
-				$cron_session[$job['name']]['unlock'] === true  &&
-				$cron_session[$job['name']]['unlocked'] === false &&
-				$cron_session[$job['name']]['complete'] === true
-			) {
+		if(
+			$cron_session[$job['name']]['unlock'] === true  &&
+			$cron_session[$job['name']]['unlocked'] === false &&
+			$cron_session[$job['name']]['complete'] === true
+		) {
+			if(save_value_to_cron_session($job['name'], 'complete', false)){
 				$cron_session[$job['name']]['complete']= false;
 				$cron_session[$job['name']]['unlock']= false;
 				$cron_session[$job['name']]['unlocked']= true;
-				
-				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
-				if(file_exists($dat_file)) $job_session= unserialize(file_get_contents($dat_file));
-				if(is_array($job_session)){
-					$job_session[$job['name']]['complete']= false;
-					file_put_contents($dat_file, serialize($job_session));
-				}
 			}
-		
+		}
 	}
 	
-	function cron_start_date_time(& $cron_session, & $job, $mode= false){ // start connector from date\time event 
+	function cron_start_date_time(& $cron_session, & $job, $mode, $main){ // start connector from date\time event 
 			if(
 				$cron_session[$job['name']]['mode'] === false &&
 				$cron_session[$job['name']]['lock'] === false &&
@@ -504,7 +526,7 @@ if(
 				$cron_session[$job['name']]['unlocked']= false;
 			}
 			
-			if($mode === false) lock_unlock_everday_time($cron_session, $job);
+			if($main) lock_unlock_everday_time($cron_session, $job);
 	}
 	
 	function cron_start_interval(& $cron_session, & $job, $mode= false){ // start connector from interval event 
@@ -516,9 +538,7 @@ if(
 			}
 	}
 	
-	
-	
-	
+
 	function singlethreading_dispatcher(& $cron_jobs, & $cron_session){ // main loop job list
 		foreach($cron_jobs as & $job){
 			$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
@@ -530,7 +550,7 @@ if(
 				}
 			}
 			
-			cron_start_date_time($cron_session, $job, $job['multithreading']);
+			cron_start_date_time($cron_session, $job, $job['multithreading'], true);
 			cron_start_interval($cron_session,  $job, $job['multithreading']);
 		}
 	}
@@ -550,7 +570,7 @@ if(
 			foreach($cron_jobs as & $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 					check_date_time($job, $cron_session);
-					cron_start_date_time($cron_session, $job);
+					cron_start_date_time($cron_session, $job, false, false);
 					cron_start_interval($cron_session,  $job);
 				}
 			}
