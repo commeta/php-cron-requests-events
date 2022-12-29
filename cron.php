@@ -360,8 +360,6 @@ if(
 			$cron_session[$job['name']]['complete']= false;
 		}
 		
-		
-		
 		if(isset($job['date'])) {
 			$d= explode('-', $job['date']);
 		}
@@ -613,6 +611,7 @@ if(
 					}
 					
 					$cron_session= [];
+					$cron_session['filemtime']= filemtime(__FILE__);
 				}
 			}
 		}
