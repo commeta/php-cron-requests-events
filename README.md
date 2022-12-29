@@ -86,6 +86,7 @@ for( // CRON job 3, multithreading example, four core
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
 - define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
 - define("CRON_URL_KEY", 'my_secret_key'); // Ключ запуска в URI
+- define("CRON_CLEAN_SESSION", false); // Если true, будет очищать сессии при смене настроек в файле, как при первом запуске, текущие задачи будут выполнены повторно!
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
