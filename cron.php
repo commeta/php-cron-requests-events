@@ -31,7 +31,7 @@ $cron_jobs= [];
 # EXAMPLES
 
 
-##########
+###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
 	'interval' => 0, // start interval 1 sec
@@ -40,7 +40,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ];
 ##########
 
-##########
+###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'name' => 'job2multithreading',
 	'interval' => 10, // start interval 10 sec
@@ -49,7 +49,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ];
 ##########
 
-##########
+###########################
 for( // CRON job 3, multithreading example, four core
 	$i= 0;
 	$i< 4; // Max processor cores
@@ -65,7 +65,7 @@ for( // CRON job 3, multithreading example, four core
 ##########
 
 
-##########
+###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
 	'time' => '21:03:01', // "hours:minutes:seconds" execute job on the specified time every day
@@ -87,7 +87,7 @@ define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
-define("CRON_CLEAN_SESSION", false); // set true for clean all sessions on change this file
+define("CRON_CLEAN_SESSION", true); // set true for clean all sessions on change this file
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
