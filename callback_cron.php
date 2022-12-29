@@ -25,6 +25,4 @@ if(isset($cron_session['start_counter'])){
 } else {
 	$cron_session['start_counter']= 0;
 }
-
-
 ?>
