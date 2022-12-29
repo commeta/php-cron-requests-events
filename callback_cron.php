@@ -2,11 +2,12 @@
 // Write log
 
 /*
-if(CRON_LOG_FILE){
+if(CRON_LOG_FILE && CRON_LOG_LEVEL > 2){
 	@file_put_contents(
 		CRON_LOG_FILE, 
 		microtime() . " DEBUG: start  microtime:" . 
 			print_r([
+				$job['name'],
 				$cron_session['start_counter'],
 				$_SERVER['QUERY_STRING'], 
 				$_SERVER['SERVER_NAME'], 
