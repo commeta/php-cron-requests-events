@@ -360,18 +360,20 @@ if(
 			$cron_session[$job['name']]['complete']= false;
 		}
 		
+		if(!isset($cron_session[$job['name']]['unlock'])){
+			$cron_session[$job['name']]['unlock']= false;
+		}
+			
+		if(!isset($cron_session[$job['name']]['unlocked'])){
+			$cron_session[$job['name']]['unlocked']= false;
+		}
+		
+		
 		if(isset($job['date'])) {
 			$d= explode('-', $job['date']);
 		}
 		
 		if(isset($job['time'])) {
-			if(!isset($cron_session[$job['name']]['unlock'])){
-				$cron_session[$job['name']]['unlock']= false;
-			}
-			
-			if(!isset($cron_session[$job['name']]['unlocked'])){
-				$cron_session[$job['name']]['unlocked']= false;
-			}
 			$t= explode(':', $job['time']);
 		}
 		
@@ -648,7 +650,7 @@ if(
 			}
 		} 
 		
-		
+
 		foreach($cron_jobs as $job){
 			if(is_file($job['callback'])){
 				if(!isset($profiler['filemtime_' . $job['callback']])){
