@@ -67,7 +67,7 @@ for( // CRON job 3, multithreading example, four core
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
-	'time' => '21:03:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '01:03:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -526,7 +526,9 @@ if(
 				$cron_session[$job['name']]['unlocked']= false;
 			}
 			
-			if($main) lock_unlock_everday_time($cron_session, $job);
+			if($main && isset($cron_session[$job['name']]['unlock'])) {
+				lock_unlock_everday_time($cron_session, $job);
+			}
 	}
 	
 	function cron_start_interval(& $cron_session, & $job, $mode= false){ // start connector from interval event 
@@ -550,8 +552,11 @@ if(
 				}
 			}
 			
-			cron_start_date_time($cron_session, $job, $job['multithreading'], true);
-			cron_start_interval($cron_session,  $job, $job['multithreading']);
+			if(isset($job['date']) || isset($job['time'])){
+				cron_start_date_time($cron_session, $job, $job['multithreading'], true);
+			} else {
+				cron_start_interval($cron_session,  $job, $job['multithreading']);
+			}
 		}
 	}
 	
@@ -570,8 +575,12 @@ if(
 			foreach($cron_jobs as & $job) {
 				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
 					check_date_time($job, $cron_session);
-					cron_start_date_time($cron_session, $job, false, false);
-					cron_start_interval($cron_session,  $job);
+					
+					if(isset($job['date']) || isset($job['time'])){
+						cron_start_date_time($cron_session, $job, false, false);
+					} else {
+						cron_start_interval($cron_session,  $job);
+					}
 				}
 			}
 
