@@ -30,7 +30,6 @@ $cron_jobs= [];
 ###########################
 # EXAMPLES
 
-
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'name' => 'job1',
@@ -361,18 +360,18 @@ if(
 			$cron_session[$job['name']]['complete']= false;
 		}
 		
-		if(!isset($cron_session[$job['name']]['unlock'])){
-			$cron_session[$job['name']]['unlock']= false;
-		}
-		
-		if(!isset($cron_session[$job['name']]['unlocked'])){
-			$cron_session[$job['name']]['unlocked']= false;
-		}
-		
 		if(isset($job['date'])) {
 			$d= explode('-', $job['date']);
 		}
+		
 		if(isset($job['time'])) {
+			if(!isset($cron_session[$job['name']]['unlock'])){
+				$cron_session[$job['name']]['unlock']= false;
+			}
+			
+			if(!isset($cron_session[$job['name']]['unlocked'])){
+				$cron_session[$job['name']]['unlocked']= false;
+			}
 			$t= explode(':', $job['time']);
 		}
 		
