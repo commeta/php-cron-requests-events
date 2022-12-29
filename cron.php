@@ -68,7 +68,7 @@ for( // CRON job 3, multithreading example, four core
 ##########
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'name' => 'job4multithreading',
-	'time' => '21:03:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '21:03:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -585,6 +585,27 @@ if(
 		_die();
 	}
 
+
+	function cron_config_profiler(& $cron_session, & $cron_jobs){ // session maintenance
+		if(!isset($cron_session['filemtime'])){
+			$cron_session['filemtime']= filemtime(__FILE__);
+		}
+		
+		if($cron_session['filemtime'] != filemtime(__FILE__)){ // write in main file event, reset sessions
+			foreach($cron_jobs as $job){
+				if($job['multithreading']){
+					$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
+					
+					if(file_exists($cron_dat_file)) {
+						unlink($cron_dat_file);
+					}
+					
+					$cron_session= [];
+				}
+			}
+		}
+	}
+	
 	
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
@@ -616,8 +637,6 @@ if(
 					FILE_APPEND | LOCK_EX
 				);
 			}
-			
-			// if($cron_session['memory_get_usage'] > 1024 * 1024 * 64){} 
 		} 
 		
 		
@@ -677,6 +696,7 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
+		cron_config_profiler($cron_session, $cron_jobs);
 		
 		//###########################################
 		// check jobs
