@@ -87,6 +87,7 @@ define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 
+define("CRON_CLEAN_SESSION", false); // set true for clean all sessions on change this file
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -696,7 +697,7 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
-		cron_config_profiler($cron_session, $cron_jobs);
+		if(CRON_CLEAN_SESSION) cron_config_profiler($cron_session, $cron_jobs);
 		
 		//###########################################
 		// check jobs
