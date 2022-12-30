@@ -175,16 +175,6 @@ if(
 	
 	// Functions: system api
 	function write_cron_session(& $cron_resource, & $cron_session, $cached){
-		static $old_time= 0;
-		
-		if(
-			$cached && 
-			$old_time == time()
-		) {
-			return true;
-		}
-		
-		$old_time= time();
 		$serialized= serialize($cron_session);
 
 		rewind($cron_resource);
