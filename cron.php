@@ -655,9 +655,9 @@ if(
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["process_id"])
 	){
-		
-		$process_id= (int) $_GET["process_id"];
+		$process_id= intval($_GET["process_id"]);
 		$job= $cron_jobs[$process_id];
+		
 		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
 			if(!isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
 				declare(ticks=1);
