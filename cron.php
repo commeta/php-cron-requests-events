@@ -564,7 +564,7 @@ if(
 	
 	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . intval($_GET["process_id"]) . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
@@ -572,8 +572,8 @@ if(
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			cron_session_init($cron_session, $job, (int) $_GET["process_id"]);
-			cron_check_job($cron_session, $job, false, false, (int) $_GET["process_id"]);
+			cron_session_init($cron_session, $job, intval($_GET["process_id"]));
+			cron_check_job($cron_session, $job, false, false, intval($_GET["process_id"]));
 			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
