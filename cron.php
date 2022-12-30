@@ -299,8 +299,19 @@ if(
 		ini_set('display_startup_errors', 1);
 	}
 
-	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
-		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  $cron_log_rotate_max_size / $cron_log_rotate_max_files) {
+	function cron_log_rotate($delayed= false){ // LOG Rotate
+		static $counter= 0;
+		
+		if(CRON_DELAY == 0 && $delayed && $counter < 600) {
+			$counter ++;
+			return true;
+		}
+		
+		if(CRON_DELAY == 0 && $delayed && $counter > 599) {
+			$counter= 0;
+		}
+
+		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
 			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
 			
 			file_put_contents(
@@ -326,7 +337,7 @@ if(
 				}
 			}
 
-			if ($log_files_size >  $cron_log_rotate_max_size) {
+			if ($log_files_size >  CRON_LOG_ROTATE_MAX_SIZE) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
 					file_put_contents(
@@ -701,7 +712,7 @@ if(
 				memory_profiler($cron_jobs);
 				
 				if(CRON_LOG_FILE){
-					cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+					cron_log_rotate(true);
 				}
 				
 				sleep(1);
@@ -709,7 +720,7 @@ if(
 		}
 		
 		//###########################################
-		if(CRON_LOG_FILE) cron_log_rotate(CRON_LOG_ROTATE_MAX_SIZE, CRON_LOG_ROTATE_MAX_FILES);
+		if(CRON_LOG_FILE) cron_log_rotate(false);
 		
 		// END Jobs
 		flock($cron_resource, LOCK_UN);
