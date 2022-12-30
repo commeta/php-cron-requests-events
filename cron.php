@@ -81,7 +81,7 @@ define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
-define("CRON_SECURITY", true); // set true for high danger environment, increases workload on server
+define("CRON_SECURITY", false); // set true for high danger environment, increases workload on server
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
