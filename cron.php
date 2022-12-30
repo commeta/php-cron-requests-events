@@ -286,16 +286,13 @@ if(
 	}
 
 	function cron_log_rotate(){ // LOG Rotate
-		static $counter= 0;
+		static  $counter= false;
 		
-		if(CRON_DELAY == 0 && $counter < 600) {
-			$counter ++;
+		if(CRON_DELAY == 0 && $counter === false) $counter= time();
+		if(CRON_DELAY == 0 && $counter > time() - 600){
 			return true;
 		}
-		
-		if(CRON_DELAY == 0 && $counter > 599) {
-			$counter= 0;
-		}
+		$counter= time();
 
 		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
 			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
