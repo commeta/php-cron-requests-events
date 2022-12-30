@@ -307,7 +307,7 @@ if(
 			return true;
 		}
 		
-		if(CRON_DELAY == 0 && $delayed && $counter > 599) {
+		if(CRON_DELAY == 0 && $counter > 599) {
 			$counter= 0;
 		}
 
