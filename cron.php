@@ -520,12 +520,11 @@ if(
 		if(isset($init[$process_id])) return true;
 		$init[$process_id]= true;
 		
-		if(
-			isset($cron_session[$process_id]['md5']) && 
-			$cron_session[$process_id]['md5'] != md5(serialize($job))
-		) {
-			$cron_session[$process_id]= [];
-			$cron_session[$process_id]['md5']= md5(serialize($job));
+		if(isset($cron_session[$process_id]['md5'])) {
+			if($cron_session[$process_id]['md5'] != md5(serialize($job))){
+				$cron_session[$process_id]= [];
+				$cron_session[$process_id]['md5']= md5(serialize($job));
+			}
 		} else {
 			$cron_session[$process_id]['md5']= md5(serialize($job));
 		}
