@@ -302,11 +302,6 @@ if(
 		ini_set('error_reporting', E_ALL);
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
-		
-		if(is_callable('register_tick_function')) {
-			declare(ticks=1);
-			register_tick_function('tick_interrupt');
-		}
 	}
 
 	function cron_log_rotate($cron_log_rotate_max_size, $cron_log_rotate_max_files){ // LOG Rotate
@@ -543,7 +538,7 @@ if(
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job['name'] . '.dat';
 				
-				if(file_exists($dat_file)){
+				if(!isset($job['date']) && !isset($job['time']) && file_exists($dat_file)){
 					$cron_session[$job['name']]['last_update']= filemtime($dat_file);
 				}
 			}
@@ -553,23 +548,17 @@ if(
 	}
 	
 	
-	function multithreading_dispatcher(& $cron_jobs, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
+	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
 		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $_GET["process_id"] . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
-
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			foreach($cron_jobs as & $job) {
-				if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-					cron_check_job($cron_session,  $job,  false, false);
-				}
-			}
-
+			cron_check_job($cron_session,  $job,  false, false);
 			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
@@ -671,7 +660,12 @@ if(
 	){
 		foreach($cron_jobs as $job) {
 			if($job['name'] == $_GET["process_id"] && $job['multithreading']) {
-				multithreading_dispatcher($cron_jobs, $cron_resource, $cron_session, $cron_dat_file);
+				if(!isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
+					declare(ticks=1);
+					register_tick_function('tick_interrupt');
+				}
+				
+				multithreading_dispatcher($job, $cron_resource, $cron_session, $cron_dat_file);
 			}
 		}
 		
@@ -693,6 +687,11 @@ if(
 		}
 		
 		if(CRON_CLEAN_SESSION) cron_config_profiler($cron_session, $cron_jobs);
+		
+		if(is_callable('register_tick_function')) {
+			declare(ticks=1);
+			register_tick_function('tick_interrupt');
+		}
 		
 		//###########################################
 		// check jobs
