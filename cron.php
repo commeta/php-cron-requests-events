@@ -102,11 +102,13 @@ define("CRON_URL_KEY", 'my_secret_key'); // change this!
 // Functions
 if(!function_exists('open_cron_socket')) { 
 	function open_cron_socket($cron_url_key, $process_id= false){ // Start job in parallel process
+		static $wget= false;
+		
 		if($process_id !== false) $cron_url_key.= '&process_id=' . $process_id;
 		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
-		$wget= false;
-		if(strtolower(PHP_OS) == 'linux') {
+		
+		if(strtolower(PHP_OS) == 'linux' && $wget == false) {
 			foreach(explode(':', getenv('PATH')) as $path){
 				if(is_executable($path.'/wget')) {
 					$wget= $path.'/wget';
@@ -518,11 +520,12 @@ if(
 		if(isset($init[$process_id])) return true;
 		$init[$process_id]= true;
 		
-		if(isset($cron_session[$process_id]['md5'])) {
-			if($cron_session[$process_id]['md5'] != md5(serialize($job))){
-				$cron_session[$process_id]= [];
-				$cron_session[$process_id]['md5']= md5(serialize($job));
-			}
+		if(
+			isset($cron_session[$process_id]['md5']) && 
+			$cron_session[$process_id]['md5'] != md5(serialize($job))
+		) {
+			$cron_session[$process_id]= [];
+			$cron_session[$process_id]['md5']= md5(serialize($job));
 		} else {
 			$cron_session[$process_id]['md5']= md5(serialize($job));
 		}
@@ -600,6 +603,15 @@ if(
 			cron_restart();
 		}
 		
+		
+		if(!isset($profiler['count'])) $profiler['count']= 0;
+		if($profiler['count'] > 60){
+			$profiler['count']= 0;
+			return true;
+		}
+		$profiler['count']++;
+		
+		
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
@@ -617,14 +629,15 @@ if(
 			}
 		} 
 		
-
 		foreach($cron_jobs as $job){
 			if(is_file($job['callback'])){
+				$filemtime_callback= filemtime($job['callback']);
+				
 				if(!isset($profiler['filemtime_' . $job['callback']])){
-					$profiler['filemtime_' . $job['callback']]= filemtime($job['callback']);
+					$profiler['filemtime_' . $job['callback']]= $filemtime_callback;
 				}
 				
-				if($profiler['filemtime_' . $job['callback']] != filemtime($job['callback'])){ // write in callback file event, restart
+				if($profiler['filemtime_' . $job['callback']] != $filemtime_callback){ // write in callback file event, restart
 					cron_restart();
 				}
 			}
