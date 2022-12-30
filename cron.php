@@ -60,7 +60,7 @@ for( // CRON job 3, multithreading example, four core
 }
 ##########
 
-
+ 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'time' => '19:03:01', // "hours:minutes:seconds" execute job on the specified time every day
@@ -81,6 +81,7 @@ define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
+define("CRON_SECURITY", true); // set true for high danger environment, increases workload on server
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -147,7 +148,6 @@ if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] == CRON_URL_KEY
 ){
-	
 	////////////////////////////////////////////////////////////////////////
 	// Classes: system api
 	class time_limit_exception { // Exit if time exceed time_limit
@@ -205,12 +205,12 @@ if(
 		//  sleep() blocking tick_interrupt()
 	}
 
+	
 	function _die($return= ''){
-		global $cron_resource, $cron_session, $cron_limit_exception;
-		
+		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
 		$cron_limit_exception->disable();
 		
-		if(isset($cron_resource) && is_resource($cron_resource)){
+		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			write_cron_session($cron_resource, $cron_session);
 		}
 		
@@ -227,7 +227,6 @@ if(
 			
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
-			unset($cron_resource);
 		}
 		
 		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
@@ -421,7 +420,16 @@ if(
 		} else {
 			// include connector
 			if(file_exists($job['callback'])) {
+				if(CRON_SECURITY) {
+					$cron_security_md5_before_include= md5(serialize([$cron_session, $mode, $process_id]));
+					$cron_security_variables_before_include= [$cron_session, $mode, $process_id];
+				}
+				
 				include $job['callback'];
+				
+				if(CRON_SECURITY && $cron_security_md5_before_include != md5(serialize([$cron_session, $mode, $process_id]))) {
+					list($cron_session, $mode, $process_id) = $cron_security_variables_before_include;
+				}
 			} else {
 				if(CRON_LOG_FILE){
 					file_put_contents(
