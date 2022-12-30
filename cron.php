@@ -593,7 +593,7 @@ if(
 		static  $profiler= [];
 		
 		if(!isset($profiler['time'])) $profiler['time']= time();
-		if($profiler['time'] > time() - 5){
+		if($profiler['time'] > time() - 15){
 			return true;
 		}
 		$profiler['time']= time();
@@ -626,6 +626,12 @@ if(
 				);
 			}
 		} 
+		
+		if(!isset($profiler['callback_time'])) $profiler['callback_time']= time();
+		if($profiler['callback_time'] > time() - 60){
+			return true;
+		}
+		$profiler['callback_time']= time();
 		
 		foreach($cron_jobs as $job){
 			if(is_file($job['callback'])){
