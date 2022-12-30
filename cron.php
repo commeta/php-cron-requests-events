@@ -414,6 +414,7 @@ if(
 	}
 	
 	
+	
 	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
 		if($mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $process_id); 
@@ -421,14 +422,14 @@ if(
 			// include connector
 			if(file_exists($job['callback'])) {
 				if(CRON_SECURITY) {
-					$cron_security_md5_before_include= md5(serialize([$cron_session, $mode, $process_id]));
-					$cron_security_variables_before_include= [$cron_session, $mode, $process_id];
+					$cron_security_md5_before_include= md5(serialize([$cron_session, $job]));
+					$cron_security_variables_before_include= [$cron_session, $job];
 				}
 				
 				include $job['callback'];
 				
-				if(CRON_SECURITY && $cron_security_md5_before_include != md5(serialize([$cron_session, $mode, $process_id]))) {
-					list($cron_session, $mode, $process_id) = $cron_security_variables_before_include;
+				if(CRON_SECURITY && $cron_security_md5_before_include != md5(serialize([$cron_session, $job]))) {
+					list($cron_session, $job) = $cron_security_variables_before_include;
 				}
 			} else {
 				if(CRON_LOG_FILE){
