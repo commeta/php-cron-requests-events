@@ -591,16 +591,15 @@ if(
 		_die();
 	}
 
-	
+
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
 		
-		if(!isset($profiler['count'])) $profiler['count']= 0;
-		if($profiler['count'] > 10){
-			$profiler['count']= 0;
+		if(!isset($profiler['time'])) $profiler['time']= time();
+		if($profiler['time'] > time() - 5){
 			return true;
 		}
-		$profiler['count']++;
+		$profiler['time']= time();
 		
 		if(!isset($profiler['memory_get_usage'])){
 			$profiler['memory_get_usage']= 0;
