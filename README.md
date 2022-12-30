@@ -28,7 +28,6 @@ php crontab, based on url requests/event-loop, daemon mode, multithreading, seco
 ```
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
-	'name' => 'job1',
 	'interval' => 0, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
@@ -37,7 +36,6 @@ $cron_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
-	'name' => 'job2multithreading',
 	'interval' => 10, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
@@ -51,7 +49,6 @@ for( // CRON job 3, multithreading example, four core
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multithreading example
-		'name' => 'multithreading_' . $i,
 		'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
@@ -62,15 +59,12 @@ for( // CRON job 3, multithreading example, four core
 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'name' => 'job4multithreading',
-	'time' => '21:03:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '01:03:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
-
 ```
-- name - Имя задачи (только буквы и цифры латиницей)
 - interval - Задержка перед запуском
 - time - Устанавливает время для старта в 24-ом формате 07:20:00, если дата не указана то выполняет каждый день
 - date - Устанавливает дату для старта в формате 31-12-2022
