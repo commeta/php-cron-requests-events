@@ -519,7 +519,7 @@ if(
 		$init[$process_id]= true;
 		
 		if(isset($cron_session[$process_id]['md5'])) {
-			if(md5(serialize($cron_session[$process_id]['md5'])) != md5(serialize($job))){
+			if($cron_session[$process_id]['md5'] != md5(serialize($job))){
 				$cron_session[$process_id]= [];
 				$cron_session[$process_id]['md5']= md5(serialize($job));
 			}
