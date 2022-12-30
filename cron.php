@@ -178,7 +178,6 @@ if(
 		static $old_time= 0;
 		
 		if(
-			CRON_DELAY == 0 && 
 			$cached && 
 			$old_time == time()
 		) {
@@ -191,7 +190,7 @@ if(
 		rewind($cron_resource);
 		fwrite($cron_resource, $serialized);
 		ftruncate($cron_resource, mb_strlen($serialized));
-		fflush($cron_resource);
+		if(!$cached) fflush($cron_resource);
 	}
 
 	function _touch($dat_file){
