@@ -589,7 +589,7 @@ if(
 		static  $profiler= [];
 		
 		if(!isset($profiler['count'])) $profiler['count']= 0;
-		if($profiler['count'] > 60){
+		if($profiler['count'] > 10){
 			$profiler['count']= 0;
 			return true;
 		}
