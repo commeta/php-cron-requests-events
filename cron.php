@@ -590,6 +590,13 @@ if(
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
 		
+		if(!isset($profiler['count'])) $profiler['count']= 0;
+		if($profiler['count'] > 60){
+			$profiler['count']= 0;
+			return true;
+		}
+		$profiler['count']++;
+		
 		if(!isset($profiler['memory_get_usage'])){
 			$profiler['memory_get_usage']= 0;
 		}
@@ -601,15 +608,6 @@ if(
 		if($profiler['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
 			cron_restart();
 		}
-		
-		
-		if(!isset($profiler['count'])) $profiler['count']= 0;
-		if($profiler['count'] > 60){
-			$profiler['count']= 0;
-			return true;
-		}
-		$profiler['count']++;
-		
 		
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
