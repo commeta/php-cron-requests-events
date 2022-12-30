@@ -7,7 +7,7 @@ if(CRON_LOG_FILE && CRON_LOG_LEVEL > 2){
 		CRON_LOG_FILE, 
 		microtime() . " DEBUG: start  microtime:" . 
 			print_r([
-				$job['name'],
+				$job,
 				$cron_session['start_counter'],
 				$_SERVER['QUERY_STRING'], 
 				$_SERVER['SERVER_NAME'], 
