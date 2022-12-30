@@ -356,8 +356,6 @@ if(
 		if(isset($job['time'])) $t= explode(':', $job['time']);
 		
 		if(isset($job['date']) || isset($job['time'])) {
-			$cron_session[$job['name']]['mode']= false;
-			
 			if(!isset($cron_session[$job['name']]['unlock'])){
 				$cron_session[$job['name']]['unlock']= false;
 			}
@@ -501,7 +499,6 @@ if(
 	
 	function cron_start_date_time(& $cron_session, & $job, $mode, $main){ // start connector from date\time event 
 		if(
-			$cron_session[$job['name']]['mode'] === false &&
 			$cron_session[$job['name']]['lock'] === false &&
 			$cron_session[$job['name']]['complete'] === false
 		){
@@ -509,14 +506,13 @@ if(
 			$cron_session[$job['name']]['unlocked']= false;
 		}
 			
-		if($main && $cron_session[$job['name']]['mode'] === false) {
+		if($main) {
 			lock_unlock_everday_time($cron_session, $job);
 		}
 	}
 	
 	function cron_start_interval(& $cron_session, & $job, $mode= false){ // start connector from interval event 
 		if(
-			$cron_session[$job['name']]['mode'] === true && 
 			$cron_session[$job['name']]['last_update'] + $job['interval'] < time()
 		){
 			callback_connector($job, $cron_session, $mode);
@@ -531,10 +527,6 @@ if(
 						
 		if(!isset($cron_session[$job['name']]['complete'])){
 			$cron_session[$job['name']]['complete']= false;
-		}
-		
-		if(!isset($cron_session[$job['name']]['mode'])){
-			$cron_session[$job['name']]['mode']= true;
 		}
 		
 		if(isset($job['date']) || isset($job['time'])){
@@ -609,7 +601,7 @@ if(
 			$cron_session['filemtime']= filemtime(__FILE__);
 		}
 	}
-	
+
 	
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
