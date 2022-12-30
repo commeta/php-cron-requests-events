@@ -299,10 +299,10 @@ if(
 		ini_set('display_startup_errors', 1);
 	}
 
-	function cron_log_rotate($delayed= false){ // LOG Rotate
+	function cron_log_rotate(){ // LOG Rotate
 		static $counter= 0;
 		
-		if(CRON_DELAY == 0 && $delayed && $counter < 600) {
+		if(CRON_DELAY == 0 && $counter < 600) {
 			$counter ++;
 			return true;
 		}
@@ -712,7 +712,7 @@ if(
 				memory_profiler($cron_jobs);
 				
 				if(CRON_LOG_FILE){
-					cron_log_rotate(true);
+					cron_log_rotate();
 				}
 				
 				sleep(1);
@@ -720,7 +720,7 @@ if(
 		}
 		
 		//###########################################
-		if(CRON_LOG_FILE) cron_log_rotate(false);
+		if(CRON_LOG_FILE) cron_log_rotate();
 		
 		// END Jobs
 		flock($cron_resource, LOCK_UN);
