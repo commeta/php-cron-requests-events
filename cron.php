@@ -418,8 +418,6 @@ if(
 	
 	
 	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
-		$cron_session[$process_id]['complete']= true;
-		
 		if($mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $process_id); 
 		} else {
@@ -442,7 +440,8 @@ if(
 				}
 			}
 		}
-
+		
+		$cron_session[$process_id]['complete']= true;
 		$cron_session[$process_id]['last_update']= time();
 	}
 	
