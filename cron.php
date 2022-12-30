@@ -174,13 +174,12 @@ if(
 	
 	
 	// Functions: system api
-	function write_cron_session(& $cron_resource, & $cron_session, $cached){
+	function write_cron_session(& $cron_resource, & $cron_session){
 		$serialized= serialize($cron_session);
 
 		rewind($cron_resource);
 		fwrite($cron_resource, $serialized);
 		ftruncate($cron_resource, mb_strlen($serialized));
-		if(!$cached) fflush($cron_resource);
 	}
 
 	function _touch($dat_file){
@@ -225,7 +224,7 @@ if(
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
-			write_cron_session($cron_resource, $cron_session, false);
+			write_cron_session($cron_resource, $cron_session);
 		}
 		
 		die($return);
@@ -237,7 +236,7 @@ if(
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
-			write_cron_session($cron_resource, $cron_session, false);
+			write_cron_session($cron_resource, $cron_session);
 			
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
@@ -469,7 +468,7 @@ if(
 			$job_session[$process_id][$key]=  $value;
 			$blocked= true;
 			
-			write_cron_session($cron_resource, $job_session, false);
+			write_cron_session($cron_resource, $job_session);
 			flock($cron_resource, LOCK_UN);
 		}
 		
@@ -576,7 +575,7 @@ if(
 			
 			cron_session_init($cron_session, $job, (int) $_GET["process_id"]);
 			cron_check_job($cron_session, $job, false, false, (int) $_GET["process_id"]);
-			write_cron_session($cron_resource, $cron_session, false);
+			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
 			flock($cron_resource, LOCK_UN);
@@ -693,12 +692,12 @@ if(
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
-		write_cron_session($cron_resource, $cron_session, false);
+		write_cron_session($cron_resource, $cron_session);
 
 		if(CRON_DELAY == 0){
 			while(true){
 				singlethreading_dispatcher($cron_jobs, $cron_session);
-				write_cron_session($cron_resource, $cron_session, true);
+				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_jobs);
 				
 				if(CRON_LOG_FILE){
