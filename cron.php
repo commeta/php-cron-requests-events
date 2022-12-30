@@ -554,7 +554,7 @@ if(
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			cron_check_job($cron_session, $job, false, false, $_GET["process_id"]);
+			cron_check_job($cron_session, $job, false, false, (int) $_GET["process_id"]);
 			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
