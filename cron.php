@@ -182,19 +182,6 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 	}
 
-	function _touch($dat_file){
-		static $old_time= 0;
-		
-		if($old_time != time()){
-			$old_time= time();
-			touch($dat_file);
-		}
-		
-		// Note: if TICK_INTERRUPT is false, this function must be run per second
-		// Description: function _touch() an update session file timestamp, to prevent start process
-	}
-	
-	
 	function tick_interrupt($s= false){
 		static $old_time= 0;
 		global $cron_dat_file;
@@ -207,7 +194,7 @@ if(
 			$old_time= time();
 			
 			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
-				_touch($cron_dat_file);
+				touch($cron_dat_file);
 			}
 		}
 
