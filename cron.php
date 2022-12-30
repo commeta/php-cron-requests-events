@@ -63,7 +63,7 @@ for( // CRON job 3, multithreading example, four core
 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '01:03:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '19:03:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -81,8 +81,6 @@ define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
-
-define("CRON_CLEAN_SESSION", true); // set true for clean all sessions on change this file
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -402,7 +400,10 @@ if(
 				}
 				
 				// unlock job
-				if(intval($t[0]) > intval(date("H")) && $cron_session[$process_id]['unlocked'] === false){
+				if(
+					intval($t[0]) > intval(date("H")) && 
+					$cron_session[$process_id]['unlocked'] === false
+				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
 				}
@@ -511,7 +512,21 @@ if(
 	}
 	
 	
-	function cron_check_job(& $cron_session, & $job, $mode, $main, $process_id){
+	function cron_session_init(& $cron_session, & $job, $process_id){
+		static $init= [];
+		
+		if(isset($init[$process_id])) return true;
+		$init[$process_id]= true;
+		
+		if(isset($cron_session[$process_id]['md5'])) {
+			if(md5(serialize($cron_session[$process_id]['md5'])) != md5(serialize($job))){
+				$cron_session[$process_id]= [];
+				$cron_session[$process_id]['md5']= md5(serialize($job));
+			}
+		} else {
+			$cron_session[$process_id]['md5']= md5(serialize($job));
+		}
+		
 		if(!isset($cron_session[$process_id]['last_update'])) {
 			$cron_session[$process_id]['last_update']= 0;
 		}
@@ -519,7 +534,9 @@ if(
 		if(!isset($cron_session[$process_id]['complete'])){
 			$cron_session[$process_id]['complete']= false;
 		}
-		
+	}
+	
+	function cron_check_job(& $cron_session, & $job, $mode, $main, $process_id){
 		if(isset($job['date']) || isset($job['time'])){
 			check_date_time($cron_session, $job, $process_id);
 			cron_start_date_time($cron_session, $job, $mode, $main, $process_id);
@@ -538,7 +555,8 @@ if(
 					$cron_session[$process_id]['last_update']= filemtime($dat_file);
 				}
 			}
-			
+
+			cron_session_init($cron_session, $job, $process_id);
 			cron_check_job($cron_session, $job, $job['multithreading'], true, $process_id);
 		}
 	}
@@ -554,6 +572,7 @@ if(
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 			
+			cron_session_init($cron_session, $job, (int) $_GET["process_id"]);
 			cron_check_job($cron_session, $job, false, false, (int) $_GET["process_id"]);
 			write_cron_session($cron_resource, $cron_session);
 
@@ -563,28 +582,6 @@ if(
 
 		fclose($cron_resource);
 		_die();
-	}
-
-
-	function cron_config_profiler(& $cron_session, & $cron_jobs){ // session maintenance
-		if(!isset($cron_session['filemtime'])){
-			$cron_session['filemtime']= filemtime(__FILE__);
-		}
-		
-		if($cron_session['filemtime'] != filemtime(__FILE__)){ // write in main file event, reset sessions
-			foreach($cron_jobs as $process_id=> & $job){
-				if($job['multithreading']){
-					$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
-					
-					if(file_exists($cron_dat_file)) {
-						unlink($cron_dat_file);
-					}
-				}
-			}
-			
-			$cron_session= [];
-			$cron_session['filemtime']= filemtime(__FILE__);
-		}
 	}
 
 	
@@ -651,7 +648,7 @@ if(
 		isset($_GET["process_id"])
 	){
 		foreach($cron_jobs as $process_id=> & $job) {
-			if($process_id == $_GET["process_id"] && $job['multithreading']) {
+			if($process_id == (int) $_GET["process_id"] && $job['multithreading']) {
 				if(!isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
 					declare(ticks=1);
 					register_tick_function('tick_interrupt');
@@ -677,9 +674,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
-		if(CRON_CLEAN_SESSION) cron_config_profiler($cron_session, $cron_jobs);
-		
+				
 		if(is_callable('register_tick_function')) {
 			declare(ticks=1);
 			register_tick_function('tick_interrupt');
