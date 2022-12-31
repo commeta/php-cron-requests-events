@@ -811,9 +811,6 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 
-queue_manager(true);
-queue_manager(false);
-
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
