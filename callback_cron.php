@@ -213,13 +213,15 @@ if(
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){ // main worker
-			$queue= [];
+			// include CRON_SITE_ROOT . "cron/inc/multicore_queue_worker_cron.php";
 			
-			for($i= 0; $i <= 1000; $i++){
+			$queue= []; // example multicore queue worker
+			
+			for($i= 0; $i < 10; $i++){
 				queue_push($i);
+				
 			}
 			
-			// include CRON_SITE_ROOT . "cron/inc/multicore_queue_worker_cron.php";
 		} else { // service handler
 			$start= true;
 			
@@ -248,36 +250,35 @@ if(
 		}
 	}
 	
-	function write_queue(& $queue_resource, & $queue){
-		$serialized= serialize($queue);
-		rewind($queue_resource);
-		fwrite($queue_resource, $serialized);
-		ftruncate($queue_resource, mb_strlen($serialized));
-		fflush($queue_resource);
-		flock($queue_resource, LOCK_UN);
-	}
 	
 	function queue_push($value){
+		static $file_size= 0;
+		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if(!file_exists($dat_file)) touch($dat_file);
+		if($file_size == 0) $file_size= filesize($dat_file);
 		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
-				rewind($queue_resource);
-				$q= unserialize(@fread($queue_resource, filesize($dat_file)));
+				$q= @unserialize(@fread($queue_resource, $file_size));
+				$blocked= true;
 				
 				if(is_array($q)) $queue= $q;
 				else $queue= [];
 				
-				$queue[]= $value;
-				$blocked= true;
+				if(!isset($queue['queue'])) $queue['queue']= [];
+				$queue['queue'][]= $value;
 				
-				write_queue($queue_resource, $queue);
-			} else {
-				usleep(1000);
+				$serialized= serialize($queue);
+				$file_size= mb_strlen($serialized);
+				
+				rewind($queue_resource);
+				fwrite($queue_resource, $serialized);
+				ftruncate($queue_resource, $file_size);
+				fflush($queue_resource);
+				flock($queue_resource, LOCK_UN);
 			}
 		}
 		
@@ -285,23 +286,18 @@ if(
 	}
 	
 	function queue_shift(){
+		static $file_size= 0;
+
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if(!file_exists($dat_file)) touch($dat_file);
+		if($file_size == 0) $file_size= filesize($dat_file);
 		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
-		
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
-				rewind($queue_resource);
-				$q= unserialize(@fread($queue_resource, filesize($dat_file)));
-				
-				while($q == false){
-					rewind($queue_resource);
-					$q= unserialize(@fread($queue_resource, filesize($dat_file)));
-					if($q !== false) break;
-				}
+				$q= @unserialize(@fread($queue_resource, $file_size));
+				$blocked= true;
 				
 				if(is_array($q)) {
 					$empty= false;
@@ -311,20 +307,28 @@ if(
 					$queue= [];
 				}
 				
-				if(count($queue) == 0) $empty= true;
+				if(!isset($queue['queue'])) $queue['queue']= [];
+				if(count($queue['queue']) == 0) $empty= true;
 				
-				$value= array_shift($queue);
-				$blocked= true;
-				
-				write_queue($queue_resource, $queue);
-			} else {
-				usleep(1000);
+				if(!$empty){
+					$value= array_shift($queue['queue']);
+					
+					$serialized= serialize($queue);
+					$file_size= mb_strlen($serialized);
+					
+					rewind($queue_resource);
+					fwrite($queue_resource, $serialized);
+					ftruncate($queue_resource, $file_size);
+					fflush($queue_resource);
+					flock($queue_resource, LOCK_UN);
+				 } else {
+					 $value= false;
+				 }
+				 
 			}
 		}
 		
 		fclose($queue_resource);
-
-		if($empty) return false;
 		return $value;
 	}
 	
@@ -806,6 +810,9 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+
+queue_manager(true);
+queue_manager(false);
 
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
