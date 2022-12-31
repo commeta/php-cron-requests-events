@@ -281,6 +281,8 @@ if(
 				
 				queue_write($queue_resource, $queue);
 				flock($queue_resource, LOCK_UN);
+			} else {
+				usleep(2000);
 			}
 		}
 		
@@ -319,6 +321,8 @@ if(
 				 } else {
 					 $value= false;
 				 }
+			} else {
+				usleep(2000);
 			}
 		}
 		
@@ -813,7 +817,6 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
 
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
