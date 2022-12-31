@@ -383,7 +383,7 @@ if(
 				// unlock job
 				if(
 					$cron_session[$process_id]['unlocked'] === false &&
-					$cron_session[$process_id]['last_update'] + 86000 < time() 
+					$cron_session[$process_id]['last_update'] + 86350 < time() 
 				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
