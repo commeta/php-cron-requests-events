@@ -208,17 +208,20 @@ if(
 	}
 
 
-	function queue_manager($mode){ // example multicore queue
+	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){ // main worker
 			// include CRON_SITE_ROOT . "cron/inc/multicore_queue_worker_cron.php";
 			
-			$queue= []; // example multicore queue worker
+			// example: multicore queue worker
+			// use:
+			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
+			// queue_shift(); // get micro job from queue in children processess 
 			
-			for($i= 0; $i < 10; $i++){
-				queue_push($i);
+			for($i= 0; $i < 1000; $i++){
+				queue_push("hello world: " . $i);
 				
 			}
 			
@@ -268,9 +271,7 @@ if(
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
 				$stat= fstat($queue_resource);
-				$cron_queue_file_size= $stat['size'];
-				
-				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
+				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
 				
 				if(is_array($q)) $queue= $q;
@@ -298,9 +299,7 @@ if(
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
 				$stat= fstat($queue_resource);
-				$cron_queue_file_size= $stat['size'];
-
-				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
+				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
 				
 				if(is_array($q)) {
@@ -573,9 +572,7 @@ if(
 		
 		if(flock($cron_resource, CRON_START_MODE)) {
 			$stat= fstat($cron_resource);
-			$file_size= $stat['size'];
-			
-			$cs= unserialize(@fread($cron_resource, $file_size));
+			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $job_session= $cs;
 			
 			$job_session[$process_id][$key]=  $value;
@@ -686,9 +683,7 @@ if(
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, CRON_START_MODE)) {
 			$stat= fstat($cron_resource);
-			$file_size= $stat['size'];
-			
-			$cs= unserialize(@fread($cron_resource, $file_size));
+			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
 			
 			cron_session_init($cron_session, $job, $process_id);
@@ -809,14 +804,13 @@ if(
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$stat= fstat($cron_resource);
-		$file_size= $stat['size'];
-
-		$cs= unserialize(@fread($cron_resource, $file_size));
+		$cs= unserialize(@fread($cron_resource, $stat['size']));
 		if(is_array($cs)) $cron_session= $cs;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+		
 
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
