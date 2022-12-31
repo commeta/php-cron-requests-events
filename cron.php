@@ -379,7 +379,6 @@ if(
 				if(!$cron_session[$process_id]['complete']){
 					if($time_stamp < time()){
 						$cron_session[$process_id]['lock']= false;
-						$cron_session[$process_id]['last_date']= date('d-m-Y', time());
 					} else {
 						$cron_session[$process_id]['lock']= true;
 					}
@@ -387,7 +386,7 @@ if(
 				
 				// unlock job
 				if(
-					$cron_session[$process_id]['last_date'] != date('d-m-Y', time()) &&
+					date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
 					$cron_session[$process_id]['unlocked'] === false
 				){
 					$cron_session[$process_id]['unlock']= true;
