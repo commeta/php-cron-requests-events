@@ -62,7 +62,7 @@ for( // CRON job 3, multicore example, four cores, use with queue_manager()
 
  
 ###########################
-$cron_jobs[]= [ // CRON Job 4, multithreading example
+$cron_jobs[]= [ // CRON Job 4, multicore example
 	'time' => '05:05:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
