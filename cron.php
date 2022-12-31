@@ -32,7 +32,7 @@ $cron_jobs= [];
 
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
-	'interval' => 0, // start interval 1 sec
+	'interval' => 990, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
@@ -40,7 +40,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
-	'interval' => 10, // start interval 10 sec
+	'interval' => 9910, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -370,11 +370,16 @@ if(
 				}
 			}
 			if(isset($job['time'])){ // check time, every day
-				$time_stamp= mktime(intval($t[0]),intval($t[1]), intval($t[2]));
+				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
+				
+				if(!isset($cron_session[$process_id]['last_date'])){
+					$cron_session[$process_id]['last_date']= false;
+				}
 				
 				if(!$cron_session[$process_id]['complete']){
 					if($time_stamp < time()){
 						$cron_session[$process_id]['lock']= false;
+						$cron_session[$process_id]['last_date']= date('d-m-Y', time());
 					} else {
 						$cron_session[$process_id]['lock']= true;
 					}
@@ -382,7 +387,7 @@ if(
 				
 				// unlock job
 				if(
-					$time_stamp > time() &&
+					$cron_session[$process_id]['last_date'] != date('d-m-Y', time()) &&
 					$cron_session[$process_id]['unlocked'] === false
 				){
 					$cron_session[$process_id]['unlock']= true;
