@@ -32,7 +32,7 @@ $cron_jobs= [];
 
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
-	'interval' => 0, // start interval 1 sec
+	'interval' => 990, // start interval 1 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
@@ -40,7 +40,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
-	'interval' => 10, // start interval 10 sec
+	'interval' => 9910, // start interval 10 sec
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -63,7 +63,7 @@ for( // CRON job 3, multithreading example, four core
  
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '19:03:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:24:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -350,22 +350,39 @@ if(
 		}
 		
 		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
-			if(
-				!$cron_session[$process_id]['complete'] && 
-				$job['date'] == date('d-m-Y', time()) && // 23 over check
-				(
-					intval($t[0]) + 1 == intval(date("H")) ||
+			if(CRON_DELAY == 0){
+				if(
+					!$cron_session[$process_id]['complete'] && 
+					$job['date'] == date('d-m-Y', time()) &&
+					(
+						intval($t[0]) == intval(date("H"))  &&
+						intval($t[1]) == intval(date("i")) &&
+						intval($t[2]) <= intval(date("s"))
+					)
+				){
+					$cron_session[$process_id]['lock']= false;
+				} else {// lock job forever, dat!
+					$cron_session[$process_id]['lock']= true;
+				}
+				
+			} else {
+				
+				if(
+					!$cron_session[$process_id]['complete'] && 
+					$job['date'] == date('d-m-Y', time()) && // 23 over check
 					(
 						intval($t[0]) == intval(date("H"))  &&
 						intval($t[1]) <= intval(date("i")) 
 					)
-				)
-			){
-				$cron_session[$process_id]['lock']= false;
-			} else {// lock job forever, dat!
-				$cron_session[$process_id]['lock']= true;
+				){
+					$cron_session[$process_id]['lock']= false;
+				} else {// lock job forever, dat!
+					$cron_session[$process_id]['lock']= true;
+				}
 			}
+			
 		} else {
+			
 			if(isset($job['date'])){ // check date, one - time
 				if(
 					!$cron_session[$process_id]['complete'] && 
@@ -376,22 +393,36 @@ if(
 					$cron_session[$process_id]['lock']= true;
 				}
 			}
+
 				
 			if(isset($job['time'])){ // check time, every day
-				if( 
-					intval($t[0]) + 1 == intval(date("H")) ||
-					(
+				if(CRON_DELAY == 0){
+					if( 
 						intval($t[0]) == intval(date("H"))  &&
-						intval($t[1]) <= intval(date("i")) 
-					)
-				){
-					if(!$cron_session[$process_id]['complete']){
-						$cron_session[$process_id]['lock']= false;
+						intval($t[1]) == intval(date("i")) &&
+						intval($t[2]) <= intval(date("s"))
+					){
+						if(!$cron_session[$process_id]['complete']){
+							$cron_session[$process_id]['lock']= false;
+						} else {// lock job
+							$cron_session[$process_id]['lock']= true;
+						}
 					} else {// lock job
 						$cron_session[$process_id]['lock']= true;
 					}
-				} else {// lock job
-					$cron_session[$process_id]['lock']= true;
+				} else {
+					if( 
+						intval($t[0]) == intval(date("H"))  &&
+						intval($t[1]) <= intval(date("i")) 
+					){
+						if(!$cron_session[$process_id]['complete']){
+							$cron_session[$process_id]['lock']= false;
+						} else {// lock job
+							$cron_session[$process_id]['lock']= true;
+						}
+					} else {// lock job
+						$cron_session[$process_id]['lock']= true;
+					}
 				}
 				
 				// unlock job
@@ -692,7 +723,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-				
+
 		if(is_callable('register_tick_function')) {
 			declare(ticks=1);
 			register_tick_function('tick_interrupt');
@@ -752,7 +783,7 @@ if(
 			touch(CRON_LOG_FILE);
 		}
 	}
-
-	unset($cron_jobs);
 }
+
+unset($cron_jobs);
 ?>
