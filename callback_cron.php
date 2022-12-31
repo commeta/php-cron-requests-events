@@ -47,7 +47,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ##########
  
 ###########################
-for( // CRON job 3, multithreading example, four core, use with queue_manager()
+for( // CRON job 3, multicore example, four cores, use with queue_manager()
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
