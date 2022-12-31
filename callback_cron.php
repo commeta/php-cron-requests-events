@@ -230,6 +230,7 @@ if(
 				rewind($queue_resource);
 				fwrite($queue_resource, $serialized);
 				ftruncate($queue_resource, mb_strlen($serialized));
+				fflush($queue_resource);
 				flock($queue_resource, LOCK_UN);
 			} else {
 				usleep(1000);
@@ -260,6 +261,7 @@ if(
 				rewind($queue_resource);
 				fwrite($queue_resource, $serialized);
 				ftruncate($queue_resource, mb_strlen($serialized));
+				fflush($queue_resource);
 				flock($queue_resource, LOCK_UN);
 			} else {
 				usleep(1000);
