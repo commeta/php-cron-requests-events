@@ -686,10 +686,12 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 
+		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
 			register_tick_function('tick_interrupt');
 		}
+		*/
 		
 		//###########################################
 		// check jobs
