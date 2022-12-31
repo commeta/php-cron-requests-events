@@ -47,7 +47,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ##########
  
 ###########################
-for( // CRON job 3, multithreading example, four core
+for( // CRON job 3, multithreading example, four core, use with queue_manager()
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
@@ -212,14 +212,14 @@ if(
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
-		if($mode){ // server
+		if($mode){ // main worker
 			$queue= [];
 			
 			for($i= 0; $i <= 1000; $i++){
 				queue_push($i);
 			}
 			
-		} else { // client
+		} else { // service handler
 			$start= true;
 			
 			while($start){
