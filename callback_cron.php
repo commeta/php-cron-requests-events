@@ -250,17 +250,26 @@ if(
 	}
 	
 	
+	function queue_write(& $queue_resource, & $queue){
+		$serialized= serialize($queue);
+		$cron_queue_file_size= mb_strlen($serialized);
+
+		rewind($queue_resource);
+		fwrite($queue_resource, $serialized);
+		ftruncate($queue_resource, $cron_queue_file_size);
+		fflush($queue_resource);
+	}
+	
 	function queue_push($value){
-		global $cron_queue_file_size;
-		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if($cron_queue_file_size == 0) $cron_queue_file_size= filesize($dat_file);
-		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
+				$stat= fstat($queue_resource);
+				$cron_queue_file_size= $stat['size'];
+				
 				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
 				$blocked= true;
 				
@@ -270,13 +279,7 @@ if(
 				if(!isset($queue['queue'])) $queue['queue']= [];
 				$queue['queue'][]= $value;
 				
-				$serialized= serialize($queue);
-				$cron_queue_file_size= mb_strlen($serialized);
-				
-				rewind($queue_resource);
-				fwrite($queue_resource, $serialized);
-				ftruncate($queue_resource, $cron_queue_file_size);
-				fflush($queue_resource);
+				queue_write($queue_resource, $queue);
 				flock($queue_resource, LOCK_UN);
 			}
 		}
@@ -285,16 +288,16 @@ if(
 	}
 	
 	function queue_shift(){
-		global $cron_queue_file_size;
-
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if($cron_queue_file_size == 0) $cron_queue_file_size= filesize($dat_file);
 		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
+				$stat= fstat($queue_resource);
+				$cron_queue_file_size= $stat['size'];
+
 				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
 				$blocked= true;
 				
@@ -309,17 +312,9 @@ if(
 				if(!isset($queue['queue'])) $queue['queue']= [];
 				if(count($queue['queue']) == 0) $empty= true;
 				
-				
 				if(!$empty){
 					$value= array_shift($queue['queue']);
-					
-					$serialized= serialize($queue);
-					$cron_queue_file_size= mb_strlen($serialized);
-					
-					rewind($queue_resource);
-					fwrite($queue_resource, $serialized);
-					ftruncate($queue_resource, $cron_queue_file_size);
-					fflush($queue_resource);
+					queue_write($queue_resource, $queue);
 					flock($queue_resource, LOCK_UN);
 				 } else {
 					 $value= false;
@@ -573,7 +568,10 @@ if(
 		$blocked= false;
 		
 		if(flock($cron_resource, CRON_START_MODE)) {
-			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
+			$stat= fstat($cron_resource);
+			$file_size= $stat['size'];
+			
+			$cs= unserialize(@fread($cron_resource, $file_size));
 			if(is_array($cs)) $job_session= $cs;
 			
 			$job_session[$process_id][$key]=  $value;
@@ -683,7 +681,10 @@ if(
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, CRON_START_MODE)) {
-			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
+			$stat= fstat($cron_resource);
+			$file_size= $stat['size'];
+			
+			$cs= unserialize(@fread($cron_resource, $file_size));
 			if(is_array($cs)) $cron_session= $cs;
 			
 			cron_session_init($cron_session, $job, $process_id);
@@ -803,15 +804,16 @@ if(
 
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
+		$stat= fstat($cron_resource);
+		$file_size= $stat['size'];
+
+		$cs= unserialize(@fread($cron_resource, $file_size));
 		if(is_array($cs)) $cron_session= $cs;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 
-		//queue_manager(true);
-		//queue_manager(false);
 
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
