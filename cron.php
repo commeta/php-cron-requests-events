@@ -383,7 +383,7 @@ if(
 				// unlock job
 				if(
 					$cron_session[$process_id]['unlocked'] === false &&
-					$cron_session[$process_id]['last_update'] + 60 * 60 * 24 < time() 
+					$cron_session[$process_id]['last_update'] + 60 * 60 * 24 - 300 < time() 
 				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
@@ -466,7 +466,9 @@ if(
 			$cron_session[$process_id]['complete'] === true
 		) {
 			if(save_value_to_cron_session($process_id, 'complete', false)){
-				$cron_session[$process_id]= [];
+				$cron_session[$process_id]['complete']= false;
+				$cron_session[$process_id]['unlock']= false;
+				$cron_session[$process_id]['unlocked']= true;
 			}
 		}
 	}
