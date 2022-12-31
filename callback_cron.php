@@ -208,7 +208,7 @@ if(
 	}
 
 
-	function queue_manager($mode){
+	function queue_manager($mode){ // example multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
