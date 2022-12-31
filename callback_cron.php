@@ -238,31 +238,30 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-								time() . " INFO: queue " . $value . " \n",
+								time() . " INFO: queue_manager " . $value . " \n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
 					}
-				
+					
 				}
-
 			}
 		}
 	}
 	
 	
 	function queue_push($value){
-		static $file_size= 0;
+		global $cron_queue_file_size;
 		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if($file_size == 0) $file_size= filesize($dat_file);
+		if($cron_queue_file_size == 0) $cron_queue_file_size= filesize($dat_file);
 		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
-				$q= @unserialize(@fread($queue_resource, $file_size));
+				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
 				$blocked= true;
 				
 				if(is_array($q)) $queue= $q;
@@ -272,11 +271,11 @@ if(
 				$queue['queue'][]= $value;
 				
 				$serialized= serialize($queue);
-				$file_size= mb_strlen($serialized);
+				$cron_queue_file_size= mb_strlen($serialized);
 				
 				rewind($queue_resource);
 				fwrite($queue_resource, $serialized);
-				ftruncate($queue_resource, $file_size);
+				ftruncate($queue_resource, $cron_queue_file_size);
 				fflush($queue_resource);
 				flock($queue_resource, LOCK_UN);
 			}
@@ -286,17 +285,17 @@ if(
 	}
 	
 	function queue_shift(){
-		static $file_size= 0;
+		global $cron_queue_file_size;
 
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		if($file_size == 0) $file_size= filesize($dat_file);
+		if($cron_queue_file_size == 0) $cron_queue_file_size= filesize($dat_file);
 		
 		$queue_resource= fopen($dat_file, "r+");
 		$blocked= false;
 
 		while(!$blocked){
 			if(flock($queue_resource, LOCK_EX)) {
-				$q= @unserialize(@fread($queue_resource, $file_size));
+				$q= @unserialize(@fread($queue_resource, $cron_queue_file_size));
 				$blocked= true;
 				
 				if(is_array($q)) {
@@ -310,21 +309,21 @@ if(
 				if(!isset($queue['queue'])) $queue['queue']= [];
 				if(count($queue['queue']) == 0) $empty= true;
 				
+				
 				if(!$empty){
 					$value= array_shift($queue['queue']);
 					
 					$serialized= serialize($queue);
-					$file_size= mb_strlen($serialized);
+					$cron_queue_file_size= mb_strlen($serialized);
 					
 					rewind($queue_resource);
 					fwrite($queue_resource, $serialized);
-					ftruncate($queue_resource, $file_size);
+					ftruncate($queue_resource, $cron_queue_file_size);
 					fflush($queue_resource);
 					flock($queue_resource, LOCK_UN);
 				 } else {
 					 $value= false;
 				 }
-				 
 			}
 		}
 		
@@ -810,6 +809,9 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+
+		//queue_manager(true);
+		//queue_manager(false);
 
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
