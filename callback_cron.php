@@ -82,6 +82,9 @@ define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
+define("CRON_START_MODE", LOCK_EX | LOCK_NB); // LOCK_EX waiting for complete previous process, LOCK_EX | LOCK_NB without waiting (no queues)
+
+// LOCK_EX | LOCK_NB
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -549,16 +552,17 @@ if(
 	
 	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . intval($_GET["process_id"]) . '.dat';
+		$process_id= intval($_GET["process_id"]);
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+		if(flock($cron_resource, CRON_START_MODE)) {
 			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			cron_session_init($cron_session, $job, intval($_GET["process_id"]));
-			cron_check_job($cron_session, $job, false, false, intval($_GET["process_id"]));
+			cron_session_init($cron_session, $job, $process_id);
+			cron_check_job($cron_session, $job, false, false, $process_id);
 			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
@@ -649,7 +653,12 @@ if(
 		$job= $cron_jobs[$process_id];
 		
 		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
-			if(CRON_DELAY != 0 && !isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
+			if(
+				CRON_DELAY != 0 && 
+				!isset($job['date']) && 
+				!isset($job['time']) && 
+				is_callable('register_tick_function')
+			) {
 				declare(ticks=1);
 				register_tick_function('tick_interrupt');
 			}
@@ -726,10 +735,8 @@ if(
 		} else {
 			if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
 				open_cron_socket(CRON_URL_KEY);
-			} 
+			}
 		}
-		
-		
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
 		touch(CRON_DAT_FILE, time() - CRON_DELAY);
