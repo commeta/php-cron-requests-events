@@ -384,7 +384,7 @@ if(
 				if(
 					intval(date("H")) == 0 && 
 					$cron_session[$process_id]['unlocked'] === false &&
-					$cron_session[$process_id]['last_update'] + 3600 < time()
+					$cron_session[$process_id]['last_update'] + 3670 < time()
 				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
