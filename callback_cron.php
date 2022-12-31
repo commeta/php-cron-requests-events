@@ -182,6 +182,29 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 	}
 
+	function tick_interrupt($s= false){
+		static $old_time= 0;
+		global $cron_dat_file;
+		
+		if(
+			$old_time != time() && 
+			isset($cron_dat_file) &&
+			$cron_dat_file !== false
+		){
+			$old_time= time();
+			
+			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
+				touch($cron_dat_file);
+			}
+		}
+
+		// Note: use block interrupt operations with minimal delays
+		// Example: sleep(10);
+		// for($i=0;$i<10;$i++) sleep($i);
+		// Description: function tick_interrupt() an update session file timestamp, to prevent start process
+		//  sleep() blocking tick_interrupt()
+	}
+
 	
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
@@ -626,6 +649,11 @@ if(
 		$job= $cron_jobs[$process_id];
 		
 		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
+			if(CRON_DELAY != 0 && !isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
+				declare(ticks=1);
+				register_tick_function('tick_interrupt');
+			}
+			
 			multithreading_dispatcher($job, $cron_resource, $cron_session, $cron_dat_file);
 		}
 		
@@ -646,6 +674,11 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 
+		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
+			declare(ticks=1);
+			register_tick_function('tick_interrupt');
+		}
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
@@ -678,17 +711,25 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
-		$cron_resource= fopen(CRON_DAT_FILE, "r");
-		$cron_started= true;
+		if(CRON_DELAY ==0){
+			$cron_resource= fopen(CRON_DAT_FILE, "r");
+			$cron_started= true;
 			
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$cron_started= false;
-			flock($cron_resource, LOCK_UN);
+			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+					$cron_started= false;
+					flock($cron_resource, LOCK_UN);
+			}
+			
+			fclose($cron_resource);
+			
+			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
+		} else {
+			if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
+				open_cron_socket(CRON_URL_KEY);
+			} 
 		}
-			
-		fclose($cron_resource);
-			
-		if(!$cron_started) open_cron_socket(CRON_URL_KEY);
+		
+		
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
 		touch(CRON_DAT_FILE, time() - CRON_DELAY);
