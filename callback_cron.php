@@ -353,6 +353,7 @@ if(
 		
 		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 			$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+			
 			if(!$cron_session[$process_id]['complete']){
 				if($time_stamp < time()){
 					$cron_session[$process_id]['lock']= false;
@@ -362,9 +363,11 @@ if(
 			}
 		} else {
 			if(isset($job['date'])){ // check date, one - time
+				$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
+
 				if(
-					!$cron_session[$process_id]['complete'] && 
-					$job['date'] == date('d-m-Y', time())
+					!$cron_session[$process_id]['complete'] &&
+					$time_stamp < time()
 				){
 					$cron_session[$process_id]['lock']= false;
 				} else {// lock job forever
@@ -720,7 +723,7 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
-		if(CRON_DELAY ==0){
+		if(CRON_DELAY == 0){
 			$cron_resource= fopen(CRON_DAT_FILE, "r");
 			$cron_started= true;
 			
