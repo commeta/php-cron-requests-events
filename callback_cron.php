@@ -209,7 +209,7 @@ if(
 
 
 	//function queue_manager(){}
-	function queue_push($key, $value){
+	function queue_push_end($key, $value){
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
@@ -231,12 +231,44 @@ if(
 				fwrite($queue_resource, $serialized);
 				ftruncate($queue_resource, mb_strlen($serialized));
 				flock($queue_resource, LOCK_UN);
+			} else {
+				usleep(1000);
 			}
 		}
 		
 		fclose($queue_resource);
 	}
 	
+	function queue_shift(){
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		if(!file_exists($dat_file)) touch($dat_file);
+		
+		$queue_resource= fopen($dat_file, "r+");
+		$blocked= false;
+
+		while(!$blocked){
+			if(flock($queue_resource, LOCK_EX)) {
+				$q= unserialize(@fread($queue_resource, filesize($dat_file)));
+				
+				if(is_array($q)) $queue= $q;
+				else return false;
+				
+				$value= array_shift($queue);
+				$serialized= serialize($queue);
+				$blocked= true;
+				
+				rewind($queue_resource);
+				fwrite($queue_resource, $serialized);
+				ftruncate($queue_resource, mb_strlen($serialized));
+				flock($queue_resource, LOCK_UN);
+			} else {
+				usleep(1000);
+			}
+		}
+		
+		fclose($queue_resource);
+		return $value;
+	}
 	
 
 	function _die($return= ''){
