@@ -219,6 +219,7 @@ if(
 				queue_push($i);
 			}
 			
+			// include CRON_SITE_ROOT . "cron/inc/multicore_queue_worker_cron.php";
 		} else { // service handler
 			$start= true;
 			
@@ -229,7 +230,8 @@ if(
 					$start= false;
 					break;
 				} else {
-				
+					// include CRON_SITE_ROOT . "cron/inc/multicore_queue_handler_cron.php";
+					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
