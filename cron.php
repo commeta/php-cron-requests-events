@@ -372,10 +372,6 @@ if(
 			if(isset($job['time'])){ // check time, every day
 				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
 				
-				if(!isset($cron_session[$process_id]['last_date'])){
-					$cron_session[$process_id]['last_date']= false;
-				}
-				
 				if(!$cron_session[$process_id]['complete']){
 					if($time_stamp < time()){
 						$cron_session[$process_id]['lock']= false;
