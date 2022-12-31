@@ -218,7 +218,8 @@ if(
 			// example: multicore queue worker
 			// use:
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
-			// queue_shift(); // get micro job from queue in children processess 
+			// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
+
 			
 			for($i= 0; $i < 1000; $i++){
 				queue_push("hello world: " . $i);
