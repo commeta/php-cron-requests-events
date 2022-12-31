@@ -532,6 +532,7 @@ if(
 
 	function singlethreading_dispatcher(& $cron_jobs, & $cron_session){ // main loop job list
 		foreach($cron_jobs as $process_id=> & $job){
+			/*
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 				
@@ -539,7 +540,7 @@ if(
 					$cron_session[$process_id]['last_update']= filemtime($dat_file);
 				}
 			}
-
+			*/
 			cron_session_init($cron_session, $job, $process_id);
 			cron_check_job($cron_session, $job, $job['multithreading'], true, $process_id);
 		}
