@@ -1,9 +1,8 @@
 # php-cron-requests-events
 php crontab, based on url requests/event-loop, daemon mode, multithreading, second start intervals.
 
-Низкоуровневый код, отутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
-
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
+Низкоуровневый код, отутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
 
 ## Описание
 - Реализация php планировщика с использованием url запросов в качестве триггера событий. 
