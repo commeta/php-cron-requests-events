@@ -45,7 +45,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'multithreading' => true
 ];
 ##########
-
+ 
 ###########################
 for( // CRON job 3, multithreading example, four core
 	$i= 0;
@@ -63,7 +63,7 @@ for( // CRON job 3, multithreading example, four core
  
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '03:32:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '05:05:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -350,39 +350,15 @@ if(
 		}
 		
 		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
-			if(CRON_DELAY == 0){
-				if(
-					!$cron_session[$process_id]['complete'] && 
-					$job['date'] == date('d-m-Y', time()) &&
-					(
-						intval($t[0]) == intval(date("H"))  &&
-						intval($t[1]) == intval(date("i")) &&
-						intval($t[2]) <= intval(date("s"))
-					)
-				){
+			$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+			if(!$cron_session[$process_id]['complete']){
+				if($time_stamp < time()){
 					$cron_session[$process_id]['lock']= false;
-				} else {// lock job forever, dat!
-					$cron_session[$process_id]['lock']= true;
-				}
-				
-			} else {
-				
-				if(
-					!$cron_session[$process_id]['complete'] && 
-					$job['date'] == date('d-m-Y', time()) && // 23 over check
-					(
-						intval($t[0]) == intval(date("H"))  &&
-						intval($t[1]) <= intval(date("i")) 
-					)
-				){
-					$cron_session[$process_id]['lock']= false;
-				} else {// lock job forever, dat!
+				} else {
 					$cron_session[$process_id]['lock']= true;
 				}
 			}
-			
 		} else {
-			
 			if(isset($job['date'])){ // check date, one - time
 				if(
 					!$cron_session[$process_id]['complete'] && 
@@ -393,55 +369,28 @@ if(
 					$cron_session[$process_id]['lock']= true;
 				}
 			}
-
-				
 			if(isset($job['time'])){ // check time, every day
-				if(CRON_DELAY == 0){
-					if( 
-						intval($t[0]) == intval(date("H"))  &&
-						intval($t[1]) == intval(date("i")) &&
-						intval($t[2]) <= intval(date("s"))
-					){
-						if(!$cron_session[$process_id]['complete']){
-							$cron_session[$process_id]['lock']= false;
-						} else {// lock job
-							$cron_session[$process_id]['lock']= true;
-						}
-					} else {// lock job
-						$cron_session[$process_id]['lock']= true;
-					}
-				} else {
-					if( 
-						intval($t[0]) == intval(date("H"))  &&
-						intval($t[1]) <= intval(date("i")) 
-					){
-						if(!$cron_session[$process_id]['complete']){
-							$cron_session[$process_id]['lock']= false;
-						} else {// lock job
-							$cron_session[$process_id]['lock']= true;
-						}
-					} else {// lock job
+				$time_stamp= mktime(intval($t[0]),intval($t[1]), intval($t[2]));
+				
+				if(!$cron_session[$process_id]['complete']){
+					if($time_stamp < time()){
+						$cron_session[$process_id]['lock']= false;
+					} else {
 						$cron_session[$process_id]['lock']= true;
 					}
 				}
 				
 				// unlock job
 				if(
-					intval($t[0]) > intval(date("H")) && 
-					$cron_session[$process_id]['unlocked'] === false
+					$cron_session[$process_id]['unlocked'] === false &&
+					$cron_session[$process_id]['last_update'] + 60 * 60 * 24 < time() 
 				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
 				}
 			}
-			
-			//if(is_array($t) && is_array($d)){
-				//$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
-			//}
 		}
 	}
-	
-	
 	
 	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
 		if($mode){ // multithreading\singlethreading
@@ -517,9 +466,7 @@ if(
 			$cron_session[$process_id]['complete'] === true
 		) {
 			if(save_value_to_cron_session($process_id, 'complete', false)){
-				$cron_session[$process_id]['complete']= false;
-				$cron_session[$process_id]['unlock']= false;
-				$cron_session[$process_id]['unlocked']= true;
+				$cron_session[$process_id]= [];
 			}
 		}
 	}
