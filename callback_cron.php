@@ -382,8 +382,9 @@ if(
 				
 				// unlock job
 				if(
-					intval($t[0]) > intval(date("H")) && 
-					$cron_session[$process_id]['unlocked'] === false
+					intval(date("H")) == 0 && 
+					$cron_session[$process_id]['unlocked'] === false &&
+					$cron_session[$process_id]['last_update'] + 3600 < time()
 				){
 					$cron_session[$process_id]['unlock']= true;
 					$cron_session[$process_id]['lock']= true;
@@ -391,8 +392,6 @@ if(
 			}
 		}
 	}
-	
-	
 	
 	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
 		if($mode){ // multithreading\singlethreading
