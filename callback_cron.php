@@ -652,6 +652,7 @@ if(
 		$job= $cron_jobs[$process_id];
 		
 		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
+			/*
 			if(
 				CRON_DELAY != 0 && 
 				!isset($job['date']) && 
@@ -661,7 +662,7 @@ if(
 				declare(ticks=1);
 				register_tick_function('tick_interrupt');
 			}
-			
+			*/
 			multithreading_dispatcher($job, $cron_resource, $cron_session, $cron_dat_file);
 		}
 		
