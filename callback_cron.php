@@ -363,7 +363,7 @@ if(
 			}
 		} else {
 			if(isset($job['date'])){ // check date, one - time
-				$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
+				$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
 
 				if(
 					!$cron_session[$process_id]['complete'] &&
