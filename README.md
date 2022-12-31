@@ -1,6 +1,8 @@
 # php-cron-requests-events
 php crontab, based on url requests/event-loop, daemon mode, multithreading, second start intervals.
 
+Низкоуровневый код, отутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
+
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 
 ## Описание
@@ -23,7 +25,6 @@ php crontab, based on url requests/event-loop, daemon mode, multithreading, seco
 - Предотвращает запуск процесса если предыдущий не завершен
 - Есть режим ожидания пока предыдущий процесс не закончит работу - очередь
 - Минимальные системные требования: PHP 5.3.1
-- Низкоуровневый код, отутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
 
 ### Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
