@@ -63,7 +63,7 @@ for( // CRON job 3, multithreading example, four core
  
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '03:24:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:32:01', // "hours:minutes:seconds" execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
