@@ -535,7 +535,7 @@ if(
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 				
-				if(!isset($job['date']) && file_exists($dat_file)){
+				if(!isset($job['date']) && !isset($job['time']) && file_exists($dat_file)){
 					$cron_session[$process_id]['last_update']= filemtime($dat_file);
 				}
 			}
