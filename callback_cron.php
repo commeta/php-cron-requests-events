@@ -84,7 +84,6 @@ define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
 define("CRON_START_MODE", LOCK_EX | LOCK_NB); // LOCK_EX waiting for complete previous process, LOCK_EX | LOCK_NB without waiting (no queues)
 
-// LOCK_EX | LOCK_NB
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -440,14 +439,14 @@ if(
 		
 		if(!file_exists($dat_file)) {
 			$job_session[$process_id][$key]=  $value;
-			file_put_contents($dat_file, serialize($job_session), LOCK_EX | LOCK_NB);
+			file_put_contents($dat_file, serialize($job_session), CRON_START_MODE);
 			return true;
 		}
 		
 		$cron_resource= fopen($dat_file, "r+");
 		$blocked= false;
 		
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+		if(flock($cron_resource, CRON_START_MODE)) {
 			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
 			if(is_array($cs)) $job_session= $cs;
 			
