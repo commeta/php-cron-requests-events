@@ -233,7 +233,7 @@ if(
 				fflush($queue_resource);
 				flock($queue_resource, LOCK_UN);
 			} else {
-				usleep(1000);
+				usleep(100);
 			}
 		}
 		
@@ -264,7 +264,7 @@ if(
 				fflush($queue_resource);
 				flock($queue_resource, LOCK_UN);
 			} else {
-				usleep(1000);
+				usleep(100);
 			}
 		}
 		
