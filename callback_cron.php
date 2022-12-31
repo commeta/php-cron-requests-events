@@ -207,7 +207,38 @@ if(
 		//  sleep() blocking tick_interrupt()
 	}
 
+
+	//function queue_manager(){}
+	function queue_push($key, $value){
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		if(!file_exists($dat_file)) touch($dat_file);
+		
+		$queue_resource= fopen($dat_file, "r+");
+		$blocked= false;
+
+		while(!$blocked){
+			if(flock($queue_resource, LOCK_EX)) {
+				$q= unserialize(@fread($queue_resource, filesize($dat_file)));
+				
+				if(is_array($q)) $queue= $q;
+				else $queue= [];
+				
+				$queue[]= [$key =>  $value];
+				$serialized= serialize($queue);
+				$blocked= true;
+				
+				rewind($queue_resource);
+				fwrite($queue_resource, $serialized);
+				ftruncate($queue_resource, mb_strlen($serialized));
+				flock($queue_resource, LOCK_UN);
+			}
+		}
+		
+		fclose($queue_resource);
+	}
 	
+	
+
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
 		$cron_limit_exception->disable();
@@ -335,7 +366,6 @@ if(
 		}
 	}
 
-	//function queue_manager(){}
 	
 	function check_date_time(& $cron_session, & $job, $process_id){ 
 		if(isset($job['date'])) $d= explode('-', $job['date']);		
