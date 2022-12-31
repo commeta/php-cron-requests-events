@@ -81,7 +81,7 @@ define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
-define("CRON_SECURITY", false); // set true for high danger environment, increases workload on server
+define("CRON_SECURITY", false); // set true for high danger environment
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -535,7 +535,7 @@ if(
 			if($job['multithreading']){ // refresh last update
 				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 				
-				if(!isset($job['date']) && !isset($job['time']) && file_exists($dat_file)){
+				if(!isset($job['date']) && file_exists($dat_file)){
 					$cron_session[$process_id]['last_update']= filemtime($dat_file);
 				}
 			}
