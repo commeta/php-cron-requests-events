@@ -213,16 +213,14 @@ if(
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){ // main worker
-			// include CRON_SITE_ROOT . "cron/inc/multicore_queue_worker_cron.php";
+			// multicore queue worker
 			
 			// example: multicore queue worker
 			// use:
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
-			// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
-
 			
 			for($i= 0; $i < 1000; $i++){
-				queue_push("hello world: " . $i);
+				queue_push("multicore_long_time_micro_job: " . $i);
 				
 			}
 			
@@ -236,7 +234,10 @@ if(
 					$start= false;
 					break;
 				} else {
-					// include CRON_SITE_ROOT . "cron/inc/multicore_queue_handler_cron.php";
+					// example: multicore queue handler
+					// use:
+					// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
+					// exec $multicore_long_time_micro_job - in a parallel thread
 					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
