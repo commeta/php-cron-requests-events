@@ -248,23 +248,19 @@ if(
 	function queue_push($value){
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
-		$blocked= false;
 
-		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX)) {
-				$stat= fstat($queue_resource);
-				$q= @unserialize(@fread($queue_resource, $stat['size']));
-				$blocked= true;
+		if(flock($queue_resource, LOCK_EX)) {
+			$stat= fstat($queue_resource);
+			$q= @unserialize(@fread($queue_resource, $stat['size']));
 				
-				if(is_array($q)) $queue= $q;
-				else $queue= [];
+			if(is_array($q)) $queue= $q;
+			else $queue= [];
 				
-				if(!isset($queue['queue'])) $queue['queue']= [];
-				$queue['queue'][]= $value;
+			if(!isset($queue['queue'])) $queue['queue']= [];
+			$queue['queue'][]= $value;
 				
-				queue_write($queue_resource, $queue);
-				flock($queue_resource, LOCK_UN);
-			}
+			queue_write($queue_resource, $queue);
+			flock($queue_resource, LOCK_UN);
 		}
 		
 		fclose($queue_resource);
@@ -272,35 +268,30 @@ if(
 	
 	function queue_shift(){
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		
 		$queue_resource= fopen($dat_file, "r+");
-		$blocked= false;
 
-		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX)) {
-				$stat= fstat($queue_resource);
-				$q= @unserialize(@fread($queue_resource, $stat['size']));
-				$blocked= true;
+		if(flock($queue_resource, LOCK_EX)) {
+			$stat= fstat($queue_resource);
+			$q= @unserialize(@fread($queue_resource, $stat['size']));
 				
-				if(is_array($q)) {
-					$empty= false;
-					$queue= $q;
-				} else {
-					$empty= true;
-					$queue= [];
-				}
-				
-				if(!isset($queue['queue'])) $queue['queue']= [];
-				if(count($queue['queue']) == 0) $empty= true;
-				
-				if(!$empty){
-					$value= array_shift($queue['queue']);
-					queue_write($queue_resource, $queue);
-					flock($queue_resource, LOCK_UN);
-				 } else {
-					 $value= false;
-				 }
+			if(is_array($q)) {
+				$empty= false;
+				$queue= $q;
+			} else {
+				$empty= true;
+				$queue= [];
 			}
+				
+			if(!isset($queue['queue'])) $queue['queue']= [];
+			if(count($queue['queue']) == 0) $empty= true;
+				
+			if(!$empty){
+				$value= array_shift($queue['queue']);
+				queue_write($queue_resource, $queue);
+				flock($queue_resource, LOCK_UN);
+			 } else {
+				 $value= false;
+			 }
 		}
 		
 		fclose($queue_resource);
