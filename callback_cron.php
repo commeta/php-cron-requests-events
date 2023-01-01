@@ -217,7 +217,7 @@ if(
 			// use:
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			for($i= 0; $i < 1000; $i++){
+			for($i= 0; $i < 100; $i++){
 				queue_push([
 					'url'=> "https://multicore_long_time_micro_job?param=",
 					'count'=> $i
@@ -238,9 +238,7 @@ if(
 				// $content= file_get_contents($multicore_long_time_micro_job['url']);
 				// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '', $content);
 				
-				
-				
-				if($value === false) {
+				if($multicore_long_time_micro_job === false) {
 					$start= false;
 					break;
 				} else {
