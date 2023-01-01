@@ -218,7 +218,10 @@ if(
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
 			for($i= 0; $i < 1000; $i++){
-				queue_push("multicore_long_time_micro_job: " . $i);
+				queue_push(
+					'url'=> "https://multicore_long_time_micro_job?param=",
+					'count'=> $i
+				);
 				
 			}
 			
@@ -230,7 +233,12 @@ if(
 			
 			$start= true;
 			while($start){
-				$value= queue_shift();
+				$multicore_long_time_micro_job= queue_shift();
+				
+				// $content= file_get_contents($multicore_long_time_micro_job['url']);
+				// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '', $content);
+				
+				
 				
 				if($value === false) {
 					$start= false;
@@ -240,7 +248,7 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-								time() . " INFO: queue_manager " . $value . " \n",
+								time() . " INFO: queue_manager " . $multicore_long_time_micro_job['count'] . " \n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -252,7 +260,7 @@ if(
 	}
 	
 	
-	function queue_write(& $queue_resource, & $queue){
+	function queue_write(& $queue_resource, & $queue){ // save queue
 		$serialized= serialize($queue);
 		$cron_queue_file_size= mb_strlen($serialized);
 
@@ -282,7 +290,7 @@ if(
 				queue_write($queue_resource, $queue);
 				flock($queue_resource, LOCK_UN);
 			} else {
-				usleep(2000);
+				usleep(2000); // block time, wait parallel process
 			}
 		}
 		
@@ -320,7 +328,7 @@ if(
 					 $value= false;
 				 }
 			} else {
-				usleep(2000);
+				usleep(2000); // block time, wait parallel process
 			}
 		}
 		
