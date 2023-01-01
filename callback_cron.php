@@ -219,7 +219,7 @@ if(
 			
 			for($i= 0; $i < 100; $i++){
 				queue_push([
-					'url'=> "https://multicore_long_time_micro_job?param=",
+					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
 				]);
 				
