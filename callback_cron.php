@@ -283,7 +283,7 @@ if(
 						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
 					}
 					
-					$size_average= ceil($max_size * 3);
+					$size_average= $max_size * 3;
 				}
 				
 				array_pop($stripe_array);
