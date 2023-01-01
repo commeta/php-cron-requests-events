@@ -517,6 +517,8 @@ if(
 			open_cron_socket(CRON_URL_KEY, $process_id); 
 		} else {
 			// include connector
+			$cron_session[$process_id]['last_update']= time();
+			
 			if(file_exists($job['callback'])) {
 				if(CRON_SECURITY) {
 					$cron_security_md5_before_include= md5(serialize([$cron_session, $job]));
@@ -546,40 +548,9 @@ if(
 		}
 		
 		$cron_session[$process_id]['complete']= true;
-		$cron_session[$process_id]['last_update']= time();
 	}
 	
-	
-	function save_value_to_cron_session($process_id, $key, $value){
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 		
-		$job_session= [];
-		
-		if(!file_exists($dat_file)) {
-			$job_session[$process_id][$key]=  $value;
-			file_put_contents($dat_file, serialize($job_session), CRON_START_MODE);
-			return true;
-		}
-		
-		$cron_resource= fopen($dat_file, "r+");
-		$blocked= false;
-		
-		if(flock($cron_resource, CRON_START_MODE)) {
-			$stat= fstat($cron_resource);
-			$cs= unserialize(@fread($cron_resource, $stat['size']));
-			if(is_array($cs)) $job_session= $cs;
-			
-			$job_session[$process_id][$key]=  $value;
-			$blocked= true;
-			
-			write_cron_session($cron_resource, $job_session);
-			flock($cron_resource, LOCK_UN);
-		}
-		
-		fclose($cron_resource);
-		return $blocked;
-	}
-	
 	function cron_session_init(& $cron_session, & $job, $process_id){
 		static $init= [];
 		
@@ -777,7 +748,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
