@@ -204,12 +204,12 @@ if(
 		} else {
 			// example: multicore queue handler
 			// use:
-			// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
+			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
 			// exec $multicore_long_time_micro_job - in a parallel thread
 			
 			$start= true;
 			while($start){
-				$multicore_long_time_micro_job= queue_shift();
+				$multicore_long_time_micro_job= queue_pop();
 				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
@@ -234,7 +234,7 @@ if(
 	}
 	
 	
-	function queue_push($value){
+	function queue_push($value){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 
@@ -253,7 +253,7 @@ if(
 		fclose($queue_resource);
 	}
 	
-	function queue_shift(){
+	function queue_pop(){ // pop data frame from stack
 		static $size_average= 0;
 		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
@@ -263,7 +263,7 @@ if(
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			if($stat['size'] < 1){
+			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
 				fclose($queue_resource);
 				return false;
@@ -277,7 +277,7 @@ if(
 			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
 			else $cursor= 0;
 
-			fseek($queue_resource, $cursor);
+			fseek($queue_resource, $cursor); // get data frame
 			$stripe= fread($queue_resource, $length);
 			$stripe_array= explode("\n", $stripe);
 						
@@ -285,7 +285,7 @@ if(
 				if($size_average == 0){
 					$max_size= 0;
 
-					foreach($stripe_array as $v){
+					foreach($stripe_array as $v){ // max size data frame
 						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
 					}
 					
@@ -293,15 +293,15 @@ if(
 				}
 				
 				array_pop($stripe_array);
-				$value= array_pop($stripe_array);
+				$value= array_pop($stripe_array); // get value
 				$crop= mb_strlen($value) + 1;
 				
-				if($size_average < $crop){
+				if($size_average < $crop){ // average size data frame
 					$size_average= $crop;
 				}
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
-				else $trunc= $stat['size'];
+				else $trunc= $stat['size']; // truncate file
 
 				ftruncate($queue_resource, $trunc);
 				fflush($queue_resource);
@@ -314,7 +314,7 @@ if(
 		
 		fclose($queue_resource);
 
-		if(
+		if( // data frame size failure, retry
 			$value === false && 
 			isset($stripe) &&
 			$size_average != 0 &&
@@ -323,7 +323,7 @@ if(
 		){
 			
 			$size_average= 0;
-			$value= queue_shift();
+			$value= queue_pop();
 		}
 		
 		return $value;
