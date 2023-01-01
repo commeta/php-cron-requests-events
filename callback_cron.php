@@ -261,7 +261,7 @@ if(
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			if($stat['size'] < 4096) $length= $stat['size'];
+			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
 			else $length= 4096;
 			
 			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
@@ -647,7 +647,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
