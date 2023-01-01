@@ -322,13 +322,6 @@ if(
 			fclose($cron_resource);
 		}
 		
-		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
-			$dat_file= $cron_dat_file;
-			//$cron_dat_file= false; // disable interrupt
-			
-			touch($dat_file, time() - 1);
-		}
-		
 		open_cron_socket(CRON_URL_KEY);
 		die();
 	}
@@ -664,7 +657,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
