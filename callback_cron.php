@@ -251,7 +251,7 @@ if(
 		$blocked= false;
 
 		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX | LOCK_NB)) {
+			if(flock($queue_resource, LOCK_EX)) {
 				$stat= fstat($queue_resource);
 				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
@@ -264,8 +264,6 @@ if(
 				
 				queue_write($queue_resource, $queue);
 				flock($queue_resource, LOCK_UN);
-			} else {
-				usleep(2000); // block time, wait parallel process
 			}
 		}
 		
@@ -279,7 +277,7 @@ if(
 		$blocked= false;
 
 		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX | LOCK_NB )) {
+			if(flock($queue_resource, LOCK_EX)) {
 				$stat= fstat($queue_resource);
 				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
@@ -302,8 +300,6 @@ if(
 				 } else {
 					 $value= false;
 				 }
-			} else {
-				usleep(2000); // block time, wait parallel process
 			}
 		}
 		
