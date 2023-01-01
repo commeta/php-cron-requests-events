@@ -493,21 +493,19 @@ if(
 			if(isset($job['time'])){ // check time, every day
 				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
 				
-				if(!$cron_session[$process_id]['complete']){
-					if($time_stamp < time()){
-						$cron_session[$process_id]['lock']= false;
-					} else {
-						$cron_session[$process_id]['lock']= true;
-					}
-				}
-				
 				// unlock job
 				if(
 					date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
 					$cron_session[$process_id]['complete']
 				){
-					if(save_value_to_cron_session($process_id, 'complete', false)){
-						$cron_session[$process_id]['complete']= false;
+					$cron_session[$process_id]['complete']= false;
+				}
+				
+				if(!$cron_session[$process_id]['complete']){
+					if($time_stamp < time()){
+						$cron_session[$process_id]['lock']= false;
+					} else {
+						$cron_session[$process_id]['lock']= true;
 					}
 				}
 			}
@@ -779,7 +777,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
