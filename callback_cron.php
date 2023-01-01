@@ -360,7 +360,7 @@ if(
 		
 		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
 			$dat_file= $cron_dat_file;
-			$cron_dat_file= false; // disable interrupt
+			//$cron_dat_file= false; // disable interrupt
 			
 			touch($dat_file, time() - 1);
 		}
@@ -471,10 +471,6 @@ if(
 			if(!isset($cron_session[$process_id]['unlock'])){
 				$cron_session[$process_id]['unlock']= false;
 			}
-				
-			if(!isset($cron_session[$process_id]['unlocked'])){
-				$cron_session[$process_id]['unlocked']= false;
-			}
 		}
 		
 		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
@@ -514,10 +510,11 @@ if(
 				// unlock job
 				if(
 					date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
-					$cron_session[$process_id]['unlocked'] === false
+					$cron_session[$process_id]['complete']
 				){
-					$cron_session[$process_id]['unlock']= true;
-					$cron_session[$process_id]['lock']= true;
+					if(save_value_to_cron_session($process_id, 'complete', false)){
+						$cron_session[$process_id]['complete']= false;
+					}
 				}
 			}
 		}
@@ -591,43 +588,6 @@ if(
 		return $blocked;
 	}
 	
-	function lock_unlock_everday_time(& $cron_session, & $job, $process_id){ // lock\unlock job to prevent next start
-		if(
-			$cron_session[$process_id]['unlock'] === true  &&
-			$cron_session[$process_id]['unlocked'] === false &&
-			$cron_session[$process_id]['complete'] === true
-		) {
-			if(save_value_to_cron_session($process_id, 'complete', false)){
-				$cron_session[$process_id]['complete']= false;
-				$cron_session[$process_id]['unlock']= false;
-				$cron_session[$process_id]['unlocked']= true;
-			}
-		}
-	}
-	
-	function cron_start_date_time(& $cron_session, & $job, $mode, $main, $process_id){ // start connector from date\time event 
-		if(
-			$cron_session[$process_id]['lock'] === false &&
-			$cron_session[$process_id]['complete'] === false
-		){
-			callback_connector($job, $cron_session, $mode, $process_id);
-			$cron_session[$process_id]['unlocked']= false;
-		}
-			
-		if($main) {
-			lock_unlock_everday_time($cron_session, $job, $process_id);
-		}
-	}
-	
-	function cron_start_interval(& $cron_session, & $job, $mode, $process_id){ // start connector from interval event 
-		if(
-			$cron_session[$process_id]['last_update'] + $job['interval'] < time()
-		){
-			callback_connector($job, $cron_session, $mode, $process_id);
-		}
-	}
-	
-	
 	function cron_session_init(& $cron_session, & $job, $process_id){
 		static $init= [];
 		
@@ -655,9 +615,19 @@ if(
 	function cron_check_job(& $cron_session, & $job, $mode, $main, $process_id){
 		if(isset($job['date']) || isset($job['time'])){
 			check_date_time($cron_session, $job, $process_id);
-			cron_start_date_time($cron_session, $job, $mode, $main, $process_id);
+			
+			if(
+				$cron_session[$process_id]['lock'] === false &&
+				$cron_session[$process_id]['complete'] === false
+			){
+				callback_connector($job, $cron_session, $mode, $process_id);
+			}
 		} else {
-			cron_start_interval($cron_session, $job, $mode, $process_id);
+			if(
+				$cron_session[$process_id]['last_update'] + $job['interval'] < time()
+			){
+				callback_connector($job, $cron_session, $mode, $process_id);
+			}
 		}
 	}
 	
@@ -815,7 +785,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
