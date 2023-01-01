@@ -82,7 +82,6 @@ define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
-define("CRON_START_MODE", LOCK_EX | LOCK_NB); // LOCK_EX waiting for complete previous process, LOCK_EX | LOCK_NB without waiting (no queues)
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -272,8 +271,7 @@ if(
 			$stripe= fread($queue_resource, $length);
 
 			$stripe_array= explode(chr(0), $stripe);
-			
-			
+						
 			if(is_array($stripe_array) && count($stripe_array) > 1){
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
@@ -281,7 +279,7 @@ if(
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
 				else $trunc= $stat['size'];
-				
+
 				ftruncate($queue_resource, $trunc);
 				fflush($queue_resource);
 				
@@ -536,7 +534,7 @@ if(
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
-		if(flock($cron_resource, CRON_START_MODE)) {
+		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 			$stat= fstat($cron_resource);
 			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
@@ -653,7 +651,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
