@@ -212,9 +212,7 @@ if(
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
-		if($mode){ // main worker
-			// multicore queue worker
-			
+		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
