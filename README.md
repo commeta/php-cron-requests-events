@@ -91,7 +91,6 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
 - define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
 - define("CRON_URL_KEY", 'my_secret_key'); // Ключ запуска в URI
-- define("CRON_START_MODE", LOCK_EX | LOCK_NB); // LOCK_EX ждет завершения прдедыдущего процесса, LOCK_EX | LOCK_NB без ожидания (без очередей)
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
