@@ -241,7 +241,7 @@ if(
 		if(flock($queue_resource, LOCK_EX)) { // 
 			$stat= fstat($queue_resource);
 			
-			$queue= serialize($value) . chr(0);
+			$queue= serialize($value) . "\n";
 			fseek($queue_resource, $stat['size']);
 			fwrite($queue_resource, $queue, mb_strlen($queue));
 			ftruncate($queue_resource, $stat['size'] + mb_strlen($queue));
@@ -270,7 +270,7 @@ if(
 			fseek($queue_resource, $cursor);
 			$stripe= fread($queue_resource, $length);
 
-			$stripe_array= explode(chr(0), $stripe);
+			$stripe_array= explode("\n", $stripe);
 						
 			if(is_array($stripe_array) && count($stripe_array) > 1){
 				array_pop($stripe_array);
