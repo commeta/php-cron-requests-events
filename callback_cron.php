@@ -193,12 +193,10 @@ if(
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
 			for($i= 0; $i < 1000; $i++){ // 0.082274913787842 end - start, 1000 cycles
-				$start= microtime(true); 
 				queue_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
 				]);
-				$end= microtime(true) - $start;
 			}
 			
 		} else {
