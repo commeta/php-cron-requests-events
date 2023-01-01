@@ -78,7 +78,7 @@ define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int,
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 3);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
@@ -257,7 +257,8 @@ if(
 	function queue_shift(){
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
-
+		$value= false;
+		
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
@@ -272,11 +273,16 @@ if(
 
 			$stripe_array= explode(chr(0), $stripe);
 			
-			if(is_array($stripe_array) && count($stripe_array > 1)){
+			
+			if(is_array($stripe_array) && count($stripe_array) > 1){
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
 				$crop= mb_strlen($value) + 1;
-				ftruncate($queue_resource, $stat['size'] - $crop);
+				
+				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
+				else $trunc= $stat['size'];
+				
+				ftruncate($queue_resource, $trunc);
 				fflush($queue_resource);
 				
 				$value= unserialize($value);
@@ -647,7 +653,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
