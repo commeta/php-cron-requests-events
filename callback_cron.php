@@ -209,7 +209,10 @@ if(
 			
 			$start= true;
 			while($start){
+				
+				$start= microtime(true); // 0.00012683868408203
 				$multicore_long_time_micro_job= queue_pop();
+				$end= microtime(true) - $start;
 				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
@@ -218,12 +221,11 @@ if(
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
-					// ~15k - 20k msec - one iteration of the loop, include file_put_contents() and blocking time queue_pop()
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE,
-								microtime() . " INFO: queue_manager " . $multicore_long_time_micro_job['count'] . " \n",
+								printf("%4.2f", $end). " INFO: queue_manager1 " . $multicore_long_time_micro_job['count'] . " \n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
