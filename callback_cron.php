@@ -78,7 +78,7 @@ define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int,
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 3);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
@@ -260,9 +260,9 @@ if(
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
 		
-		if(flock($queue_resource, LOCK_EX)) {
-			$stat= fstat($queue_resource);
-			
+		$stat= fstat($queue_resource);
+		
+		if(flock($queue_resource, LOCK_EX) && $stat['size'] > 0) {
 			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
 			else $length= 4096;
 			
@@ -283,15 +283,15 @@ if(
 						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
 					}
 					
-					$size_average= $max_size * 3;
+					$size_average= ceil($max_size + $max_size / 2);
 				}
 				
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
 				$crop= mb_strlen($value) + 1;
 				
-				if($size_average < $crop * 3){
-					$size_average= $crop * 3;
+				if($size_average < $crop + $crop / 2){
+					$size_average= ceil($crop + $crop / 2);
 				}
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
@@ -307,6 +307,18 @@ if(
 		}
 		
 		fclose($queue_resource);
+		
+		if(
+			$value === false && 
+			isset($stripe) &&
+			$size_average != 0 &&
+			$stat['size'] > 0
+		){
+			
+			$size_average= 0;
+			$value= queue_shift();
+		}
+		
 		return $value;
 	}
 	
@@ -668,7 +680,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
