@@ -254,6 +254,8 @@ if(
 	}
 	
 	function queue_shift(){
+		static $size_average= 0;
+		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
@@ -264,18 +266,33 @@ if(
 			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
 			else $length= 4096;
 			
+			if($size_average != 0) $length= $size_average;
+			
 			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
 			else $cursor= 0;
 
 			fseek($queue_resource, $cursor);
 			$stripe= fread($queue_resource, $length);
-
 			$stripe_array= explode("\n", $stripe);
 						
 			if(is_array($stripe_array) && count($stripe_array) > 1){
+				if($size_average == 0){
+					$max_size= 0;
+
+					foreach($stripe_array as $v){
+						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
+					}
+					
+					$size_average= ceil($max_size + $max_size / 2);
+				}
+				
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
 				$crop= mb_strlen($value) + 1;
+				
+				if($size_average < $crop + $crop / 2){
+					$size_average= ceil($crop + $crop / 2);
+				}
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
 				else $trunc= $stat['size'];
