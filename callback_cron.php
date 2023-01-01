@@ -283,15 +283,15 @@ if(
 						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
 					}
 					
-					$size_average= ceil($max_size + $max_size / 2);
+					$size_average= $max_size +1;
 				}
 				
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
 				$crop= mb_strlen($value) + 1;
 				
-				if($size_average < $crop + $crop / 2){
-					$size_average= ceil($crop + $crop / 2);
+				if($size_average < $crop){
+					$size_average= $crop;
 				}
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
@@ -307,7 +307,7 @@ if(
 		}
 		
 		fclose($queue_resource);
-		
+
 		if(
 			$value === false && 
 			isset($stripe) &&
