@@ -211,7 +211,7 @@ if(
 			while($start){
 				// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 				// execution time: 0.05708909034729 end - start, 1000 cycles
-				// execution time: 0.000057089 end - start, 1000 cycles
+				// execution time: 0.000057089 end - start, 1 cycle
 				$multicore_long_time_micro_job= queue_pop();
 				
 				if($multicore_long_time_micro_job === false) {
