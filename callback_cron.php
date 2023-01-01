@@ -207,7 +207,6 @@ if(
 		//  sleep() blocking tick_interrupt()
 	}
 
-
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
@@ -240,7 +239,7 @@ if(
 					break;
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
-					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '', $content);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '.html', $content);
 					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
