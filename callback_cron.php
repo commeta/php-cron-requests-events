@@ -78,7 +78,7 @@ define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int,
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 2);
+define("CRON_LOG_LEVEL", 3);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
@@ -283,15 +283,15 @@ if(
 						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
 					}
 					
-					$size_average= ceil($max_size + $max_size / 2);
+					$size_average= ceil($max_size * 3);
 				}
 				
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array);
 				$crop= mb_strlen($value) + 1;
 				
-				if($size_average < $crop + $crop / 2){
-					$size_average= ceil($crop + $crop / 2);
+				if($size_average < $crop * 3){
+					$size_average= $crop * 3;
 				}
 				
 				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
