@@ -235,13 +235,13 @@ if(
 			while($start){
 				$multicore_long_time_micro_job= queue_shift();
 				
-				// $content= file_get_contents($multicore_long_time_micro_job['url']);
-				// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '', $content);
-				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
 					break;
 				} else {
+					// $content= file_get_contents($multicore_long_time_micro_job['url']);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '', $content);
+					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
