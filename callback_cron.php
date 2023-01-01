@@ -467,12 +467,6 @@ if(
 		if(isset($job['date'])) $d= explode('-', $job['date']);		
 		if(isset($job['time'])) $t= explode(':', $job['time']);
 		
-		if(isset($job['date']) || isset($job['time'])) {
-			if(!isset($cron_session[$process_id]['unlock'])){
-				$cron_session[$process_id]['unlock']= false;
-			}
-		}
-		
 		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 			$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
 			
