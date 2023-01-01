@@ -207,6 +207,7 @@ if(
 		//  sleep() blocking tick_interrupt()
 	}
 
+
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
@@ -239,7 +240,7 @@ if(
 					break;
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
-					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count']) . '.html', $content);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
@@ -273,7 +274,7 @@ if(
 		$blocked= false;
 
 		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX)) {
+			if(flock($queue_resource, LOCK_EX | LOCK_NB)) {
 				$stat= fstat($queue_resource);
 				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
@@ -301,7 +302,7 @@ if(
 		$blocked= false;
 
 		while(!$blocked){
-			if(flock($queue_resource, LOCK_EX)) {
+			if(flock($queue_resource, LOCK_EX | LOCK_NB )) {
 				$stat= fstat($queue_resource);
 				$q= @unserialize(@fread($queue_resource, $stat['size']));
 				$blocked= true;
@@ -815,7 +816,6 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
-
 		/*
 		if(CRON_DELAY != 0 && is_callable('register_tick_function')) {
 			declare(ticks=1);
