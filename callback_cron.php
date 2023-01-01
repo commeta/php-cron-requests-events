@@ -260,9 +260,15 @@ if(
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
 		
-		$stat= fstat($queue_resource);
-		
-		if(flock($queue_resource, LOCK_EX) && $stat['size'] > 0) {
+		if(flock($queue_resource, LOCK_EX)) {
+			$stat= fstat($queue_resource);
+			
+			if($stat['size'] < 1){
+				flock($queue_resource, LOCK_UN);
+				fclose($queue_resource);
+				return false;
+			}
+
 			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
 			else $length= 4096;
 			
@@ -312,6 +318,7 @@ if(
 			$value === false && 
 			isset($stripe) &&
 			$size_average != 0 &&
+			isset($stat['size']) &&
 			$stat['size'] > 0
 		){
 			
