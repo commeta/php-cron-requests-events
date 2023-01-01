@@ -47,12 +47,12 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ##########
  
 ###########################
-for( // CRON job 3, multithreading example, four core
+for( // CRON job 3, multicore example, four cores, use with queue_manager()
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$cron_jobs[]= [ // CRON Job 3, multithreading example
+	$cron_jobs[]= [ // CRON Job 3, multicore example
 		'date' => '31-12-2022', // "day-month-year" execute job on the specified date
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 		'multithreading' => true
@@ -60,7 +60,7 @@ for( // CRON job 3, multithreading example, four core
 }
 ##########
 
- 
+  
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'time' => '05:05:01', // "hours:minutes:seconds" execute job on the specified time every day
@@ -78,10 +78,11 @@ define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int,
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 3);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
+
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -182,30 +183,159 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 	}
 
-	function tick_interrupt($s= false){
-		static $old_time= 0;
-		global $cron_dat_file;
+
+	function queue_manager($mode){ // example: multicore queue
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		if(!file_exists($dat_file)) touch($dat_file);
 		
-		if(
-			$old_time != time() && 
-			isset($cron_dat_file) &&
-			$cron_dat_file !== false
-		){
-			$old_time= time();
+		if($mode){
+			// example: multicore queue worker
+			// use:
+			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			if(is_file($cron_dat_file)){ // update mtime stream descriptor file
-				touch($cron_dat_file);
+			for($i= 0; $i < 1000; $i++){ // execution time: 0.082274913787842 end - start, 1000 cycles
+				queue_push([ // execution time: 0.000082275 end - start, 1 cycle
+					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
+					'count'=> $i
+				]);
+			}
+			
+			
+		} else {
+			// example: multicore queue handler
+			// use:
+			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
+			// exec $multicore_long_time_micro_job - in a parallel thread
+			
+			$start= true;
+			while($start){
+				// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+				// execution time: 0.05708909034729 end - start, 1000 cycles
+				// execution time: 0.000057089 end - start, 1000 cycles
+				$multicore_long_time_micro_job= queue_pop();
+				
+				if($multicore_long_time_micro_job === false) {
+					$start= false;
+					break;
+				} else {
+					// $content= file_get_contents($multicore_long_time_micro_job['url']);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
+					
+					if(CRON_LOG_LEVEL > 3){
+						if(CRON_LOG_FILE){
+							@file_put_contents(
+								CRON_LOG_FILE, 
+									microtime(true) . 
+									" INFO: queue_manager " . 
+									$multicore_long_time_micro_job['count'] . " \n",
+								FILE_APPEND | LOCK_EX
+							);
+						}
+					}
+					
+				}
 			}
 		}
-
-		// Note: use block interrupt operations with minimal delays
-		// Example: sleep(10);
-		// for($i=0;$i<10;$i++) sleep($i);
-		// Description: function tick_interrupt() an update session file timestamp, to prevent start process
-		//  sleep() blocking tick_interrupt()
 	}
 
+
 	
+	function queue_push($value){ // push data frame in stack
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		$queue_resource= fopen($dat_file, "r+");
+
+		if(flock($queue_resource, LOCK_EX)) { // 
+			$stat= fstat($queue_resource);
+			
+			$queue= serialize($value) . "\n";
+			fseek($queue_resource, $stat['size']);
+			fwrite($queue_resource, $queue, mb_strlen($queue));
+			ftruncate($queue_resource, $stat['size'] + mb_strlen($queue));
+			fflush($queue_resource);
+			
+			flock($queue_resource, LOCK_UN);
+		}
+		
+		fclose($queue_resource);
+	}
+	
+	function queue_pop(){ // pop data frame from stack
+		static $size_average= 0;
+		
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		$queue_resource= fopen($dat_file, "r+");
+		$value= false;
+		
+		if(flock($queue_resource, LOCK_EX)) {
+			$stat= fstat($queue_resource);
+			
+			if($stat['size'] < 1){ // queue file is empty
+				flock($queue_resource, LOCK_UN);
+				fclose($queue_resource);
+				return false;
+			}
+
+			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
+			else $length= 4096;
+			
+			if($size_average != 0) $length= $size_average;
+			
+			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
+			else $cursor= 0;
+
+			fseek($queue_resource, $cursor); // get data frame
+			$stripe= fread($queue_resource, $length);
+			$stripe_array= explode("\n", $stripe);
+						
+			if(is_array($stripe_array) && count($stripe_array) > 1){
+				if($size_average == 0){
+					$max_size= 0;
+
+					foreach($stripe_array as $v){ // max size data frame
+						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
+					}
+					
+					$size_average= $max_size +1;
+				}
+				
+				array_pop($stripe_array);
+				$value= array_pop($stripe_array); // get value
+				$crop= mb_strlen($value) + 1;
+				
+				if($size_average < $crop){ // average size data frame
+					$size_average= $crop;
+				}
+				
+				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
+				else $trunc= $stat['size']; // truncate file
+
+				ftruncate($queue_resource, $trunc);
+				fflush($queue_resource);
+				
+				$value= unserialize($value);
+			}
+			
+			flock($queue_resource, LOCK_UN);
+		}
+		
+		fclose($queue_resource);
+
+		if( // data frame size failure, retry
+			$value === false && 
+			isset($stripe) &&
+			$size_average != 0 &&
+			isset($stat['size']) &&
+			$stat['size'] > 0
+		){
+			
+			$size_average= 0;
+			$value= queue_pop();
+		}
+		
+		return $value;
+	}
+	
+
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
 		$cron_limit_exception->disable();
@@ -227,13 +357,6 @@ if(
 			
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
-		}
-		
-		if(isset($cron_dat_file) && is_file($cron_dat_file)){ // update mtime stream descriptor file
-			$dat_file= $cron_dat_file;
-			$cron_dat_file= false; // disable interrupt
-			
-			touch($dat_file, time() - 1);
 		}
 		
 		open_cron_socket(CRON_URL_KEY);
@@ -333,70 +456,14 @@ if(
 		}
 	}
 
-	//function queue_manager(){}
-	
-	function check_date_time(& $cron_session, & $job, $process_id){ 
-		if(isset($job['date'])) $d= explode('-', $job['date']);		
-		if(isset($job['time'])) $t= explode(':', $job['time']);
-		
-		if(isset($job['date']) || isset($job['time'])) {
-			if(!isset($cron_session[$process_id]['unlock'])){
-				$cron_session[$process_id]['unlock']= false;
-			}
-				
-			if(!isset($cron_session[$process_id]['unlocked'])){
-				$cron_session[$process_id]['unlocked']= false;
-			}
-		}
-		
-		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
-			$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
-			if(!$cron_session[$process_id]['complete']){
-				if($time_stamp < time()){
-					$cron_session[$process_id]['lock']= false;
-				} else {
-					$cron_session[$process_id]['lock']= true;
-				}
-			}
-		} else {
-			if(isset($job['date'])){ // check date, one - time
-				if(
-					!$cron_session[$process_id]['complete'] && 
-					$job['date'] == date('d-m-Y', time())
-				){
-					$cron_session[$process_id]['lock']= false;
-				} else {// lock job forever
-					$cron_session[$process_id]['lock']= true;
-				}
-			}
-			if(isset($job['time'])){ // check time, every day
-				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
-				
-				if(!$cron_session[$process_id]['complete']){
-					if($time_stamp < time()){
-						$cron_session[$process_id]['lock']= false;
-					} else {
-						$cron_session[$process_id]['lock']= true;
-					}
-				}
-				
-				// unlock job
-				if(
-					date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
-					$cron_session[$process_id]['unlocked'] === false
-				){
-					$cron_session[$process_id]['unlock']= true;
-					$cron_session[$process_id]['lock']= true;
-				}
-			}
-		}
-	}
 	
 	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
 		if($mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $process_id); 
 		} else {
 			// include connector
+			$cron_session[$process_id]['last_update']= time();
+			
 			if(file_exists($job['callback'])) {
 				if(CRON_SECURITY) {
 					$cron_security_md5_before_include= md5(serialize([$cron_session, $job]));
@@ -426,76 +493,9 @@ if(
 		}
 		
 		$cron_session[$process_id]['complete']= true;
-		$cron_session[$process_id]['last_update']= time();
 	}
 	
-	
-	function save_value_to_cron_session($process_id, $key, $value){
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 		
-		$job_session= [];
-		
-		if(!file_exists($dat_file)) {
-			$job_session[$process_id][$key]=  $value;
-			file_put_contents($dat_file, serialize($job_session), LOCK_EX | LOCK_NB);
-			return true;
-		}
-		
-		$cron_resource= fopen($dat_file, "r+");
-		$blocked= false;
-		
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$cs= unserialize(@fread($cron_resource, filesize($dat_file)));
-			if(is_array($cs)) $job_session= $cs;
-			
-			$job_session[$process_id][$key]=  $value;
-			$blocked= true;
-			
-			write_cron_session($cron_resource, $job_session);
-			flock($cron_resource, LOCK_UN);
-		}
-		
-		fclose($cron_resource);
-		return $blocked;
-	}
-	
-	function lock_unlock_everday_time(& $cron_session, & $job, $process_id){ // lock\unlock job to prevent next start
-		if(
-			$cron_session[$process_id]['unlock'] === true  &&
-			$cron_session[$process_id]['unlocked'] === false &&
-			$cron_session[$process_id]['complete'] === true
-		) {
-			if(save_value_to_cron_session($process_id, 'complete', false)){
-				$cron_session[$process_id]['complete']= false;
-				$cron_session[$process_id]['unlock']= false;
-				$cron_session[$process_id]['unlocked']= true;
-			}
-		}
-	}
-	
-	function cron_start_date_time(& $cron_session, & $job, $mode, $main, $process_id){ // start connector from date\time event 
-		if(
-			$cron_session[$process_id]['lock'] === false &&
-			$cron_session[$process_id]['complete'] === false
-		){
-			callback_connector($job, $cron_session, $mode, $process_id);
-			$cron_session[$process_id]['unlocked']= false;
-		}
-			
-		if($main) {
-			lock_unlock_everday_time($cron_session, $job, $process_id);
-		}
-	}
-	
-	function cron_start_interval(& $cron_session, & $job, $mode, $process_id){ // start connector from interval event 
-		if(
-			$cron_session[$process_id]['last_update'] + $job['interval'] < time()
-		){
-			callback_connector($job, $cron_session, $mode, $process_id);
-		}
-	}
-	
-	
 	function cron_session_init(& $cron_session, & $job, $process_id){
 		static $init= [];
 		
@@ -522,25 +522,47 @@ if(
 	
 	function cron_check_job(& $cron_session, & $job, $mode, $main, $process_id){
 		if(isset($job['date']) || isset($job['time'])){
-			check_date_time($cron_session, $job, $process_id);
-			cron_start_date_time($cron_session, $job, $mode, $main, $process_id);
+			$time_stamp= false;
+			
+			if(isset($job['date'])) $d= explode('-', $job['date']);		
+			if(isset($job['time'])) $t= explode(':', $job['time']);
+			
+			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
+				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+			} else {
+				if(isset($job['date'])){ // check date, one - time
+					$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
+				}
+				if(isset($job['time'])){ // check time, every day
+					$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
+					
+					if( // unlock job
+						date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
+						$cron_session[$process_id]['complete']
+					){
+						$cron_session[$process_id]['complete']= false;
+					}
+				}
+			}
+			
+			if(
+				$time_stamp < time() &&
+				$cron_session[$process_id]['complete'] === false
+			){
+				callback_connector($job, $cron_session, $mode, $process_id);
+			}
 		} else {
-			cron_start_interval($cron_session, $job, $mode, $process_id);
+			if(
+				$cron_session[$process_id]['last_update'] + $job['interval'] < time()
+			){
+				callback_connector($job, $cron_session, $mode, $process_id);
+			}
 		}
 	}
 	
-
+ 
 	function singlethreading_dispatcher(& $cron_jobs, & $cron_session){ // main loop job list
 		foreach($cron_jobs as $process_id=> & $job){
-			/*
-			if($job['multithreading']){ // refresh last update
-				$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
-				
-				if(!isset($job['date']) && !isset($job['time']) && file_exists($dat_file)){
-					$cron_session[$process_id]['last_update']= filemtime($dat_file);
-				}
-			}
-			*/
 			cron_session_init($cron_session, $job, $process_id);
 			cron_check_job($cron_session, $job, $job['multithreading'], true, $process_id);
 		}
@@ -549,16 +571,18 @@ if(
 	
 	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . intval($_GET["process_id"]) . '.dat';
+		$process_id= intval($_GET["process_id"]);
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$cs= unserialize(@fread($cron_resource, filesize($cron_dat_file)));
+			$stat= fstat($cron_resource);
+			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			cron_session_init($cron_session, $job, intval($_GET["process_id"]));
-			cron_check_job($cron_session, $job, false, false, intval($_GET["process_id"]));
+			cron_session_init($cron_session, $job, $process_id);
+			cron_check_job($cron_session, $job, false, false, $process_id);
 			write_cron_session($cron_resource, $cron_session);
 
 			// END Job
@@ -566,7 +590,6 @@ if(
 		}
 
 		fclose($cron_resource);
-		_die();
 	}
 
 
@@ -629,6 +652,7 @@ if(
 		}
 	}
 	
+		
 	////////////////////////////////////////////////////////////////////////
 	// start in background
 	init_background_cron();
@@ -649,12 +673,6 @@ if(
 		$job= $cron_jobs[$process_id];
 		
 		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
-			/*
-			if(!isset($job['date']) && !isset($job['time']) && is_callable('register_tick_function')) {
-				declare(ticks=1);
-				register_tick_function('tick_interrupt');
-			}
-			*/
 			multithreading_dispatcher($job, $cron_resource, $cron_session, $cron_dat_file);
 		}
 		
@@ -668,18 +686,14 @@ if(
 
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-		$cs= unserialize(@fread($cron_resource, filesize(CRON_DAT_FILE)));
+		$stat= fstat($cron_resource);
+		$cs= unserialize(@fread($cron_resource, $stat['size']));
 		if(is_array($cs)) $cron_session= $cs;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 
-		if(is_callable('register_tick_function')) {
-			declare(ticks=1);
-			register_tick_function('tick_interrupt');
-		}
-		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
@@ -712,7 +726,7 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
-		if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
+		if(CRON_DELAY == 0){
 			$cron_resource= fopen(CRON_DAT_FILE, "r");
 			$cron_started= true;
 			
@@ -724,7 +738,11 @@ if(
 			fclose($cron_resource);
 			
 			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
-		} 
+		} else {
+			if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
+				open_cron_socket(CRON_URL_KEY);
+			}
+		}
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
 		touch(CRON_DAT_FILE, time() - CRON_DELAY);
