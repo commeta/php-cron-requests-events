@@ -194,7 +194,7 @@ if(
 			// use:
 			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			for($i= 0; $i < 100; $i++){
+			for($i= 0; $i < 1000; $i++){
 				queue_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
@@ -235,31 +235,19 @@ if(
 	}
 	
 	
-	function queue_write(& $queue_resource, & $queue){ // save queue
-		$serialized= serialize($queue);
-		$cron_queue_file_size= mb_strlen($serialized);
-
-		rewind($queue_resource);
-		fwrite($queue_resource, $serialized);
-		ftruncate($queue_resource, $cron_queue_file_size);
-		fflush($queue_resource);
-	}
-	
 	function queue_push($value){
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 
-		if(flock($queue_resource, LOCK_EX)) {
+		if(flock($queue_resource, LOCK_EX)) { // 
 			$stat= fstat($queue_resource);
-			$q= @unserialize(@fread($queue_resource, $stat['size']));
-				
-			if(is_array($q)) $queue= $q;
-			else $queue= [];
-				
-			if(!isset($queue['queue'])) $queue['queue']= [];
-			$queue['queue'][]= $value;
-				
-			queue_write($queue_resource, $queue);
+			
+			$queue= serialize($value) . chr(0);
+			fseek($queue_resource, $stat['size']);
+			fwrite($queue_resource, $queue, mb_strlen($queue));
+			ftruncate($queue_resource, $stat['size'] + mb_strlen($queue));
+			fflush($queue_resource);
+			
 			flock($queue_resource, LOCK_UN);
 		}
 		
@@ -272,26 +260,29 @@ if(
 
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
-			$q= @unserialize(@fread($queue_resource, $stat['size']));
+			
+			if($stat['size'] < 4096) $length= $stat['size'];
+			else $length= 4096;
+			
+			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
+			else $cursor= 0;
+
+			fseek($queue_resource, $cursor);
+			$stripe= fread($queue_resource, $length);
+
+			$stripe_array= explode(chr(0), $stripe);
+			
+			if(is_array($stripe_array) && count($stripe_array > 1)){
+				array_pop($stripe_array);
+				$value= array_pop($stripe_array);
+				$crop= mb_strlen($value) + 1;
+				ftruncate($queue_resource, $stat['size'] - $crop);
+				fflush($queue_resource);
 				
-			if(is_array($q)) {
-				$empty= false;
-				$queue= $q;
-			} else {
-				$empty= true;
-				$queue= [];
+				$value= unserialize($value);
 			}
-				
-			if(!isset($queue['queue'])) $queue['queue']= [];
-			if(count($queue['queue']) == 0) $empty= true;
-				
-			if(!$empty){
-				$value= array_shift($queue['queue']);
-				queue_write($queue_resource, $queue);
-				flock($queue_resource, LOCK_UN);
-			 } else {
-				 $value= false;
-			 }
+			
+			flock($queue_resource, LOCK_UN);
 		}
 		
 		fclose($queue_resource);
