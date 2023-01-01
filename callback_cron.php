@@ -183,7 +183,6 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 	}
 
-
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
@@ -210,9 +209,9 @@ if(
 			$start= true;
 			while($start){
 				
-				$start= microtime(true); // 0.00012683868408203
+				//$start= microtime(true); // 0.00012683868408203
 				$multicore_long_time_micro_job= queue_pop();
-				$end= microtime(true) - $start;
+				//$end= microtime(true) - $start;
 				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
@@ -224,8 +223,10 @@ if(
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
-								CRON_LOG_FILE,
-								printf("%4.2f", $end). " INFO: queue_manager1 " . $multicore_long_time_micro_job['count'] . " \n",
+								CRON_LOG_FILE, 
+									microtime(true) . 
+									" INFO: queue_manager " . 
+									$multicore_long_time_micro_job['count'] . " \n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
