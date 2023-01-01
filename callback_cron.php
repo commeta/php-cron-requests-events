@@ -222,9 +222,13 @@ if(
 				
 			}
 			
-		} else { // service handler
-			$start= true;
+		} else {
+			// example: multicore queue handler
+			// use:
+			// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
+			// exec $multicore_long_time_micro_job - in a parallel thread
 			
+			$start= true;
 			while($start){
 				$value= queue_shift();
 				
@@ -232,11 +236,6 @@ if(
 					$start= false;
 					break;
 				} else {
-					// example: multicore queue handler
-					// use:
-					// $multicore_long_time_micro_job= queue_shift(); // get micro job from queue in children processess 
-					// exec $multicore_long_time_micro_job - in a parallel thread
-					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
