@@ -210,6 +210,8 @@ if(
 			$start= true;
 			while($start){
 				// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+				// PHP 7.4.3 with Zend OPcache
+				// 1 process, no concurency
 				// execution time: 0.05708909034729 end - start, 1000 cycles
 				// execution time: 0.000057089 end - start, 1 cycle
 				$multicore_long_time_micro_job= queue_pop();
