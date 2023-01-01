@@ -60,7 +60,7 @@ for( // CRON job 3, multicore example, four cores, use with queue_manager()
 }
 ##########
 
- 
+  
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'time' => '05:05:01', // "hours:minutes:seconds" execute job on the specified time every day
@@ -553,7 +553,6 @@ if(
 		}
 
 		fclose($cron_resource);
-		_die();
 	}
 
 
