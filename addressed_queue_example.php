@@ -95,7 +95,7 @@ echo "<br>\n";
 
 
 
-	function queue_push($value, $frame_size= false){ // push data frame in stack
+	function queue_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$cursor= false;
@@ -121,10 +121,17 @@ echo "<br>\n";
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			fseek($queue_resource, $stat['size']);
-			fwrite($queue_resource, $queue, $frame_size);
-			ftruncate($queue_resource, $stat['size'] + $frame_size);
-			fflush($queue_resource);
+			if($frame_cursor != false){
+				fseek($queue_resource, $frame_cursor);
+				fwrite($queue_resource, $queue, $frame_size);
+				fflush($queue_resource);
+			} else {
+				fseek($queue_resource, $stat['size']);
+				fwrite($queue_resource, $queue, $frame_size);
+				ftruncate($queue_resource, $stat['size'] + $frame_size);
+				fflush($queue_resource);
+			}
+
 			flock($queue_resource, LOCK_UN);
 			
 			$cursor= $stat['size'] + $frame_size;
@@ -137,7 +144,7 @@ echo "<br>\n";
 
 
 
-	function queue_pop($frame_size= false, $frame_cursor= false, $frames_count= 1){ // pop data frame from stack
+	function queue_pop($frame_size= false, $frame_cursor= false){ // pop data frame from stack
 		static $size_average= 0;
 		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
