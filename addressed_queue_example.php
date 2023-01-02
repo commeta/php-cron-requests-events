@@ -41,14 +41,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
-				
-				print_r([
-					'microtime'=>microtime(true),
-					'INFO'=>" INFO: queue_manager ", 
-					'i'=>$i,
-					'index'=>$index[$i],
-					'count'=>$multicore_long_time_micro_job['count']
-				]);
 			}
 			
 			
