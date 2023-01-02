@@ -2,17 +2,6 @@
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
-
-$start_memory = memory_get_usage();
-$start = microtime(true);
-//include('cron.php');
-echo memory_get_usage() - $start_memory . ' ';
-printf("%4.2f", microtime(true) - $start);
-
-//die();
-echo "<br>\n";
-
-
 	function queue_address_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
@@ -29,15 +18,15 @@ echo "<br>\n";
 				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
-				], 95); // frame size 95 byte
+				]); // frame size 95 byte
 				
 				if($frame_cursor) $index[$i]= $frame_cursor; 
 			}
 			
 			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				file_put_contents($index_file, serialize($index), LOCK_EX); 
-				// 13783 bytes index file size
-				// 95000 bytes db file size
+				// 13774 bytes index file size
+				// 89510 bytes db file size
 			}
 			
 		} else {
@@ -49,11 +38,9 @@ echo "<br>\n";
 			
 			// use index mode
 			$index= unserialize(file_get_contents($index_file));
-			$multicore_long_time_micro_job= queue_address_pop(95);
-			
 			
 			for($i= 0; $i < 1000; $i++){
-				$multicore_long_time_micro_job= queue_address_pop(95, $index[$i]);
+				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
 				
 				print_r([
 					'microtime'=>microtime(true),
