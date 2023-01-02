@@ -20,8 +20,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 			// PHP 7.4.3 with Zend OPcache
 			// 1 process, no concurency
-			// execution time: 0.052999 end - start, 1000 cycles
-			
+			// execution time: 0.046951055526733 end - start, 1000 cycles
 			for($i= 0; $i < 1000; $i++){
 				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
@@ -30,6 +29,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				
 				if($frame_cursor) $index[$i]= $frame_cursor; 
 			}
+			
 			
 			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				file_put_contents($index_file, serialize($index), LOCK_EX); 
@@ -48,15 +48,16 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			$index= unserialize(file_get_contents($index_file));
 
 			
-			// execution time: 0.045256 end - start, 1000 cycles
+			// execution time: 0.04392409324646 end - start, 1000 cycles, address mode
+			// execution time: 0.070432901382446 end - start, 1000 cycles, noaddress + file truncate
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+				//$multicore_long_time_micro_job= queue_address_pop();
 
 			}
 			
 			// use LIFO mode
-			// execution time: 0.663102 end - start, 1000 cycles
-			
+			// execution time: 0.070611000061035 end - start, 1000 cycles
 			/*
 			$start= true;
 			while($start){
@@ -199,7 +200,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		}
 		
 		fclose($queue_resource);
-		
+
 		if( // data frame size failure, retry
 			$value === false && 
 			isset($stripe) &&
