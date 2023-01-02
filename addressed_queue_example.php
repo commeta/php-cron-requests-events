@@ -31,12 +31,14 @@ echo "<br>\n";
 					'count'=> $i
 				], 95); // frame size 95 byte
 				
-				if($frame_cursor) $index[$frame_cursor]= $i;
+				if($frame_cursor) $index[$i]= $frame_cursor; 
 			}
 			
-			file_put_contents($index_file, serialize($index)); 
-			// 13783 bytes index file size
-			// 95000 bytes db file size
+			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
+				file_put_contents($index_file, serialize($index), LOCK_EX); 
+				// 13783 bytes index file size
+				// 95000 bytes db file size
+			}
 			
 		} else {
 			// example: multicore queue handler
@@ -44,6 +46,28 @@ echo "<br>\n";
 			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
 			// exec $multicore_long_time_micro_job - in a parallel thread
 			
+			
+			// use index mode
+			$index= unserialize(file_get_contents($index_file));
+			$multicore_long_time_micro_job= queue_pop(95);
+			
+			
+			for($i= 0; $i < 1000; $i++){
+				$multicore_long_time_micro_job= queue_pop(95, $index[$i]);
+				
+				print_r([
+					'microtime'=>microtime(true),
+					'INFO'=>" INFO: queue_manager ", 
+					'i'=>$i,
+					'index'=>$index[$i],
+					'count'=>$multicore_long_time_micro_job['count']
+				]);
+			}
+			
+			
+			
+			/*
+			// use LIFO mode
 			$start= true;
 			while($start){
 				$multicore_long_time_micro_job= queue_pop(95);
@@ -61,10 +85,11 @@ echo "<br>\n";
 								$multicore_long_time_micro_job['count'] . " \n",
 						]);
 					
-					
-					
 				}
 			}
+			*/
+			
+			
 		}
 	}
 
@@ -140,6 +165,9 @@ echo "<br>\n";
 			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
 			else $cursor= 0;
 
+			if($frame_cursor != false){
+				$cursor= $frame_cursor;
+			}
 
 			fseek($queue_resource, $cursor); // get data frame
 			$stripe= fread($queue_resource, $length);
@@ -158,17 +186,20 @@ echo "<br>\n";
 				
 				array_pop($stripe_array);
 				$value= array_pop($stripe_array); // get value
-				$crop= mb_strlen($value) + 1;
 				
-				if($size_average < $crop){ // average size data frame
-					$size_average= $crop;
-				}
-				
-				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
-				else $trunc= $stat['size']; // truncate file
+				if($frame_cursor === false){
+					$crop= mb_strlen($value) + 1;
+					
+					if($size_average < $crop){ // average size data frame
+						$size_average= $crop;
+					}
+					
+					if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
+					else $trunc= $stat['size']; // truncate file
 
-				ftruncate($queue_resource, $trunc);
-				fflush($queue_resource);
+					ftruncate($queue_resource, $trunc);
+					fflush($queue_resource);
+				}
 				
 				$value= unserialize(trim($value));
 			}
