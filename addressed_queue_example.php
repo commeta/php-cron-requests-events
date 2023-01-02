@@ -2,7 +2,18 @@
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
-	function queue_manager($mode){ // example: multicore queue
+
+$start_memory = memory_get_usage();
+$start = microtime(true);
+//include('cron.php');
+echo memory_get_usage() - $start_memory . ' ';
+printf("%4.2f", microtime(true) - $start);
+
+//die();
+echo "<br>\n";
+
+
+	function queue_address_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
@@ -10,12 +21,12 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		if($mode){
 			// example: multicore queue worker
 			// use:
-			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
+			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
 			$index= []; // index - address array, frame_cursor is key of array, frame size 95 byte
 			
 			for($i= 0; $i < 1000; $i++){
-				$frame_cursor= queue_push([
+				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
 				], 95); // frame size 95 byte
@@ -32,17 +43,17 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		} else {
 			// example: multicore queue handler
 			// use:
-			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
+			// $multicore_long_time_micro_job= queue_address_pop(); // get micro job from queue in children processess 
 			// exec $multicore_long_time_micro_job - in a parallel thread
 			
 			
 			// use index mode
 			$index= unserialize(file_get_contents($index_file));
-			$multicore_long_time_micro_job= queue_pop(95);
+			$multicore_long_time_micro_job= queue_address_pop(95);
 			
 			
 			for($i= 0; $i < 1000; $i++){
-				$multicore_long_time_micro_job= queue_pop(95, $index[$i]);
+				$multicore_long_time_micro_job= queue_address_pop(95, $index[$i]);
 				
 				print_r([
 					'microtime'=>microtime(true),
@@ -59,7 +70,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// use LIFO mode
 			$start= true;
 			while($start){
-				$multicore_long_time_micro_job= queue_pop(95);
+				$multicore_long_time_micro_job= queue_address_pop(95);
 				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
@@ -84,7 +95,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
 
 
-	function queue_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
+	function queue_address_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$cursor= false;
@@ -133,7 +144,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
 
 
-	function queue_pop($frame_size= false, $frame_cursor= false){ // pop data frame from stack
+	function queue_address_pop($frame_size= false, $frame_cursor= false){ // pop data frame from stack
 		static $size_average= 0;
 		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
@@ -203,7 +214,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			flock($queue_resource, LOCK_UN);
 		}
 		
-		fclose($queue_resource)
+		fclose($queue_resource);
 
 		if( // data frame size failure, retry
 			$value === false && 
@@ -214,13 +225,15 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		){
 			
 			$size_average= 0;
-			$value= queue_pop();
+			$value= queue_address_pop();
 		}
 		
 		return $value;
 	}
 	
 	
-queue_manager(true); // call in multithreading context api cron.php, in worker mode
-queue_manager(false);  // call in multithreading context api cron.php, in handler mode
+queue_address_manager(true); // call in multithreading context api cron.php, in worker mode
+queue_address_manager(false);  // call in multithreading context api cron.php, in handler mode
+	
+
 ?>
