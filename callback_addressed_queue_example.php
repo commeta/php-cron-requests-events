@@ -20,8 +20,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 			// PHP 7.4.3 with Zend OPcache
 			// 1 process, no concurency
-			// execution time: 0.05 end - start, 1000 cycles
-			// execution time: 0.00005 end - start, 1 cycle			
+			// execution time: 0.052999 end - start, 1000 cycles
 			
 			for($i= 0; $i < 1000; $i++){
 				$frame_cursor= queue_address_push([
@@ -48,17 +47,17 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// use index mode
 			$index= unserialize(file_get_contents($index_file));
 
-
-			// execution time: 0.04 end - start, 1000 cycles
-			// execution time: 0.00004 end - start, 1 cycle			
+			
+			// execution time: 0.045256 end - start, 1000 cycles
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
 
 			}
 			
+			// use LIFO mode
+			// execution time: 0.663102 end - start, 1000 cycles
 			
 			/*
-			// use LIFO mode
 			$start= true;
 			while($start){
 				$multicore_long_time_micro_job= queue_address_pop();
@@ -73,7 +72,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				}
 			}
 			*/
-			
+				
 			
 		}
 	}
@@ -200,7 +199,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		}
 		
 		fclose($queue_resource);
-
+		
 		if( // data frame size failure, retry
 			$value === false && 
 			isset($stripe) &&
