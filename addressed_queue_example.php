@@ -2,6 +2,7 @@
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
+
 $start_memory = memory_get_usage();
 $start = microtime(true);
 //include('cron.php');
@@ -14,6 +15,7 @@ echo "<br>\n";
 
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
+		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){
@@ -29,9 +31,10 @@ echo "<br>\n";
 					'count'=> $i
 				], 95); // frame size 95 byte
 				
-				$index[$frame_cursor]= $i;
+				if($frame_cursor) $index[$frame_cursor]= $i;
 			}
 			
+			file_put_contents($index_file, serialize($index));
 			
 		} else {
 			// example: multicore queue handler
