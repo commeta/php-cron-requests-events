@@ -34,7 +34,9 @@ echo "<br>\n";
 				if($frame_cursor) $index[$frame_cursor]= $i;
 			}
 			
-			file_put_contents($index_file, serialize($index));
+			file_put_contents($index_file, serialize($index)); 
+			// 13783 bytes index file size
+			// 95000 bytes db file size
 			
 		} else {
 			// example: multicore queue handler
