@@ -94,6 +94,73 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
+
+### Пример многопоточной очереди
+```
+	function queue_manager($mode){ // example: multicore queue
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		if(!file_exists($dat_file)) touch($dat_file);
+		
+		if($mode){
+			// example: multicore queue worker
+			// use:
+			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
+			
+			for($i= 0; $i < 1000; $i++){ // execution time: 0.082274913787842 end - start, 1000 cycles
+				queue_push([ // execution time: 0.000082275 end - start, 1 cycle
+					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
+					'count'=> $i
+				]);
+			}
+			
+			
+		} else {
+			// example: multicore queue handler
+			// use:
+			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
+			// exec $multicore_long_time_micro_job - in a parallel thread
+			
+			$start= true;
+			while($start){
+				// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+				// PHP 7.4.3 with Zend OPcache
+				// 1 process, no concurency
+				// execution time: 0.05708909034729 end - start, 1000 cycles
+				// execution time: 0.000057089 end - start, 1 cycle
+				$multicore_long_time_micro_job= queue_pop();
+				
+				if($multicore_long_time_micro_job === false) {
+					$start= false;
+					break;
+				} else {
+					// $content= file_get_contents($multicore_long_time_micro_job['url']);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
+					
+					if(CRON_LOG_LEVEL > 3){
+						if(CRON_LOG_FILE){
+							@file_put_contents(
+								CRON_LOG_FILE, 
+									microtime(true) . 
+									" INFO: queue_manager " . 
+									$multicore_long_time_micro_job['count'] . " \n",
+								FILE_APPEND | LOCK_EX
+							);
+						}
+					}
+					
+				}
+			}
+		}
+	}
+```
+- вызов queue_manager(true); // создает список микро задач и помещает их в очередь.
+- вызов queue_manager(false); // запускает обработчик микро задачи.
+
+Сценарий выполнения:
+1. Добавляем в общий список задач, событие для запуска создания списка микро задач. Обработчик события поместит в очередь, длина которой ограничена только размером дискового пространства на сервере.
+2. Добавляем в общий список задач, событие для запуска обработчиков микро задач. Событие CRON job 3 запускает парелелльно несколько процессов, каждый из которых получает из общей очереди микро задачи, и немедленно их исполняет.
+
+
 ### Потребление ресурсов
 Управляющий задачами процесс запускается в фоновом режиме с использованием механизма сетевых запросов. 
 
