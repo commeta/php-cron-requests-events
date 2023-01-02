@@ -12,7 +12,9 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// use:
 			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			$index= []; // index - address array, frame_cursor is key of array, frame size 95 byte
+			$index= []; // index - address array, frame_cursor is key of array
+			unlink($dat_file); // reset DB file
+			touch($dat_file);
 			
 			for($i= 0; $i < 1000; $i++){
 				$frame_cursor= queue_address_push([
@@ -26,7 +28,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				file_put_contents($index_file, serialize($index), LOCK_EX); 
 				// 13774 bytes index file size
-				// 89510 bytes db file size
+				// 89780 bytes db file size
 			}
 			
 		} else {
@@ -41,8 +43,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
-				
-				
 			}
 			
 			
@@ -58,7 +58,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					break;
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
-					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);				
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);					
 				}
 			}
 			*/
@@ -209,4 +209,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	
 queue_address_manager(true); // call in multithreading context api cron.php, in worker mode
 queue_address_manager(false);  // call in multithreading context api cron.php, in handler mode
+	
+
 ?>
