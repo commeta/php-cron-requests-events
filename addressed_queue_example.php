@@ -49,7 +49,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// use LIFO mode
 			$start= true;
 			while($start){
-				$multicore_long_time_micro_job= queue_address_pop(95);
+				$multicore_long_time_micro_job= queue_address_pop();
 				
 				if($multicore_long_time_micro_job === false) {
 					$start= false;
@@ -57,13 +57,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
-					
-						print_r([
-								microtime(true) . 
-								" INFO: queue_manager " . 
-								$multicore_long_time_micro_job['count'] . " \n",
-						]);
-					
 				}
 			}
 			*/
