@@ -18,7 +18,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
-				]); // frame size 95 byte
+				]);
 				
 				if($frame_cursor) $index[$i]= $frame_cursor; 
 			}
