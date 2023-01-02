@@ -95,7 +95,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
 
-### Пример многопоточной очереди
+### Пример многопоточной очереди php multicore api
 ```
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
