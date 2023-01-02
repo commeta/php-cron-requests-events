@@ -2,17 +2,6 @@
 define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
 define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
-
-$start_memory = memory_get_usage();
-$start = microtime(true);
-//include('cron.php');
-echo memory_get_usage() - $start_memory . ' ';
-printf("%4.2f", microtime(true) - $start);
-
-//die();
-echo "<br>\n";
-
-
 	function queue_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
@@ -214,20 +203,7 @@ echo "<br>\n";
 			flock($queue_resource, LOCK_UN);
 		}
 		
-		fclose($queue_resource);
-
-		print_r([
-			'crop'=> $crop,
-			'length'=> $length,
-			'size_average'=> $size_average,
-			'cursor'=> $cursor,
-			'max_size'=> $max_size,
-			'stripe_array'=> $stripe_array,
-			'value'=> $value,
-			'trunc'=> $trunc,
-			'stripe'=> $stripe
-		]);
-
+		fclose($queue_resource)
 
 		if( // data frame size failure, retry
 			$value === false && 
@@ -245,8 +221,6 @@ echo "<br>\n";
 	}
 	
 	
-queue_manager(true);
-queue_manager(false);
-	
-
+queue_manager(true); // call in multithreading context api cron.php, in worker mode
+queue_manager(false);  // call in multithreading context api cron.php, in handler mode
 ?>
