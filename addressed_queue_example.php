@@ -41,6 +41,8 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+				
+				
 			}
 			
 			
@@ -56,7 +58,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					break;
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
-					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
+					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);				
 				}
 			}
 			*/
@@ -188,6 +190,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		
 		fclose($queue_resource);
 
+
 		if( // data frame size failure, retry
 			$value === false && 
 			isset($stripe) &&
@@ -197,7 +200,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		){
 			
 			$size_average= 0;
-			$value= queue_address_pop();
+			$value= queue_address_pop(false, $frame_cursor);
 		}
 		
 		return $value;
@@ -206,6 +209,4 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	
 queue_address_manager(true); // call in multithreading context api cron.php, in worker mode
 queue_address_manager(false);  // call in multithreading context api cron.php, in handler mode
-	
-
 ?>
