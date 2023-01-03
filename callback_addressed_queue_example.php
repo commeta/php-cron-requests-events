@@ -101,7 +101,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	}
 
 
-	// save frame in stack file
 	// value - pushed value
 	// frame_size - false for auto, set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
@@ -155,7 +154,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	}
 
 
-	// get frame frome stack file
 	// frame_size - false for auto, set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
