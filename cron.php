@@ -47,13 +47,13 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ##########
  
 ###########################
-$cron_jobs[]= [ // CRON Job 3, multicore example
+$cron_jobs[]= [ // CRON Job 3, multicore example queue_address_manager(true)
 	'time' => '22:00:00', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'multithreading' => true
 ];
 
-for( // CRON job 3, multicore example, four cores, use with queue_manager()
+for( // CRON job 3, multicore example, four cores, use with queue_address_manager(false)
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
@@ -751,7 +751,6 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
 
 		//###########################################
 		// check jobs
