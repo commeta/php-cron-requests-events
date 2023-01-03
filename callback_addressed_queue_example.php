@@ -45,29 +45,29 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			// use index mode
 			$index= unserialize(file_get_contents($index_file));
-
 			
 			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
 			// execution time: 0.082197904586792 end - start, 1000 cycles, address mode + $frame_replace= true
 			// execution time: 0.079766988754272 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
-			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
+			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, 
 			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
-		
-			//$start = microtime(true);
-			for($i= 0; $i < 1000; $i++){
+			$start= microtime(true);
+			print_r(['36 ', microtime(true) - $start]);
+			
+			shuffle($index); // random access
+			for($i= 0; $i < 100; $i++){ // example: generate random fragmentation
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
+				
+				
 				unset($index[$i]);
 			}
-			//print_r(['30 ', microtime(true) - $start]);
 			
-			unlink($dat_file); // reset DB file
 			
 			
 			// use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
-			/*
 			$start= true;
-			while($start){
+			while($start){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop();
 				
 				if($multicore_long_time_micro_job === false) {
@@ -77,11 +77,11 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
+					
 				}
 			}
-			*/
 				
-			
+			unlink($dat_file); // reset DB file
 		}
 	}
 
@@ -223,8 +223,18 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		
 		fclose($queue_resource);
 
-/*
+
+		if( // data frame size failure, retry
+			$value === false && 
+			isset($stripe) &&
+			$size_average != 0 &&
+			isset($stat['size']) &&
+			$stat['size'] > 0
+		){
+/*			
 		print_r([
+			'frame_size'=> $frame_size,
+			'retry'=>'retry1',
 			'crop'=> $crop,
 			'length'=> $length,
 			'size_average'=> $size_average,
@@ -235,19 +245,13 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			'trunc'=> $trunc,
 			'stripe'=> $stripe
 		]);
-*/
-
-		if( // data frame size failure, retry
-			$value === false && 
-			isset($stripe) &&
-			$size_average != 0 &&
-			isset($stat['size']) &&
-			$stat['size'] > 0
-		){
 			
+*/			
 			$size_average= 0;
 			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
+		
+		
 		
 		return $value;
 	}
