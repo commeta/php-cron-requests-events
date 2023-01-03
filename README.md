@@ -99,7 +99,6 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ```
 function queue_address_manager_extend($mode){ // example: multicore queue
 	$frame_size= 95;
-	if(!file_exists($dat_file)) touch($dat_file);
 	
 	if($mode){
 		// example: multicore queue worker
