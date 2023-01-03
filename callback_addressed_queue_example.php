@@ -5,6 +5,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	function queue_address_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
+		$frame_size= 95;
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){
@@ -25,7 +26,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
-				]);
+				], $frame_size);
 				
 				if($frame_cursor !== false) $index[$i]= $frame_cursor; 
 			}
@@ -47,39 +48,35 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// addressed data base, random access
 			$index= unserialize(file_get_contents($index_file));
 			
-			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
-			// execution time: 0.082197904586792 end - start, 1000 cycles, address mode + $frame_replace= true
-			// execution time: 0.079766988754272 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
-			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
-			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
-			//$start= microtime(true);
-			//print_r(['36 ', microtime(true) - $start]);
+			
 			
 			// example 1, get first element
-			$multicore_long_time_micro_job= queue_address_pop(false, $index[0]);
+			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
 			
 			// example 2, linear read
-			for($i= 100; $i < 800; $i++){
-				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+			for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode, frame_replace
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i]);
 			}
 			
 			// example 3, replace frames in file
-			for($i= 10; $i < 500; $i++){
-				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
+			for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i], true);
 				unset($index[$i]);
 			}
 			
 			
 			// example 4, random access
 			shuffle($index);
-			for($i= 0; $i < 10; $i++){
-				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+			for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i]);
 			}
+
 			
 			// example 5, use LIFO mode
-			// execution time: 0.070611000061035 end - start, 1000 cycles
+			// execution time: 0.051764011383057 end - start, 1000 cycles
+			//$start= microtime(true);
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop();
+				$multicore_long_time_micro_job= queue_address_pop($frame_size);
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
@@ -90,7 +87,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					//print_r($multicore_long_time_micro_job);
 				}
 			}
-			
+			//print_r(['38 ', microtime(true) - $start]);
 			unlink($dat_file); // reset DB file
 		}
 	}
@@ -147,12 +144,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	}
 
 
-	// frame_size - false for auto, set frame size
+	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
 	function queue_address_pop($frame_size= false, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
-		static $frames_size_average= 0;
-		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
@@ -166,62 +161,32 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				return false;
 			}
 
-			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
-			else $length= 4096;
-			
-			if($frames_size_average != 0) $length= $frames_size_average;
-			
-			if($frame_size !== false){
-				$length= $frame_size;
-			}
-			
-			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
-			else $cursor= 0;
-
 			if($frame_cursor !== false){
 				$cursor= $frame_cursor;
+			} else {
+				if($stat['size'] - $frame_size > 0) $cursor= $stat['size'] - $frame_size;
+				else $cursor= 0;
 			}
 
 			fseek($queue_resource, $cursor); // get data frame
-			$raw_frame= fread($queue_resource, $length);
+			$raw_frame= fread($queue_resource, $frame_size);
+			$value= unserialize(trim($raw_frame));
 
 			if($frame_cursor !== false){
-				$frame_start= 0;
-				$frame_end= strpos($raw_frame, "\n");
-				$frame= substr($raw_frame, $frame_start, $frame_end - $frame_start );
-				$value= unserialize(trim($frame));
-				
 				if($frame_replace !== false){
-					$length= mb_strlen($frame);
 					$frame= serialize($frame_replace);
 						
-					for($i= 0; $i< $length; $i++) $frame.= ' ';
+					for($i= mb_strlen($frame); $i< $frame_size - 1; $i++) $frame.= ' ';
 					$frame.= "\n";
 
 					fseek($queue_resource, $cursor); 
-					fwrite($queue_resource, $frame, $length);
+					fwrite($queue_resource, $frame, $frame_size);
 					fflush($queue_resource);
 				}
-			} else {
-				if($length == 4096){
-					$frame_end= strrpos($raw_frame, "\n");
-					$frame_start= strripos($raw_frame, "\n", -3);
-				} else {
-					$frame_start= 0;
-					$frame_end= strripos($raw_frame, "\n", -1);
-				}
-
-				$frame= substr($raw_frame, $frame_start + 1, $frame_end - $frame_start - 1);
-				$value= unserialize(trim($frame));
 				
-				$crop= mb_strlen($frame) + 1;
-					
-				if($frames_size_average < $crop){ // average size data frame
-					$frames_size_average= $crop;
-				}
-					
-				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
-				else $trunc= $stat['size']; // truncate file
+			} else { // LIFO mode				
+				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
+				else $trunc= 0; // truncate file
 
 				ftruncate($queue_resource, $trunc);
 				fflush($queue_resource);
@@ -231,20 +196,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		}
 		
 		fclose($queue_resource);
-
-		if( // data frame size failure, retry
-			$value === false && 
-			isset($frame) &&
-			$frames_size_average != 0 &&
-			isset($stat['size']) &&
-			$stat['size'] > 0
-		){	
-			$frames_size_average= 4096;
-			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
-		}
-	
-		
-		
 		return $value;
 	}
 	
