@@ -2,7 +2,8 @@
 
 	function queue_address_manager_extend($mode){ // example: multicore queue
 		$frame_size= 95;
-		if(!file_exists($dat_file)) touch($dat_file);
+		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index.dat';
 		
 		if($mode){
 			// example: multicore queue worker
