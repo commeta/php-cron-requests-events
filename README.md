@@ -179,9 +179,12 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 
 	}
 }
+
+queue_address_manager_extend(true); // call in multithreading context api cron.php, in worker mode
+queue_address_manager_extend(false);  // call in multithreading context api cron.php, in handler mode
 ```
-- вызов queue_manager(true); // создает список микро задач и помещает их в очередь.
-- вызов queue_manager(false); // запускает обработчик микро задачи.
+- вызов queue_address_manager_extend(true); // создает список микро задач и помещает их в очередь.
+- вызов queue_address_manager_extend(false); // запускает обработчик микро задачи.
 
 #### Сценарий выполнения:
 1. Добавляем в общий список задач, событие для запуска создания очереди микро задач - workers. Обработчик события поместит микро задачи в очередь, длина которой ограничена только размером дискового пространства на сервере.
