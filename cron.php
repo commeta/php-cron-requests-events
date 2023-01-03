@@ -110,7 +110,7 @@ if(!function_exists('open_cron_socket')) {
 		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
 		
-		if(strtolower(PHP_OS) == 'linux' && $wget == false) {
+		if(strtolower(PHP_OS) == 'linux' && $wget === false) {
 			foreach(explode(':', getenv('PATH')) as $path){
 				if(is_executable($path.'/wget')) {
 					$wget= $path.'/wget';
@@ -175,51 +175,81 @@ if(
 	
 	
 	// Functions: system api
-	function write_cron_session(& $cron_resource, & $cron_session){
-		$serialized= serialize($cron_session);
-
-		rewind($cron_resource);
-		fwrite($cron_resource, $serialized);
-		ftruncate($cron_resource, mb_strlen($serialized));
-	}
-
-
-	function queue_manager($mode){ // example: multicore queue
+	function queue_address_manager($mode){ // example: multicore queue
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index.dat';
+		$frame_size= 95;
 		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){
 			// example: multicore queue worker
 			// use:
-			// queue_push($multicore_long_time_micro_job); // add micro job in queue from worker process
+			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			for($i= 0; $i < 1000; $i++){ // execution time: 0.082274913787842 end - start, 1000 cycles
-				queue_push([ // execution time: 0.000082275 end - start, 1 cycle
+			$index= []; // index - address array, frame_cursor is key of array
+			unlink($dat_file); // reset DB file
+			touch($dat_file);
+			
+			
+			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+			// PHP 7.4.3 with Zend OPcache
+			// 1 process, no concurency
+			// execution time: 0.046951055526733 end - start, 1000 cycles
+			for($i= 0; $i < 1000; $i++){
+				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
-				]);
+				], $frame_size);
+				
+				if($frame_cursor !== false) $index[$i]= $frame_cursor; 
 			}
-			
+						
+			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
+				file_put_contents($index_file, serialize($index), LOCK_EX); 
+				// 13774 bytes index file size
+				// 89780 bytes db file size
+			}
 			
 		} else {
 			// example: multicore queue handler
 			// use:
-			// $multicore_long_time_micro_job= queue_pop(); // get micro job from queue in children processess 
+			// $multicore_long_time_micro_job= queue_address_pop(); // get micro job from queue in children processess 
 			// exec $multicore_long_time_micro_job - in a parallel thread
 			
-			$start= true;
-			while($start){
-				// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
-				// PHP 7.4.3 with Zend OPcache
-				// 1 process, no concurency
-				// execution time: 0.05708909034729 end - start, 1000 cycles
-				// execution time: 0.000057089 end - start, 1 cycle
-				$multicore_long_time_micro_job= queue_pop();
+			// use index mode
+			// addressed data base, random access
+			$index= unserialize(file_get_contents($index_file));
+			
+			// example 1, get first element
+			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
+			
+			// example 2, linear read
+			for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i]);
+			}
+			
+			// example 3, replace frames in file
+			for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i], true);
+				unset($index[$i]);
+			}
+			
+			
+			// example 4, random access
+			shuffle($index);
+			for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i]);
+			}
+
+
+			// example 5, use LIFO mode
+			// execution time: 0.051764011383057 end - start, 1000 cycles
+			while(true){ // example: loop from the end
+				$multicore_long_time_micro_job= queue_address_pop($frame_size);
 				
 				if($multicore_long_time_micro_job === false) {
-					$start= false;
-					break;
-				} else {
+					break 1;
+				} elseif($multicore_long_time_micro_job !== true) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
@@ -233,37 +263,70 @@ if(
 								FILE_APPEND | LOCK_EX
 							);
 						}
-					}
-					
+					}					
 				}
 			}
+			
+			unlink($dat_file); // reset DB file
 		}
 	}
 
 
-	
-	function queue_push($value){ // push data frame in stack
+	// value - pushed value
+	// frame_size - false for auto, set frame size
+	// frame_cursor - false for LIFO mode, get frame from cursor position
+	function queue_address_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
+		$return_cursor= false;
 
-		if(flock($queue_resource, LOCK_EX)) { // 
+		if($frame_size !== false){
+			$frame= serialize($value);
+			$value_size= mb_strlen($frame);
+			$value_size++; // reserved byte
+			
+			if($frame_size > $value_size){ // fill
+				for($i= $value_size; $i< $frame_size; $i++) $frame.= ' ';
+			} else {
+				return false;
+			}
+			
+			$frame.= "\n";
+		} else {
+			$frame= serialize($value) . "\n";
+			$frame_size= mb_strlen($frame);
+		}
+
+		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			$queue= serialize($value) . "\n";
-			fseek($queue_resource, $stat['size']);
-			fwrite($queue_resource, $queue, mb_strlen($queue));
-			ftruncate($queue_resource, $stat['size'] + mb_strlen($queue));
-			fflush($queue_resource);
-			
+			if($frame_cursor !== false){
+				$return_cursor= $frame_cursor;
+				
+				fseek($queue_resource, $frame_cursor);
+				fwrite($queue_resource, $frame, $frame_size);
+				fflush($queue_resource);
+			} else {
+				$return_cursor= $stat['size'];
+				
+				fseek($queue_resource, $stat['size']);
+				fwrite($queue_resource, $frame, $frame_size);
+				ftruncate($queue_resource, $stat['size'] + $frame_size);
+				fflush($queue_resource);
+			}
+
 			flock($queue_resource, LOCK_UN);
 		}
 		
 		fclose($queue_resource);
+		return $return_cursor;
 	}
-	
-	function queue_pop(){ // pop data frame from stack
-		static $size_average= 0;
-		
+
+
+	// frame_size - set frame size
+	// frame_cursor - false for LIFO mode, get frame from cursor position
+	// frame_replace - false is off, delete frame
+	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
@@ -277,66 +340,55 @@ if(
 				return false;
 			}
 
-			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
-			else $length= 4096;
-			
-			if($size_average != 0) $length= $size_average;
-			
-			if($stat['size'] - $length > 0) $cursor= $stat['size'] - $length;
-			else $cursor= 0;
+			if($frame_cursor !== false){
+				$cursor= $frame_cursor;
+			} else {
+				if($stat['size'] - $frame_size > 0) $cursor= $stat['size'] - $frame_size;
+				else $cursor= 0;
+			}
 
 			fseek($queue_resource, $cursor); // get data frame
-			$stripe= fread($queue_resource, $length);
-			$stripe_array= explode("\n", $stripe);
+			$raw_frame= fread($queue_resource, $frame_size);
+			$value= unserialize(trim($raw_frame));
+			
+			if($frame_cursor !== false){
+				if($frame_replace !== false){ // replace frame
+					$frame_replace= serialize($frame_replace);
+					$frame_replace_size= mb_strlen($frame_replace);
 						
-			if(is_array($stripe_array) && count($stripe_array) > 1){
-				if($size_average == 0){
-					$max_size= 0;
+					for($i= $frame_replace_size; $i< $frame_size - 1; $i++) $frame_replace.= ' ';
+					$frame_replace.= "\n";
 
-					foreach($stripe_array as $v){ // max size data frame
-						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
+					if(mb_strlen($frame_replace) == $frame_size){
+						fseek($queue_resource, $cursor); 
+						fwrite($queue_resource, $frame_replace, $frame_size);
+						fflush($queue_resource);
 					}
-					
-					$size_average= $max_size +1;
 				}
 				
-				array_pop($stripe_array);
-				$value= array_pop($stripe_array); // get value
-				$crop= mb_strlen($value) + 1;
-				
-				if($size_average < $crop){ // average size data frame
-					$size_average= $crop;
-				}
-				
-				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
-				else $trunc= $stat['size']; // truncate file
+			} else { // LIFO mode				
+				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
+				else $trunc= 0; // truncate file
 
 				ftruncate($queue_resource, $trunc);
 				fflush($queue_resource);
-				
-				$value= unserialize($value);
 			}
 			
 			flock($queue_resource, LOCK_UN);
 		}
 		
 		fclose($queue_resource);
-
-		if( // data frame size failure, retry
-			$value === false && 
-			isset($stripe) &&
-			$size_average != 0 &&
-			isset($stat['size']) &&
-			$stat['size'] > 0
-		){
-			
-			$size_average= 0;
-			$value= queue_pop();
-		}
-		
 		return $value;
 	}
 	
+	
+	function write_cron_session(& $cron_resource, & $cron_session){
+		$serialized= serialize($cron_session);
+
+		rewind($cron_resource);
+		fwrite($cron_resource, $serialized);
+		ftruncate($cron_resource, mb_strlen($serialized));
+	}
 
 	function _die($return= ''){
 		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
