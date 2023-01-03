@@ -49,13 +49,16 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
 			// execution time: 0.082197904586792 end - start, 1000 cycles, address mode + $frame_replace= true
+			// execution time: 0.079766988754272 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
+			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
 			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
+		
 			//$start = microtime(true);
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
 				unset($index[$i]);
 			}
-			//print_r(['27 ', microtime(true) - $start]);
+			//print_r(['30 ', microtime(true) - $start]);
 			
 			unlink($dat_file); // reset DB file
 			
