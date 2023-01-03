@@ -50,14 +50,15 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
 			
 			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
+			// execution time: 0.082197904586792 end - start, 1000 cycles, address mode + $frame_replace= true
 			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
-			$start = microtime(true);
+			//$start = microtime(true);
 			for($i= 0; $i < 1000; $i++){
-				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
 				//$multicore_long_time_micro_job= queue_address_pop();
 
 			}
-			//print_r(['19 ', microtime(true) - $start]);
+			//print_r(['26 ', microtime(true) - $start]);
 			
 			// use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
@@ -201,8 +202,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					ftruncate($queue_resource, $trunc);
 					fflush($queue_resource);
 				} elseif($frame_replace !== false) {
+					$length= mb_strlen($value);
 					$blanc= '';
 					for($i= 0; $i< $length; $i++) $blanc.= ' ';
+					$blanc.= " ";
 
 					fseek($queue_resource, $cursor); 
 					fwrite($queue_resource, $blanc, $length);
@@ -216,7 +219,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		}
 		
 		fclose($queue_resource);
-
 
 /*
 		print_r([
@@ -241,7 +243,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 		){
 			
 			$size_average= 0;
-			$value= queue_address_pop(false, $frame_cursor);
+			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
 		
 		return $value;
