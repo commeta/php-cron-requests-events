@@ -186,6 +186,8 @@ if(
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index.dat';
 		$frame_size= 95;
 		
+		if(!file_exists($dat_file)) touch($dat_file);
+		
 		if($mode){
 			// example: multicore queue worker
 			// use:
@@ -751,6 +753,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+
 
 		//###########################################
 		// check jobs
