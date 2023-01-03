@@ -101,6 +101,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	}
 
 
+	// save frame in stack file
+	// value - pushed value
+	// frame_size - false for auto, set frame size
+	// frame_cursor - false for LIFO mode, get frame from cursor position
 
 	function queue_address_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
@@ -151,7 +155,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	}
 
 
-
+	// get frame frome stack file
+	// frame_size - false for auto, set frame size
+	// frame_cursor - false for LIFO mode, get frame from cursor position
+	// frame_replace - false is off, delete frame
 
 	function queue_address_pop($frame_size= false, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
 		static $size_average= 0;
@@ -203,10 +210,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				if($frame_cursor === false){
 					array_pop($stripe_array);
 					$value= array_pop($stripe_array); // get value
-					
-					
-					
-					
 				} else {
 					$value= array_shift($stripe_array); // get value
 				}
@@ -267,12 +270,12 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			'trunc'=> $trunc,
 			'stripe'=> $stripe
 		]);
-			
+*/				
 		
 			$size_average= 4096;
 			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
-*/		
+	
 		
 		
 		return $value;
