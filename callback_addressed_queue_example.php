@@ -43,12 +43,9 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// $multicore_long_time_micro_job= queue_address_pop(); // get micro job from queue in children processess 
 			// exec $multicore_long_time_micro_job - in a parallel thread
 			
-			
 			// use index mode
 			// addressed data base, random access
 			$index= unserialize(file_get_contents($index_file));
-			
-			
 			
 			// example 1, get first element
 			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
@@ -71,10 +68,9 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[$i]);
 			}
 
-			
+
 			// example 5, use LIFO mode
 			// execution time: 0.051764011383057 end - start, 1000 cycles
-			//$start= microtime(true);
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size);
 				
@@ -84,11 +80,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
-					//print_r($multicore_long_time_micro_job);
 				}
 			}
-			//print_r(['38 ', microtime(true) - $start]);
 			unlink($dat_file); // reset DB file
+
 		}
 	}
 
@@ -147,7 +142,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
-	function queue_address_pop($frame_size= false, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
+	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
@@ -171,17 +166,20 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			fseek($queue_resource, $cursor); // get data frame
 			$raw_frame= fread($queue_resource, $frame_size);
 			$value= unserialize(trim($raw_frame));
-
+			
 			if($frame_cursor !== false){
-				if($frame_replace !== false){
-					$frame= serialize($frame_replace);
+				if($frame_replace !== false){ // replace frame
+					$frame_replace= serialize($frame_replace);
+					$frame_replace_size= mb_strlen($frame_replace);
 						
-					for($i= mb_strlen($frame); $i< $frame_size - 1; $i++) $frame.= ' ';
-					$frame.= "\n";
+					for($i= $frame_replace_size; $i< $frame_size - 1; $i++) $frame_replace.= ' ';
+					$frame_replace.= "\n";
 
-					fseek($queue_resource, $cursor); 
-					fwrite($queue_resource, $frame, $frame_size);
-					fflush($queue_resource);
+					if(mb_strlen($frame_replace) == $frame_size){
+						fseek($queue_resource, $cursor); 
+						fwrite($queue_resource, $frame_replace, $frame_size);
+						fflush($queue_resource);
+					}
 				}
 				
 			} else { // LIFO mode				
