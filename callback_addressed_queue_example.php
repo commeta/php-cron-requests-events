@@ -55,16 +55,13 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			//$start= microtime(true);
 			//print_r(['36 ', microtime(true) - $start]);
 			
-			
 			// example 1, get first element
 			$multicore_long_time_micro_job= queue_address_pop(false, $index[0]);
 			
-			
 			// example 2, linear read
-			for($i= 0; $i < 1000; $i++){
+			for($i= 100; $i < 800; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
 			}
-			
 			
 			// example 3, replace frames in file
 			for($i= 10; $i < 500; $i++){
@@ -79,7 +76,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
 			}
 			
-			
 			// example 5, use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
 			while(true){ // example: loop from the end
@@ -87,10 +83,11 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
-				} else {
+				} elseif($multicore_long_time_micro_job !== true) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
+					//print_r($multicore_long_time_micro_job);
 				}
 			}
 			
@@ -154,7 +151,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
 	function queue_address_pop($frame_size= false, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
-		static $size_average= 0;
+		static $frames_size_average= 0;
 		
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
 		$queue_resource= fopen($dat_file, "r+");
@@ -172,7 +169,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			if($stat['size'] < 4096) $length= $stat['size']; // set buffer size  equal max size queue value
 			else $length= 4096;
 			
-			if($size_average != 0) $length= $size_average;
+			if($frames_size_average != 0) $length= $frames_size_average;
 			
 			if($frame_size !== false){
 				$length= $frame_size;
@@ -186,43 +183,18 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			}
 
 			fseek($queue_resource, $cursor); // get data frame
-			$stripe= fread($queue_resource, $length);
-			$stripe_array= explode("\n", $stripe);
-						
-			if(is_array($stripe_array) && count($stripe_array) > 1){
-				if($size_average == 0){
-					$max_size= 0;
+			$raw_frame= fread($queue_resource, $length);
 
-					foreach($stripe_array as $v){ // max size data frame
-						if($max_size < mb_strlen($v)) $max_size= mb_strlen($v);
-					}
-					
-					$size_average= $max_size +1;
-				}
+			if($frame_cursor !== false){
+				$frame_start= 0;
+				$frame_end= strpos($raw_frame, "\n");
+				$frame= substr($raw_frame, $frame_start, $frame_end - $frame_start );
+				$value= unserialize(trim($frame));
 				
-				if($frame_cursor === false){
-					array_pop($stripe_array);
-					$value= array_pop($stripe_array); // get value
-				} else {
-					$value= array_shift($stripe_array); // get value
-				}
-				
-				if($frame_cursor === false){
-					$crop= mb_strlen($value) + 1;
-					
-					if($size_average < $crop){ // average size data frame
-						$size_average= $crop;
-					}
-					
-					if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
-					else $trunc= $stat['size']; // truncate file
-
-					ftruncate($queue_resource, $trunc);
-					fflush($queue_resource);
-				} elseif($frame_replace !== false) {
-					$length= mb_strlen($value);
+				if($frame_replace !== false){
+					$length= mb_strlen($frame);
 					$frame= serialize($frame_replace);
-					
+						
 					for($i= 0; $i< $length; $i++) $frame.= ' ';
 					$frame.= "\n";
 
@@ -230,8 +202,29 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					fwrite($queue_resource, $frame, $length);
 					fflush($queue_resource);
 				}
+			} else {
+				if($length == 4096){
+					$frame_end= strrpos($raw_frame, "\n");
+					$frame_start= strripos($raw_frame, "\n", -3);
+				} else {
+					$frame_start= 0;
+					$frame_end= strripos($raw_frame, "\n", -1);
+				}
+
+				$frame= substr($raw_frame, $frame_start + 1, $frame_end - $frame_start - 1);
+				$value= unserialize(trim($frame));
 				
-				$value= unserialize(trim($value));
+				$crop= mb_strlen($frame) + 1;
+					
+				if($frames_size_average < $crop){ // average size data frame
+					$frames_size_average= $crop;
+				}
+					
+				if($stat['size'] - $crop >= 0) $trunc= $stat['size'] - $crop;
+				else $trunc= $stat['size']; // truncate file
+
+				ftruncate($queue_resource, $trunc);
+				fflush($queue_resource);
 			}
 			
 			flock($queue_resource, LOCK_UN);
@@ -241,12 +234,12 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
 		if( // data frame size failure, retry
 			$value === false && 
-			isset($stripe) &&
-			$size_average != 0 &&
+			isset($frame) &&
+			$frames_size_average != 0 &&
 			isset($stat['size']) &&
 			$stat['size'] > 0
-		){
-			$size_average= 4096;
+		){	
+			$frames_size_average= 4096;
 			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
 	
