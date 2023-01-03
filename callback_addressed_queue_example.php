@@ -61,7 +61,6 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			
 			// example 2, linear read
-			shuffle($index);
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
 				//unset($index[$i]);
