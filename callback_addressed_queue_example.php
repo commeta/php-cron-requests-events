@@ -49,21 +49,17 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
 			// execution time: 0.082197904586792 end - start, 1000 cycles, address mode + $frame_replace= true
 			// execution time: 0.079766988754272 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
-			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, 
+			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
 			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
-			$start= microtime(true);
-			print_r(['36 ', microtime(true) - $start]);
 			
-			shuffle($index); // random access
-			for($i= 0; $i < 100; $i++){ // example: generate random fragmentation
+			
+			for($i= 0; $i < 1000; $i++){ // example: generate random fragmentation
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
-				
-				
 				unset($index[$i]);
 			}
 			
 			
-			
+			/*
 			// use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
 			$start= true;
@@ -80,7 +76,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					
 				}
 			}
-				
+			*/
 			unlink($dat_file); // reset DB file
 		}
 	}
