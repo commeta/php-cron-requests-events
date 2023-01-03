@@ -29,9 +29,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				
 				if($frame_cursor !== false) $index[$i]= $frame_cursor; 
 			}
-			
-			
-			
+						
 			if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				file_put_contents($index_file, serialize($index), LOCK_EX); 
 				// 13774 bytes index file size
@@ -55,10 +53,12 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			//$start = microtime(true);
 			for($i= 0; $i < 1000; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
-				//$multicore_long_time_micro_job= queue_address_pop();
-
+				unset($index[$i]);
 			}
-			//print_r(['26 ', microtime(true) - $start]);
+			//print_r(['27 ', microtime(true) - $start]);
+			
+			unlink($dat_file); // reset DB file
+			
 			
 			// use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
