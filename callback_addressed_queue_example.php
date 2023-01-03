@@ -60,15 +60,27 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			$multicore_long_time_micro_job= queue_address_pop(false, $index[0]);
 			
 			
-			// example 2, generate fragmentation
+			// example 2, linear read
 			shuffle($index);
-			for($i= 0; $i < 100; $i++){
+			for($i= 0; $i < 1000; $i++){
+				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+				//unset($index[$i]);
+			}
+			
+			// example 3, replace frames in file
+			for($i= 100; $i < 110; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
 				unset($index[$i]);
 			}
 			
+			// example 4, random access
+			shuffle($index);
+			for($i= 0; $i < 10; $i++){
+				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i]);
+			}
 			
-			// example 3, use LIFO mode
+			
+			// example 5, use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
 			$start= true;
 			while($start){ // example: loop from the end
@@ -192,6 +204,10 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 				if($frame_cursor === false){
 					array_pop($stripe_array);
 					$value= array_pop($stripe_array); // get value
+					
+					
+					
+					
 				} else {
 					$value= array_shift($stripe_array); // get value
 				}
@@ -235,8 +251,11 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			isset($stat['size']) &&
 			$stat['size'] > 0
 		){
+
+
 /*			
 		print_r([
+			'frame_cursor'=> $frame_cursor,
 			'frame_size'=> $frame_size,
 			'retry'=>'retry1',
 			'crop'=> $crop,
@@ -250,11 +269,11 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			'stripe'=> $stripe
 		]);
 			
-*/			
-			$size_average= 0;
+		
+			$size_average= 4096;
 			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
-		
+*/		
 		
 		
 		return $value;
