@@ -52,16 +52,23 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// execution time: 0.079766988754272 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
 			// execution time: 0.15690398216248 end - start, 1000 cycles, address mode + $frame_replace= true, shuffle($index)
 			// execution time: 0.077039957046509 end - start, 1000 cycles, noaddress + file truncate
+			//$start= microtime(true);
+			//print_r(['36 ', microtime(true) - $start]);
 			
 			
-			for($i= 0; $i < 1000; $i++){
+			// example 1, get first element
+			$multicore_long_time_micro_job= queue_address_pop(false, $index[0]);
+			
+			
+			// example 2, generate fragmentation
+			shuffle($index);
+			for($i= 0; $i < 100; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
 				unset($index[$i]);
 			}
 			
 			
-			/*
-			// use LIFO mode
+			// example 3, use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
 			$start= true;
 			while($start){ // example: loop from the end
@@ -77,7 +84,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					
 				}
 			}
-			*/
+			
 			unlink($dat_file); // reset DB file
 		}
 	}
