@@ -197,20 +197,23 @@ queue_address_manager_extend(false);  // call in multithreading context api cron
 В реверсном варианте, когда при заполнении очереди необходимо затратить больше ресурсов чем при её опустошении, возможен обратный вызов воркеров наполняющих очередь в многопроцессорном режиме.
 
 #### Функции
-- queue_address_push($value, $frame_size, $frame_cursor); // поместить в очередь
-- value - переменная для помещения в стек
-- frame_size - размер кадра, в байтах
-- frame_cursor - адрес, смещение в файле
+```
+// value - переменная для помещения в стек
+// frame_size - размер кадра, в байтах
+// frame_cursor - адрес, смещение в файле
+queue_address_push($value, $frame_size, $frame_cursor); // поместить в очередь
+```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
 3. блокирует файл очереди и добавляет в конец файла кадр с данными
 4. после чего освобождает файл отдавая его другому процессу
 
-
-- $multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor, $frame_replace); // забрать из очереди
-- frame_size - размер кадра, в байтах
-- frame_cursor - адрес, смещение в файле
-- frame_replace - переменная для замены
+```
+// frame_size - размер кадра, в байтах
+// frame_cursor - адрес, смещение в файле
+// frame_replace - переменная для замены
+$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor, $frame_replace); // забрать из очереди
+```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
 3. блокирует файл очереди и читает в конце файла кадр с данными
