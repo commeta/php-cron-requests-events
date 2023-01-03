@@ -30,7 +30,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 		if(count($index) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 			file_put_contents($index_file, serialize($index), LOCK_EX); 
 			// 13774 bytes index file size
-			// 89780 bytes db file size
+			// 95000 bytes db file size
 		}
 			
 	} else {
