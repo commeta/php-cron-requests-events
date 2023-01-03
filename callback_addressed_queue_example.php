@@ -1,10 +1,6 @@
 <?php
-define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
-define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
-	function queue_address_manager($mode){ // example: multicore queue
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
-		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index_test.dat';
+	function queue_address_manager_extend($mode){ // example: multicore queue
 		$frame_size= 95;
 		if(!file_exists($dat_file)) touch($dat_file);
 		
@@ -86,118 +82,8 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 
 		}
 	}
-
-
-	// value - pushed value
-	// frame_size - false for auto, set frame size
-	// frame_cursor - false for LIFO mode, get frame from cursor position
-	function queue_address_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
-		$queue_resource= fopen($dat_file, "r+");
-		$return_cursor= false;
-
-		if($frame_size !== false){
-			$frame= serialize($value);
-			$value_size= mb_strlen($frame);
-			$value_size++; // reserved byte
-			
-			if($frame_size > $value_size){ // fill
-				for($i= $value_size; $i< $frame_size; $i++) $frame.= ' ';
-			} else {
-				return false;
-			}
-			
-			$frame.= "\n";
-		} else {
-			$frame= serialize($value) . "\n";
-			$frame_size= mb_strlen($frame);
-		}
-
-		if(flock($queue_resource, LOCK_EX)) {
-			$stat= fstat($queue_resource);
-			
-			if($frame_cursor !== false){
-				$return_cursor= $frame_cursor;
-				
-				fseek($queue_resource, $frame_cursor);
-				fwrite($queue_resource, $frame, $frame_size);
-				fflush($queue_resource);
-			} else {
-				$return_cursor= $stat['size'];
-				
-				fseek($queue_resource, $stat['size']);
-				fwrite($queue_resource, $frame, $frame_size);
-				ftruncate($queue_resource, $stat['size'] + $frame_size);
-				fflush($queue_resource);
-			}
-
-			flock($queue_resource, LOCK_UN);
-		}
-		
-		fclose($queue_resource);
-		return $return_cursor;
-	}
-
-
-	// frame_size - set frame size
-	// frame_cursor - false for LIFO mode, get frame from cursor position
-	// frame_replace - false is off, delete frame
-	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_test.dat';
-		$queue_resource= fopen($dat_file, "r+");
-		$value= false;
-		
-		if(flock($queue_resource, LOCK_EX)) {
-			$stat= fstat($queue_resource);
-			
-			if($stat['size'] < 1){ // queue file is empty
-				flock($queue_resource, LOCK_UN);
-				fclose($queue_resource);
-				return false;
-			}
-
-			if($frame_cursor !== false){
-				$cursor= $frame_cursor;
-			} else {
-				if($stat['size'] - $frame_size > 0) $cursor= $stat['size'] - $frame_size;
-				else $cursor= 0;
-			}
-
-			fseek($queue_resource, $cursor); // get data frame
-			$raw_frame= fread($queue_resource, $frame_size);
-			$value= unserialize(trim($raw_frame));
-			
-			if($frame_cursor !== false){
-				if($frame_replace !== false){ // replace frame
-					$frame_replace= serialize($frame_replace);
-					$frame_replace_size= mb_strlen($frame_replace);
-						
-					for($i= $frame_replace_size; $i< $frame_size - 1; $i++) $frame_replace.= ' ';
-					$frame_replace.= "\n";
-
-					if(mb_strlen($frame_replace) == $frame_size){
-						fseek($queue_resource, $cursor); 
-						fwrite($queue_resource, $frame_replace, $frame_size);
-						fflush($queue_resource);
-					}
-				}
-				
-			} else { // LIFO mode				
-				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
-				else $trunc= 0; // truncate file
-
-				ftruncate($queue_resource, $trunc);
-				fflush($queue_resource);
-			}
-			
-			flock($queue_resource, LOCK_UN);
-		}
-		
-		fclose($queue_resource);
-		return $value;
-	}
 	
 	
-queue_address_manager(true); // call in multithreading context api cron.php, in worker mode
-queue_address_manager(false);  // call in multithreading context api cron.php, in handler mode
+queue_address_manager_extend(true); // call in multithreading context api cron.php, in worker mode
+queue_address_manager_extend(false);  // call in multithreading context api cron.php, in handler mode
 ?>
