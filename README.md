@@ -98,6 +98,8 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ### Пример многопоточной очереди php multicore api
 ```
 function queue_address_manager_extend($mode){ // example: multicore queue
+	$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
+	$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index.dat';
 	$frame_size= 95;
 	
 	if($mode){
