@@ -81,6 +81,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			// example 5, use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
+			
 			$start= true;
 			while($start){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop();
@@ -228,7 +229,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					$length= mb_strlen($value);
 					$blanc= '';
 					for($i= 0; $i< $length; $i++) $blanc.= ' ';
-					$blanc.= " ";
+					$blanc.= "\n";
 
 					fseek($queue_resource, $cursor); 
 					fwrite($queue_resource, $blanc, $length);
