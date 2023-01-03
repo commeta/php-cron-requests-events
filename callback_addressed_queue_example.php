@@ -67,7 +67,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			}
 			
 			// example 3, replace frames in file
-			for($i= 100; $i < 110; $i++){
+			for($i= 10; $i < 500; $i++){
 				$multicore_long_time_micro_job= queue_address_pop(false, $index[$i], true);
 				unset($index[$i]);
 			}
@@ -82,12 +82,11 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			// example 5, use LIFO mode
 			// execution time: 0.070611000061035 end - start, 1000 cycles
 			
-			$start= true;
-			while($start){ // example: loop from the end
+			
+			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop();
 				
 				if($multicore_long_time_micro_job === false) {
-					$start= false;
 					break;
 				} else {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
@@ -227,7 +226,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 					fflush($queue_resource);
 				} elseif($frame_replace !== false) {
 					$length= mb_strlen($value);
-					$blanc= '';
+					$blanc= serialize($frame_replace);
 					for($i= 0; $i< $length; $i++) $blanc.= ' ';
 					$blanc.= "\n";
 
@@ -251,27 +250,8 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			$size_average != 0 &&
 			isset($stat['size']) &&
 			$stat['size'] > 0
-		){
-
-
-/*			
-		print_r([
-			'frame_cursor'=> $frame_cursor,
-			'frame_size'=> $frame_size,
-			'retry'=>'retry1',
-			'crop'=> $crop,
-			'length'=> $length,
-			'size_average'=> $size_average,
-			'cursor'=> $cursor,
-			'max_size'=> $max_size,
-			'stripe_array'=> $stripe_array,
-			'value'=> $value,
-			'trunc'=> $trunc,
-			'stripe'=> $stripe
-		]);
-*/				
-		
-			$size_average= 4096;
+		){	
+			$size_average= 0;
 			$value= queue_address_pop(false, $frame_cursor, $frame_replace);
 		}
 	
