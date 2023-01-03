@@ -44,6 +44,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron_test.dat');
 			
 			
 			// use index mode
+			// addressed data base, random access
 			$index= unserialize(file_get_contents($index_file));
 			
 			// execution time: 0.047177791595459 end - start, 1000 cycles, address mode
