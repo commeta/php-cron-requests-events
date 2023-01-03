@@ -47,23 +47,29 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ##########
  
 ###########################
+$cron_jobs[]= [ // CRON Job 3, multicore example
+	'time' => '22:00:00', // "day-month-year" execute job on the specified date
+	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
+	'multithreading' => true
+];
+
 for( // CRON job 3, multicore example, four cores, use with queue_manager()
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'date' => '31-12-2022', // "day-month-year" execute job on the specified date
-		'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+		'time' => '22:05:00', //  "hours:minutes:seconds" execute job on the specified time every daye
+		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'multithreading' => true
 	];
 }
 ##########
 
-  
+
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '05:05:01', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '01-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -179,7 +185,6 @@ if(
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$index_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue_index.dat';
 		$frame_size= 95;
-		if(!file_exists($dat_file)) touch($dat_file);
 		
 		if($mode){
 			// example: multicore queue worker
@@ -308,7 +313,6 @@ if(
 				fflush($queue_resource);
 			} else {
 				$return_cursor= $stat['size'];
-				
 				fseek($queue_resource, $stat['size']);
 				fwrite($queue_resource, $frame, $frame_size);
 				ftruncate($queue_resource, $stat['size'] + $frame_size);
@@ -366,7 +370,7 @@ if(
 					}
 				}
 				
-			} else { // LIFO mode				
+			} else { // LIFO mode	
 				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
 				else $trunc= 0; // truncate file
 
@@ -747,6 +751,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+		
 
 		//###########################################
 		// check jobs
