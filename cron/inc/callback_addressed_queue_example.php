@@ -24,7 +24,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				'reserved'=>[],
 				'index_offset' => 4097, // data index offset
 				'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-				'data_offset' => 1024 * 64 + 4097, // data offset
+				'data_offset' => 1024 * 64 + 4098, // data offset
 				'data_frame_size' => $frame_size, // data frame size
 			];
 			
