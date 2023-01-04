@@ -1,14 +1,14 @@
 # php-cron-requests-events
-php crontab, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in FastCGI\FPM handler environment.
+php crontab, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in FastCGI/FPM handler environment.
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 Низкоуровневый код, отсутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
 
 ## Описание
-- Реализация php планировщика с использованием url запросов в качестве триггера событий. 
+- Реализация php планировщика с использованием URL запросов в качестве триггера событий. 
 - Работает в мультипоточном режиме, не создает нагрузки на сервер.
-- Работает в контексте окружения веб сервера, подходит для shared хостинга, не использует системный CRON.
-- Позволяет в резидентном режиме выполнять php include "callback.php"; с секундным интервалом.
+- Работает в контексте окружения веб сервера, подходит для SHARED хостинга, не использует системный CRON.
+- Позволяет в резидентном режиме выполнять PHP include "callback.php"; с секундным интервалом.
 - Позволяет выполнять задачи расходующие много ресурсов с низким приоритетом. 
 - Можно подключать данный CRON к любой CMS, это никак не скажется на производительности.
 
