@@ -73,10 +73,12 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				$raw_frame= fread($queue_resource, 4096);
 				$boot= unserialize(trim($raw_frame));
 				
-				$boot['handlers'][$process_id]= [// add active handler
-					'process_id'=>$process_id,
-					'last_update'=> microtime(true)
-				];
+				if(is_array($boot) && count($boot) > 5){
+					$boot['handlers'][$process_id]= [// add active handler
+						'process_id'=>$process_id,
+						'last_update'=> microtime(true)
+					];
+				}
 				
 				$frame= serialize($boot);
 				$value_size= mb_strlen($frame);
@@ -87,8 +89,10 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			}
 			
 			$boot= queue_address_pop(4096, 0);
+			if(!is_array($boot) && count($boot) < 5) return false; // file read error
+			
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset'], false, "init_boot_frame");
-
+			if(!is_array($index_data) && count($index_data) < 5) return false; // file read error
 			
 			// example 1, get first element
 			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
