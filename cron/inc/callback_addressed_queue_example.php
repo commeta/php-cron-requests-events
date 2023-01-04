@@ -1,6 +1,7 @@
 <?php
 
 function queue_address_manager_extend($mode){ // example: multicore queue
+
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$frame_size= 95;
 		$process_id= getmypid();
@@ -78,14 +79,14 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						'process_id'=>$process_id,
 						'last_update'=> microtime(true)
 					];
+					
+					$frame= serialize($boot);
+					$value_size= mb_strlen($frame);
+					
+					for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
+					fseek($queue_resource, 0); // save 0 sector frame
+					fwrite($queue_resource, $frame, 4096);
 				}
-				
-				$frame= serialize($boot);
-				$value_size= mb_strlen($frame);
-				
-				for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
-				fseek($queue_resource, 0); // save 0 sector frame
-				fwrite($queue_resource, $frame, 4096);
 			}
 			
 			$boot= queue_address_pop(4096, 0);
