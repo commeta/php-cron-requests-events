@@ -1,5 +1,5 @@
 # php-cron-requests-events
-php crontab, based on url requests/event-loop, daemon mode, multithreading, second start intervals, microseconds queue api, runtime in FastCGI\FPM handler environment.
+php crontab, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in FastCGI\FPM handler environment.
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 Низкоуровневый код, отсутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
