@@ -307,7 +307,7 @@ if(
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			if($callback !== false) call_user_func($callback);
+			if($callback !== false) call_user_func($callback, $queue_resource, [$value, $frame_size, $frame_cursor]);
 			
 			if($frame_cursor !== false){
 				$return_cursor= $frame_cursor;
@@ -342,7 +342,7 @@ if(
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
 			
-			if($callback !== false) call_user_func($callback);
+			if($callback !== false) call_user_func($callback, $queue_resource, [$frame_size, $frame_cursor, $frame_replace]);
 			
 			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
