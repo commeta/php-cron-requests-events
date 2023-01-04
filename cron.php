@@ -282,7 +282,7 @@ if(
 	// value - pushed value
 	// frame_size - false for auto, set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
-	function queue_address_push($value, $frame_size= false, $frame_cursor= false){ // push data frame in stack
+	function queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$return_cursor= false;
@@ -306,6 +306,8 @@ if(
 
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
+			
+			if($callback !== false) call_user_func($callback);
 			
 			if($frame_cursor !== false){
 				$return_cursor= $frame_cursor;
@@ -332,13 +334,15 @@ if(
 	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
-	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false){ // pop data frame from stack
+	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false){ // pop data frame from stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$queue_resource= fopen($dat_file, "r+");
 		$value= false;
 		
 		if(flock($queue_resource, LOCK_EX)) {
 			$stat= fstat($queue_resource);
+			
+			if($callback !== false) call_user_func($callback);
 			
 			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
@@ -753,7 +757,6 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
 
 		//###########################################
 		// check jobs
