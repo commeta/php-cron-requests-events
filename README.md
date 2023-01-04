@@ -153,27 +153,22 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 		$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
 			
 		// example 2, get last - 10 element, and get first frame in callback function
-		$multicore_long_time_micro_job= queue_address_pop(
-			$frame_size, 
-			$index[count($index) - 10], 
-			false, 
-			function(& $queue_resource, & $args){
-				fseek($queue_resource, 0); // get data frame
-				$raw_frame= fread($queue_resource, $args[0]);
-				$value= unserialize(trim($raw_frame));
+		function queue_address_pop_callback(& $queue_resource, $frame_size, $frame_cursor= false, $frame_replace= false){
+			fseek($queue_resource, 0); // get data frame
+			$raw_frame= fread($queue_resource, $frame_size);
+			$value= unserialize(trim($raw_frame));
 					
-					
-				if(CRON_LOG_LEVEL > 3){
-					if(CRON_LOG_FILE){
-						@file_put_contents(
-							CRON_LOG_FILE, 
-								print_r([$args, $value, $raw_frame], true),
-							FILE_APPEND | LOCK_EX
-						);
-					}
-				}					
-			}
-		);
+			if(CRON_LOG_LEVEL > 3){
+				if(CRON_LOG_FILE){
+					@file_put_contents(
+						CRON_LOG_FILE, 
+						print_r([$frame_size, $frame_cursor, $value, $raw_frame], true),
+						FILE_APPEND | LOCK_EX
+					);
+				}
+			}					
+		}
+		$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[count($index) - 10], false, "queue_address_pop_callback");
 			
 		// example 3, linear read
 		for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
@@ -219,6 +214,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 		}
 		
 		unlink($dat_file); // reset DB file
+		unlink($index_file); // reset index file
 	}
 }
 
