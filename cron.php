@@ -264,14 +264,14 @@ if(
 						'process_id'=>$process_id,
 						'last_update'=> microtime(true)
 					];
+					
+					$frame= serialize($boot);
+					$value_size= mb_strlen($frame);
+					
+					for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
+					fseek($queue_resource, 0); // save 0 sector frame
+					fwrite($queue_resource, $frame, 4096);
 				}
-				
-				$frame= serialize($boot);
-				$value_size= mb_strlen($frame);
-				
-				for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
-				fseek($queue_resource, 0); // save 0 sector frame
-				fwrite($queue_resource, $frame, 4096);
 			}
 			
 			$boot= queue_address_pop(4096, 0);
@@ -806,7 +806,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
