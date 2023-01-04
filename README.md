@@ -212,7 +212,8 @@ queue_address_manager_extend(false);  // call in multithreading context api cron
 // value - переменная для помещения в стек
 // frame_size - размер кадра, в байтах
 // frame_cursor - адрес, смещение в файле
-queue_address_push($value, $frame_size, $frame_cursor); // поместить в очередь
+// callback - вызывает функцию во время блокировки файла очереди
+queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false); // поместить в очередь
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
@@ -224,7 +225,8 @@ queue_address_push($value, $frame_size, $frame_cursor); // поместить в
 // frame_size - размер кадра, в байтах
 // frame_cursor - адрес, смещение в файле
 // frame_replace - переменная для замены
-$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor, $frame_replace); // забрать из очереди
+// callback - вызывает функцию во время блокировки файла очереди
+$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false); // забрать из очереди
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
