@@ -69,7 +69,7 @@ for( // CRON job 3, multicore example, four cores, use with queue_address_manage
 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'time' => '01-01-2023', // "day-month-year" execute job on the specified date
+	'date' => '01-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
