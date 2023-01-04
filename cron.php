@@ -294,7 +294,7 @@ if(
 			}
 			
 			unlink($dat_file); // reset DB file
-			unlink($index_file); // reset DB file
+			unlink($index_file); // reset index file
 		}
 	}
 
@@ -343,6 +343,7 @@ if(
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor);
 		}
 		
+		flock($queue_resource, LOCK_UN);
 		fclose($queue_resource);
 		return $return_cursor;
 	}
@@ -360,6 +361,7 @@ if(
 			$stat= fstat($queue_resource);
 						
 			if($stat['size'] < 1){ // queue file is empty
+				flock($queue_resource, LOCK_UN);
 				fclose($queue_resource);
 				return false;
 			}
@@ -401,6 +403,7 @@ if(
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace);
 		}
 		
+		flock($queue_resource, LOCK_UN);
 		fclose($queue_resource);
 		return $value;
 	}
@@ -432,6 +435,7 @@ if(
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
 			write_cron_session($cron_resource, $cron_session);
+			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 		}
 		
@@ -662,6 +666,7 @@ if(
 			write_cron_session($cron_resource, $cron_session);
 		}
 
+		flock($cron_resource, LOCK_UN);
 		fclose($cron_resource);
 	}
 
@@ -766,6 +771,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+		
 
 		//###########################################
 		// check jobs
@@ -790,6 +796,7 @@ if(
 		if(CRON_LOG_FILE) cron_log_rotate();
 	}
 
+	flock($cron_resource, LOCK_UN);
 	fclose($cron_resource);
 	_die();
 } else {
@@ -804,6 +811,7 @@ if(
 					$cron_started= false;
 			}
 			
+			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 			
 			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
