@@ -694,7 +694,7 @@ if(
 			$profiler['filemtime']= filemtime(__FILE__);
 		}
 		
-		if($profiler['filemtime'] != filemtime(__FILE__)){ // write in main file event, restart
+		if($profiler['filemtime'] != filemtime(__FILE__) || !file_exists(__FILE__)){ // write in main file event, restart
 			cron_restart();
 		}
 		
