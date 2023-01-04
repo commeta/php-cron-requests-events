@@ -59,7 +59,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				if(CRON_LOG_FILE){
 					@file_put_contents(
 						CRON_LOG_FILE, 
-						print_r([$frame_size,  $frame_cursor, $value, $raw_frame], true),
+						print_r([$frame_size, $frame_cursor, $value, $raw_frame], true),
 						FILE_APPEND | LOCK_EX
 					);
 				}
