@@ -240,7 +240,7 @@ if(
 					if(CRON_LOG_FILE){
 						@file_put_contents(
 							CRON_LOG_FILE, 
-							print_r([$frame_size,  $frame_cursor, $value, $raw_frame], true),
+							print_r([$frame_size, $frame_cursor, $value, $raw_frame], true),
 							FILE_APPEND | LOCK_EX
 						);
 					}
@@ -341,9 +341,9 @@ if(
 			}
 			
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor);
+			flock($queue_resource, LOCK_UN);
 		}
 		
-		flock($queue_resource, LOCK_UN);
 		fclose($queue_resource);
 		return $return_cursor;
 	}
@@ -401,9 +401,9 @@ if(
 			}
 			
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace);
+			flock($queue_resource, LOCK_UN);
 		}
 		
-		flock($queue_resource, LOCK_UN);
 		fclose($queue_resource);
 		return $value;
 	}
@@ -664,9 +664,9 @@ if(
 			cron_session_init($cron_session, $job, $process_id);
 			cron_check_job($cron_session, $job, false, false, $process_id);
 			write_cron_session($cron_resource, $cron_session);
+			flock($cron_resource, LOCK_UN);
 		}
-
-		flock($cron_resource, LOCK_UN);
+		
 		fclose($cron_resource);
 	}
 
@@ -771,7 +771,6 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
 
 		//###########################################
 		// check jobs
@@ -794,9 +793,9 @@ if(
 		
 		//###########################################
 		if(CRON_LOG_FILE) cron_log_rotate();
+		flock($cron_resource, LOCK_UN);
 	}
 
-	flock($cron_resource, LOCK_UN);
 	fclose($cron_resource);
 	_die();
 } else {
@@ -808,10 +807,10 @@ if(
 			$cron_started= true;
 			
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-					$cron_started= false;
+				$cron_started= false;
+				flock($cron_resource, LOCK_UN);
 			}
 			
-			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 			
 			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
