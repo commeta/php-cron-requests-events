@@ -110,6 +110,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 		}
 		
 		unlink($dat_file); // reset DB file
+		unlink($index_file); // reset index file
 	}
 }	
 	
