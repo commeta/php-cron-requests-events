@@ -1,7 +1,7 @@
 <?php
 /*
  * PHP CRON use request events
- * Copyright 2022 commeta <dcs-spb@ya.ru>
+ * Copyright 2023 commeta <dcs-spb@ya.ru>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -231,26 +231,23 @@ if(
 			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
 			
 			// example 2, get last - 10 element, and get first frame in callback function
-			$multicore_long_time_micro_job= queue_address_pop(
-				$frame_size, 
-				$index[count($index) - 10], 
-				false, 
-				function(& $queue_resource, & $args){
-					fseek($queue_resource, 0); // get data frame
-					$raw_frame= fread($queue_resource, $args[0]);
-					$value= unserialize(trim($raw_frame));
+			function queue_address_pop_callback(& $queue_resource, $frame_size, $frame_cursor= false, $frame_replace= false){
+				fseek($queue_resource, 0); // get data frame
+				$raw_frame= fread($queue_resource, $frame_size);
+				$value= unserialize(trim($raw_frame));
 					
-					if(CRON_LOG_LEVEL > 3){
-						if(CRON_LOG_FILE){
-							@file_put_contents(
-								CRON_LOG_FILE, 
-									print_r([$args, $value, $raw_frame], true),
-								FILE_APPEND | LOCK_EX
-							);
-						}
-					}					
-				}
-			);
+				if(CRON_LOG_LEVEL > 3){
+					if(CRON_LOG_FILE){
+						@file_put_contents(
+							CRON_LOG_FILE, 
+							print_r([$frame_size,  $frame_cursor, $value, $raw_frame], true),
+							FILE_APPEND | LOCK_EX
+						);
+					}
+				}					
+			}
+			
+			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[count($index) - 10], false, "queue_address_pop_callback");
 			
 			// example 3, linear read
 			for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
@@ -297,6 +294,7 @@ if(
 			}
 			
 			unlink($dat_file); // reset DB file
+			unlink($index_file); // reset DB file
 		}
 	}
 
@@ -339,12 +337,10 @@ if(
 				$return_cursor= $stat['size'];
 				fseek($queue_resource, $stat['size']);
 				fwrite($queue_resource, $frame, $frame_size);
-				ftruncate($queue_resource, $stat['size'] + $frame_size);
 				fflush($queue_resource);
 			}
 			
-			if($callback !== false) call_user_func($callback, $queue_resource, [$frame_size, $frame_cursor, $frame_replace]);
-			flock($queue_resource, LOCK_UN);
+			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor);
 		}
 		
 		fclose($queue_resource);
@@ -364,7 +360,6 @@ if(
 			$stat= fstat($queue_resource);
 						
 			if($stat['size'] < 1){ // queue file is empty
-				flock($queue_resource, LOCK_UN);
 				fclose($queue_resource);
 				return false;
 			}
@@ -403,8 +398,7 @@ if(
 				fflush($queue_resource);
 			}
 			
-			if($callback !== false) call_user_func($callback, $queue_resource, [$frame_size, $frame_cursor, $frame_replace]);
-			flock($queue_resource, LOCK_UN);
+			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace);
 		}
 		
 		fclose($queue_resource);
@@ -438,8 +432,6 @@ if(
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
 			write_cron_session($cron_resource, $cron_session);
-			
-			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 		}
 		
@@ -668,9 +660,6 @@ if(
 			cron_session_init($cron_session, $job, $process_id);
 			cron_check_job($cron_session, $job, false, false, $process_id);
 			write_cron_session($cron_resource, $cron_session);
-
-			// END Job
-			flock($cron_resource, LOCK_UN);
 		}
 
 		fclose($cron_resource);
@@ -777,7 +766,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
@@ -799,9 +788,6 @@ if(
 		
 		//###########################################
 		if(CRON_LOG_FILE) cron_log_rotate();
-		
-		// END Jobs
-		flock($cron_resource, LOCK_UN);
 	}
 
 	fclose($cron_resource);
@@ -816,7 +802,6 @@ if(
 			
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 					$cron_started= false;
-					flock($cron_resource, LOCK_UN);
 			}
 			
 			fclose($cron_resource);
