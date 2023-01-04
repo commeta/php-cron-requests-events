@@ -86,14 +86,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 	}
 }	
 	
+queue_address_manager_extend(false);  // call in multithreading context api cron.php, in handler mode
+queue_address_manager_extend(true); // call in multithreading context api cron.php, in worker mode
 
-
-
-// start worker on first start
-if(isset($cron_session['queue_address_manager_extend'])){
-	queue_address_manager_extend(false);  // call in multithreading context api cron.php, in handler mode
-} else {
-	$cron_session['queue_address_manager_extend']= true;
-	queue_address_manager_extend(true); // call in multithreading context api cron.php, in worker mode
-}
 ?>
