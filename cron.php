@@ -207,9 +207,9 @@ if(
 				'handlers'=> [], // array process_id values
 				'system_variables'=> [],
 				'reserved'=>[],
-				'index_offset' => 4096, // data index offset
+				'index_offset' => 4097, // data index offset
 				'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-				'data_offset' => 1024 * 64 + 4096, // data offset
+				'data_offset' => 1024 * 64 + 4097, // data offset
 				'data_frame_size' => $frame_size, // data frame size
 			];
 			
@@ -252,7 +252,7 @@ if(
 			
 			
 			// example INIT
-			function init_boot_frame(& $queue_resource){
+			function init_boot_frame(& $queue_resource){ // low level, fast operations, read\write 0-3 sectors of file, 1 memory page
 				$process_id= getmypid();
 				
 				fseek($queue_resource, 0); // get 0 sector frame
