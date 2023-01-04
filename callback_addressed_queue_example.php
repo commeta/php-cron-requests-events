@@ -65,6 +65,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				}
 			}					
 		}
+		
+		$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[count($index) - 10], false, "queue_address_pop_callback");
 			
 		// example 3, linear read
 		for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
