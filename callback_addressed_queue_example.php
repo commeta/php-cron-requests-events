@@ -81,8 +81,6 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			}
 		}
 		unlink($dat_file); // reset DB file
-		unset($cron_session['queue_address_manager_extend']);
-
 	}
 }	
 	
