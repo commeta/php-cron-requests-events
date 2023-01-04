@@ -272,6 +272,7 @@ if(
 					for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, $frame, 4096);
+					fflush($queue_resource);
 				}
 			}
 			
