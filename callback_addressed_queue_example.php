@@ -50,7 +50,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 		$multicore_long_time_micro_job= queue_address_pop($frame_size, $index[0]);
 			
 		// example 2, get last - 10 element, and get first frame in callback function
-		function queue_address_pop_callback(& $queue_resource, $frame_size, $frame_cursor= false, $frame_replace= false){
+		function queue_address_pop_callback(& $queue_resource, & $frame_size, & $frame_cursor, & $frame_replace){
 			fseek($queue_resource, 0); // get data frame
 			$raw_frame= fread($queue_resource, $frame_size);
 			$value= unserialize(trim($raw_frame));
