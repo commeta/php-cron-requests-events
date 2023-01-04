@@ -252,7 +252,8 @@ if(
 			
 			
 			// example INIT
-			function init_boot_frame(& $queue_resource){ // low level, fast operations, read\write 0-3 sectors of file, 1 memory page
+			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
+				// low level, fast operations, read\write 0-3 sectors of file, 1 memory page
 				$process_id= getmypid();
 				
 				fseek($queue_resource, 0); // get 0 sector frame
