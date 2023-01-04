@@ -325,9 +325,9 @@ if(
 		}
 
 		if(flock($queue_resource, LOCK_EX)) {
-			$stat= fstat($queue_resource);
-			
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor);
+			
+			$stat= fstat($queue_resource);
 
 			if($frame_cursor !== false){
 				$return_cursor= $frame_cursor;
@@ -358,9 +358,9 @@ if(
 		$value= false;
 		
 		if(flock($queue_resource, LOCK_EX)) {
-			$stat= fstat($queue_resource);
-					
 			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace);
+			
+			$stat= fstat($queue_resource);
 
 			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
@@ -773,6 +773,7 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
