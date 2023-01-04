@@ -30,6 +30,7 @@ $cron_jobs= [];
 ###########################
 # EXAMPLES
 
+
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
@@ -37,6 +38,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 	'multithreading' => false
 ];
 ##########
+
 
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
@@ -46,9 +48,10 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ];
 ##########
  
+ 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '22:00:00', // "hours:minutes:seconds" execute job on the specified date
+	'time' => '19:55:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -60,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '22:05:00', //  "hours:minutes:seconds" execute job on the specified time every daye
+		'time' => '19:56:00', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
