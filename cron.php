@@ -308,9 +308,7 @@ if(
 
 			// example 6, use LIFO mode
 			// execution time: 0.051764011383057 end - start, 1000 cycles
-			$i= 0;
-			while($i< 1000){ // example: loop from the end
-				$i++;
+			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size);
 				
 				if($multicore_long_time_micro_job === false) {
