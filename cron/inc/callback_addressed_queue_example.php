@@ -81,6 +81,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, serialize($boot), 4096);
+					fflush($queue_resource);
 				}
 			}
 			
