@@ -6,7 +6,7 @@ if(CRON_LOG_LEVEL > 3){
 	if(CRON_LOG_FILE){
 		@file_put_contents(
 			CRON_LOG_FILE, 
-			time() . " INFO: start " . $process_id . ":" . $cron_session['start_counter'] . " \n",
+			time() . " INFO: start " . $job_process_id . ":" . $cron_session['start_counter'] . " \n",
 			FILE_APPEND | LOCK_EX
 		);
 	}
