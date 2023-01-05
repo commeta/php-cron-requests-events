@@ -1,4 +1,4 @@
-#### Структура IPC кадра
+#### Структура IPC кадра callback_addressed_queue_example.php
 ```
 Array
 (
