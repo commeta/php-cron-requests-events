@@ -114,10 +114,10 @@ define("CRON_SECURITY", false); // set true for high danger environment
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
-	function open_cron_socket($cron_url_key, $process_id= false){ // Start job in parallel process
+	function open_cron_socket($cron_url_key, $job_process_id= false){ // Start job in parallel process
 		static $wget= false;
 		
-		if($process_id !== false) $cron_url_key.= '&process_id=' . $process_id;
+		if($job_process_id !== false) $cron_url_key.= '&process_id=' . $job_process_id;
 		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
 
 		
@@ -430,7 +430,6 @@ if(
 	
 	function write_cron_session(& $cron_resource, & $cron_session){
 		$serialized= serialize($cron_session);
-
 		rewind($cron_resource);
 		fwrite($cron_resource, $serialized);
 		ftruncate($cron_resource, mb_strlen($serialized));
@@ -449,7 +448,6 @@ if(
 	
 	function cron_restart(){// restart cron
 		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
-		
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
@@ -556,12 +554,12 @@ if(
 	}
 
 	
-	function callback_connector(& $job, & $cron_session, $mode, $process_id){ 
+	function callback_connector(& $job, & $cron_session, $mode, $job_process_id){ 
 		if($mode){ // multithreading\singlethreading
-			open_cron_socket(CRON_URL_KEY, $process_id); 
+			open_cron_socket(CRON_URL_KEY, $job_process_id); 
 		} else {
 			// include connector
-			$cron_session[$process_id]['last_update']= time();
+			$cron_session[$job_process_id]['last_update']= time();
 			
 			if(file_exists($job['callback'])) {
 				if(CRON_SECURITY) {
@@ -581,7 +579,7 @@ if(
 						implode(' ', [
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
-							'process_id' => $process_id,
+							'job_process_id' => $job_process_id,
 							'callback' => $job['callback'],
 							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
 						]) . "\n",
@@ -591,35 +589,35 @@ if(
 			}
 		}
 		
-		$cron_session[$process_id]['complete']= true;
+		$cron_session[$job_process_id]['complete']= true;
 	}
 	
 		
-	function cron_session_init(& $cron_session, & $job, $process_id){
+	function cron_session_init(& $cron_session, & $job, $job_process_id){
 		static $init= [];
 		
-		if(isset($init[$process_id])) return true;
-		$init[$process_id]= true;
+		if(isset($init[$job_process_id])) return true;
+		$init[$job_process_id]= true;
 		
-		if(isset($cron_session[$process_id]['md5'])) {
-			if($cron_session[$process_id]['md5'] != md5(serialize($job))){
-				$cron_session[$process_id]= [];
-				$cron_session[$process_id]['md5']= md5(serialize($job));
+		if(isset($cron_session[$job_process_id]['md5'])) {
+			if($cron_session[$job_process_id]['md5'] != md5(serialize($job))){
+				$cron_session[$job_process_id]= [];
+				$cron_session[$job_process_id]['md5']= md5(serialize($job));
 			}
 		} else {
-			$cron_session[$process_id]['md5']= md5(serialize($job));
+			$cron_session[$job_process_id]['md5']= md5(serialize($job));
 		}
 		
-		if(!isset($cron_session[$process_id]['last_update'])) {
-			$cron_session[$process_id]['last_update']= 0;
+		if(!isset($cron_session[$job_process_id]['last_update'])) {
+			$cron_session[$job_process_id]['last_update']= 0;
 		}
 						
-		if(!isset($cron_session[$process_id]['complete'])){
-			$cron_session[$process_id]['complete']= false;
+		if(!isset($cron_session[$job_process_id]['complete'])){
+			$cron_session[$job_process_id]['complete']= false;
 		}
 	}
 	
-	function cron_check_job(& $cron_session, & $job, $mode, $main, $process_id){
+	function cron_check_job(& $cron_session, & $job, $mode, $main, $job_process_id){
 		if(isset($job['date']) || isset($job['time'])){
 			$time_stamp= false;
 			
@@ -636,42 +634,42 @@ if(
 					$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
 					
 					if( // unlock job
-						date('d-m-Y', time()) != date('d-m-Y', $cron_session[$process_id]['last_update']) &&
-						$cron_session[$process_id]['complete']
+						date('d-m-Y', time()) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
+						$cron_session[$job_process_id]['complete']
 					){
-						$cron_session[$process_id]['complete']= false;
+						$cron_session[$job_process_id]['complete']= false;
 					}
 				}
 			}
 			
 			if(
 				$time_stamp < time() &&
-				$cron_session[$process_id]['complete'] === false
+				$cron_session[$job_process_id]['complete'] === false
 			){
-				callback_connector($job, $cron_session, $mode, $process_id);
+				callback_connector($job, $cron_session, $mode, $job_process_id);
 			}
 		} else {
 			if(
-				$cron_session[$process_id]['last_update'] + $job['interval'] < time()
+				$cron_session[$job_process_id]['last_update'] + $job['interval'] < time()
 			){
-				callback_connector($job, $cron_session, $mode, $process_id);
+				callback_connector($job, $cron_session, $mode, $job_process_id);
 			}
 		}
 	}
 	
  
 	function singlethreading_dispatcher(& $cron_jobs, & $cron_session){ // main loop job list
-		foreach($cron_jobs as $process_id=> & $job){
-			cron_session_init($cron_session, $job, $process_id);
-			cron_check_job($cron_session, $job, $job['multithreading'], true, $process_id);
+		foreach($cron_jobs as $job_process_id=> & $job){
+			cron_session_init($cron_session, $job, $job_process_id);
+			cron_check_job($cron_session, $job, $job['multithreading'], true, $job_process_id);
 		}
 	}
 	
 	
 	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
-		$process_id= intval($_GET["process_id"]);
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $process_id . '.dat';
+		$job_process_id= intval($_GET["process_id"]);
+		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
 		$cron_resource= fopen($cron_dat_file, "r+");
@@ -680,8 +678,8 @@ if(
 			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
 			
-			cron_session_init($cron_session, $job, $process_id);
-			cron_check_job($cron_session, $job, false, false, $process_id);
+			cron_session_init($cron_session, $job, $job_process_id);
+			cron_check_job($cron_session, $job, false, false, $job_process_id);
 			write_cron_session($cron_resource, $cron_session);
 			flock($cron_resource, LOCK_UN);
 		}
@@ -766,10 +764,10 @@ if(
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["process_id"])
 	){
-		$process_id= intval($_GET["process_id"]);
-		$job= $cron_jobs[$process_id];
+		$job_process_id= intval($_GET["process_id"]);
+		$job= $cron_jobs[$job_process_id];
 		
-		if(isset($cron_jobs[$process_id]) && $job['multithreading']){
+		if(isset($cron_jobs[$job_process_id]) && $job['multithreading']){
 			multithreading_dispatcher($job, $cron_resource, $cron_session, $cron_dat_file);
 		}
 		
@@ -790,7 +788,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
