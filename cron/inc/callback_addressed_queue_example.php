@@ -36,7 +36,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			$index_data= []; // index - address array, frame_cursor is key of array, 
 			// if big data base - save partitions of search index in file, 
 			// use fseek\fread and parser on finite state machines for find index key\value
- 			// data alignment with leading zeros
+			// alignment data with leading zeros
 
 			
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
