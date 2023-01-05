@@ -1,7 +1,6 @@
 <?php
 
 function queue_address_manager_extend($mode){ // example: multicore queue
-
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$frame_size= 95;
 		$process_id= getmypid();
@@ -69,7 +68,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			// example INIT
 			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
 				// low level, fast operations, read\write 0-3 sectors of file, 1 memory page
-				$process_id= getmypid();
+				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0 sector frame
 				$raw_frame= fread($queue_resource, 4096);
@@ -84,7 +83,6 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					$frame= serialize($boot);
 					$value_size= mb_strlen($frame);
 					
-					for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, $frame, 4096);
 					fflush($queue_resource);
