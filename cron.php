@@ -220,7 +220,8 @@ if(
 			
 			queue_address_push($boot, 4096, 0);
 			$index_data= []; // index - address array, frame_cursor is key of array, 
-			// if big data base - save partitions of search index in file, use fseek\fread and parser on finite state machines for find index key\value
+			// if big data base - save partitions of search index in file, 
+			// use fseek\fread and parser on finite state machines for find index key\value
 			
 			
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
