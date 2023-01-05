@@ -306,6 +306,8 @@ if(
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size);
+
+				if($multicore_long_time_micro_job === true) continue;
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
@@ -332,7 +334,7 @@ if(
 
 
 	// value - pushed value
-	// frame_size - false for auto, set frame size
+	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	function queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false){ // push data frame in stack
 		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
@@ -347,8 +349,7 @@ if(
 				return false;
 			}
 		} else {
-			$frame= serialize($value);
-			$frame_size= mb_strlen($frame);
+			return false;
 		}
 
 		if(flock($queue_resource, LOCK_EX)) {
@@ -794,7 +795,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
