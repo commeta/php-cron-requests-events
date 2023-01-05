@@ -23,7 +23,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				'reserved'=>[],
 				'index_offset' => 4097, // data index offset
 				'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-				'data_offset' => 1024 * 64 + 4098, // data offset
+				'data_offset' => 1024 * 16 + 4098, // data offset
 				'data_frame_size' => $frame_size, // data frame size
 			];
 			
@@ -82,6 +82,19 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
+				} else { // frame error
+					if(CRON_LOG_LEVEL > 3){
+						if(CRON_LOG_FILE){
+							@file_put_contents(
+								CRON_LOG_FILE, 
+									microtime(true) . " ERROR: init boot sector\n",
+								FILE_APPEND | LOCK_EX
+							);
+						}
+					}
+					
+					_die();				
+					
 				}
 			}
 			
