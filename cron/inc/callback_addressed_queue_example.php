@@ -71,8 +71,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0 sector frame
-				$raw_frame= fread($queue_resource, 4096);
-				$boot= unserialize(trim($raw_frame));
+				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(is_array($boot) && count($boot) > 5){
 					$boot['handlers'][$process_id]= [// add active handler
@@ -80,11 +79,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						'last_update'=> microtime(true)
 					];
 					
-					$frame= serialize($boot);
-					$value_size= mb_strlen($frame);
-					
 					fseek($queue_resource, 0); // save 0 sector frame
-					fwrite($queue_resource, $frame, 4096);
+					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
 				}
 			}
