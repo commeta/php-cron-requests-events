@@ -267,6 +267,7 @@ if(
 					
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, serialize($boot), 4096);
+					fflush($queue_resource);
 				}
 			}
 			
@@ -359,10 +360,12 @@ if(
 				$return_cursor= $frame_cursor;
 				fseek($queue_resource, $frame_cursor);
 				fwrite($queue_resource, $frame, $frame_size);
+				fflush($queue_resource);
 			} else {
 				$return_cursor= $stat['size'];
 				fseek($queue_resource, $stat['size']);
 				fwrite($queue_resource, $frame, $frame_size);
+				fflush($queue_resource);
 			}
 			
 			flock($queue_resource, LOCK_UN);
@@ -410,6 +413,7 @@ if(
 					if(mb_strlen($frame_replace) == $frame_size){
 						fseek($queue_resource, $cursor); 
 						fwrite($queue_resource, $frame_replace, $frame_size);
+						fflush($queue_resource);
 					}
 				}
 				
@@ -418,6 +422,7 @@ if(
 				else $trunc= 0; // truncate file
 
 				ftruncate($queue_resource, $trunc);
+				fflush($queue_resource);
 			}
 			
 			flock($queue_resource, LOCK_UN);
