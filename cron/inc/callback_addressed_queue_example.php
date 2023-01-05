@@ -33,7 +33,9 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			];
 			
 			queue_address_push($boot, 4096, 0);
-			$index_data= []; // index - address array, frame_cursor is key of array
+			$index_data= []; // index - address array, frame_cursor is key of array, 
+			// if big data base - save partitions of search index in file, 
+			// use fseek\fread and parser on finite state machines for find index key\value
 			
 			
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
@@ -70,7 +72,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
 				$process_id= getmypid(); 
 				
-				fseek($queue_resource, 0); // get 0 sector frame
+				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(is_array($boot) && count($boot) > 5){
@@ -79,7 +81,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						'last_update'=> microtime(true)
 					];
 					
-					fseek($queue_resource, 0); // save 0 sector frame
+					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
 				} else { // frame error
@@ -87,7 +89,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									microtime(true) . " ERROR: init boot sector\n",
+									microtime(true) . " ERROR: init boot frame\n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -98,11 +100,16 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				}
 			}
 			
-			$boot= queue_address_pop(4096, 0);
+			$boot= queue_address_pop(4096, 0, false, "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 			
-			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset'], false, "init_boot_frame");
-			if(!is_array($index_data) && count($index_data) < 5) return false; // file read error
+			
+			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
+			if(!is_array($index_data) && count($index_data) < 5) {
+				return false; // file read error
+			}
+			
+			
 			
 			// example 1, get first element
 			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
