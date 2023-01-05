@@ -254,7 +254,7 @@ if(
 			// example INIT
 			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
 				// low level, fast operations, read\write 0-3 sectors of file, 1 memory page
-				$process_id= getmypid();
+				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0 sector frame
 				$raw_frame= fread($queue_resource, 4096);
@@ -269,7 +269,6 @@ if(
 					$frame= serialize($boot);
 					$value_size= mb_strlen($frame);
 					
-					for($i= $value_size; $i< 4096; $i++) $frame.= chr(0);
 					fseek($queue_resource, 0); // save 0 sector frame
 					fwrite($queue_resource, $frame, 4096);
 					fflush($queue_resource);
@@ -350,9 +349,7 @@ if(
 			$frame= serialize($value);
 			$value_size= mb_strlen($frame);
 			
-			if($frame_size > $value_size){ // fill
-				for($i= $value_size; $i< $frame_size; $i++) $frame.= chr(0);
-			} else {
+			if($frame_size < $value_size){ // fill
 				return false;
 			}
 		} else {
@@ -418,10 +415,6 @@ if(
 				if($frame_replace !== false){ // replace frame
 					$frame_replace= serialize($frame_replace);
 					$frame_replace_size= mb_strlen($frame_replace);
-
-					for($i= $frame_replace_size; $i< $frame_size; $i++) {
-						$frame_replace.= chr(0);
-					}
 
 					if(mb_strlen($frame_replace) == $frame_size){
 						fseek($queue_resource, $cursor); 
