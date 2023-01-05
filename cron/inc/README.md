@@ -1,3 +1,20 @@
+#### Структура загрузочной записи callback_addressed_queue_example.php
+```
+// Reserved index struct
+$boot= [ // 0 sector, frame size 4096
+    'workers'=> [], // array process_id values
+	'handlers'=> [], // array process_id values
+	'system_variables'=> [],
+	'reserved'=>[],
+	'index_offset' => 4097, // data index offset
+	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
+	'data_offset' => 1024 * 16 + 4098, // data offset
+	'data_frame_size' => $frame_size, // data frame size
+];
+```
+
+
+
 #### Структура IPC кадра callback_addressed_queue_example.php
 ```
 Array
