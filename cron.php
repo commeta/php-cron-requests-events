@@ -89,7 +89,7 @@ define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int,
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 2);
-define("CRON_LOG_LEVEL", 5);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
@@ -301,21 +301,31 @@ if(
 			if(count($boot['handlers']) < 1):
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
-				
+				// task handler
+				//usleep(2000); // test load, micro delay 
+
+
 				
 				// example 2, get last - 10 element, and get first frame in callback function
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
+				// task handler
+				//usleep(2000); // test load, micro delay 
+
 
 				
 				// example 3, linear read
 				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 				
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 				
 				
@@ -323,6 +333,8 @@ if(
 				shuffle($index_data);
 				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 			endif;
 
@@ -335,7 +347,7 @@ if(
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(isset($boot['handlers'][$process_id])){
-					$boot['handlers'][$process_id]['count_start'] ++;
+					$boot['handlers'][$process_id]['count_start']++;
 					$boot['handlers'][$process_id]['last_start']= microtime(true);
 						
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
