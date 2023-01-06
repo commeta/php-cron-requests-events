@@ -68,42 +68,46 @@ Array
 (
     [workers] => Array
         (
-            [11807] => Array
+            [6112] => Array
                 (
-                    [process_id] => 11807
-                    [last_update] => 1673039402.2942
+                    [process_id] => 6112
+                    [last_update] => 1673041802.5961
                 )
 
         )
 
     [handlers] => Array
         (
-            [11872] => Array
+            [6175] => Array
                 (
-                    [process_id] => 11872
-                    [last_update] => 1673039411.5832
-                    [count_start] => 271
+                    [process_id] => 6175
+                    [last_update] => 1673041811.7822
+                    [count_start] => 279
+                    [last_start] => 1673041812.59
                 )
 
-            [11874] => Array
+            [6178] => Array
                 (
-                    [process_id] => 11874
-                    [last_update] => 1673039411.6445
-                    [count_start] => 256
+                    [process_id] => 6178
+                    [last_update] => 1673041811.8563
+                    [count_start] => 262
+                    [last_start] => 1673041812.5891
                 )
 
-            [11876] => Array
+            [6180] => Array
                 (
-                    [process_id] => 11876
-                    [last_update] => 1673039411.6997
-                    [count_start] => 244
+                    [process_id] => 6180
+                    [last_update] => 1673041811.9494
+                    [count_start] => 239
+                    [last_start] => 1673041812.5873
                 )
 
-            [11877] => Array
+            [6181] => Array
                 (
-                    [process_id] => 11877
-                    [last_update] => 1673039411.743
-                    [count_start] => 233
+                    [process_id] => 6181
+                    [last_update] => 1673041812.0234
+                    [count_start] => 224
+                    [last_start] => 1673041812.5861
                 )
 
         )
