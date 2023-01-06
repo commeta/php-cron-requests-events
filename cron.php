@@ -334,29 +334,14 @@ if(
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
-				if(is_array($boot) && count($boot) > 5 && isset($boot['handlers'][$process_id])){
+				if(isset($boot['handlers'][$process_id])){
 					$boot['handlers'][$process_id]['count_start'] ++;
 					$boot['handlers'][$process_id]['last_start']= microtime(true);
 						
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
-				} else { // frame error
-					if(CRON_LOG_LEVEL > 3){
-						if(CRON_LOG_FILE){
-							@file_put_contents(
-								CRON_LOG_FILE, 
-									microtime(true) . " ERROR: init boot frame\n",
-								FILE_APPEND | LOCK_EX
-							);
-						}
-					}
-					
-					_die();				
-					
 				}
-				
-				
 			}
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
