@@ -148,7 +148,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
-				if(is_array($boot) && count($boot) > 5 && isset($boot['handlers'][$process_id])){
+				if(isset($boot['handlers'][$process_id])){
 					$boot['handlers'][$process_id]['count_start'] ++;
 					$boot['handlers'][$process_id]['last_start']= microtime(true);
 						
