@@ -10,6 +10,20 @@
 - $job_process_id, содержит порядковый номер задания из $cron_jobs
 
 Переменные сохраниют свои значения между запусками задач по расписанию, но до тех пор пока поля в $cron_jobs[$job_process_id] не будут изменены.
+```
+Array // $cron_session
+(
+    [1] => Array
+        (
+            [md5] => 6e2ab79f4e8f5056a4f6a59475ffc31a
+            [last_update] => 1673029671
+            [complete] => 1
+        )
+
+    [start_counter] => 11450
+)
+```
+
 
 ## IPC (Inter-process communication) межпроцессное взаимодействие.
 ### Пример из файла: callback_addressed_queue_example.php
