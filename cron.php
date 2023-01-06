@@ -459,7 +459,7 @@ if(
 					}
 				}
 				
-			} else { // LIFO mode	
+			} elseif($value !== false) { // LIFO mode	
 				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
 				else $trunc= 0; // truncate file
 
