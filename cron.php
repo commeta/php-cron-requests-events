@@ -362,8 +362,6 @@ if(
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
-
-				if($multicore_long_time_micro_job === true) continue;
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
