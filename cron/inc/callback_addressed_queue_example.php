@@ -155,22 +155,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
-				} else { // frame error
-					if(CRON_LOG_LEVEL > 3){
-						if(CRON_LOG_FILE){
-							@file_put_contents(
-								CRON_LOG_FILE, 
-									microtime(true) . " ERROR: init boot frame\n",
-								FILE_APPEND | LOCK_EX
-							);
-						}
-					}
-					
-					_die();				
-					
 				}
-				
-				
 			}
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
