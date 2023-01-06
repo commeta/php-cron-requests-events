@@ -21,7 +21,7 @@
 #### Структура загрузочной записи
 ```
 // Reserved index struct
-$boot= [ // 0 sector, frame size 4096
+$boot= [ // 0-3 sector, frame size 4096
 	'workers'=> [], // array process_id values
 	'handlers'=> [], // array process_id values
 	'system_variables'=> [],
