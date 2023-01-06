@@ -115,21 +115,31 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			if(count($boot['handlers']) < 1):
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
-				
+				// task handler
+				//usleep(2000); // test load, micro delay 
+
+
 				
 				// example 2, get last - 10 element, and get first frame in callback function
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
+				// task handler
+				//usleep(2000); // test load, micro delay 
+
 
 				
 				// example 3, linear read
 				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 				
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 				
 				
@@ -137,6 +147,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				shuffle($index_data);
 				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
 					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					// task handler
+					//usleep(2000); // test load, micro delay 
 				}
 			endif;
 
@@ -149,7 +161,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(isset($boot['handlers'][$process_id])){
-					$boot['handlers'][$process_id]['count_start'] ++;
+					$boot['handlers'][$process_id]['count_start']++;
 					$boot['handlers'][$process_id]['last_start']= microtime(true);
 						
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
@@ -161,7 +173,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
-			
+				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
 				} elseif($multicore_long_time_micro_job !== true) {
