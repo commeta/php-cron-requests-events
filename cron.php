@@ -51,7 +51,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '00:10:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '00:50:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -63,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '00:10:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '00:50:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -88,8 +88,8 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
-define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 2);
+define("CRON_LOG_ROTATE_MAX_FILES", 2);
+define("CRON_LOG_LEVEL", 5);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
@@ -266,7 +266,8 @@ if(
 					$boot['handlers'][$process_id]= [// add active handler
 						'process_id'=>$process_id,
 						'last_update'=> microtime(true),
-						'count_start' => 0
+						'count_start' => 0,
+						'last_start' => 0
 					];
 					
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
@@ -325,10 +326,7 @@ if(
 				}
 			endif;
 
-
-
-
-
+			// example 6, use LIFO mode
 			function count_frames(& $queue_resource){ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
 				$process_id= getmypid(); 
@@ -336,11 +334,10 @@ if(
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
-				if(is_array($boot) && count($boot) > 5){
-					if(isset($boot['handlers'][$process_id])) {
-						$boot['handlers'][$process_id]['count_start'] ++;
-					}
-					
+				if(is_array($boot) && count($boot) > 5 && isset($boot['handlers'][$process_id])){
+					$boot['handlers'][$process_id]['count_start'] ++;
+					$boot['handlers'][$process_id]['last_start']= microtime(true);
+						
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
@@ -362,7 +359,6 @@ if(
 				
 			}
 
-			// example 6, use LIFO mode
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
@@ -375,7 +371,7 @@ if(
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
-					usleep(2000); // test load, micro delay
+					usleep(2000); // test load, micro delay 
 					
 					
 					if(CRON_LOG_LEVEL > 3){
@@ -857,7 +853,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
@@ -907,12 +903,15 @@ if(
 		}
 	} else {
 		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
+		file_put_contents(CRON_DAT_FILE, serialize([]));
 		touch(CRON_DAT_FILE, time() - CRON_DELAY);
 		
 		if(CRON_LOG_FILE) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 			touch(CRON_LOG_FILE);
 		}
+		
+		open_cron_socket(CRON_URL_KEY);
 	}
 }
 
