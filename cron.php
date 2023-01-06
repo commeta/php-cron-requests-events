@@ -452,7 +452,7 @@ if(
 					$frame_replace= serialize($frame_replace);
 					$frame_replace_size= mb_strlen($frame_replace);
 
-					if(mb_strlen($frame_replace) < $frame_size){
+					if(mb_strlen($frame_replace) <= $frame_size){
 						fseek($queue_resource, $cursor); 
 						fwrite($queue_resource, $frame_replace, $frame_size);
 						fflush($queue_resource);
