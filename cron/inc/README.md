@@ -1,5 +1,18 @@
-# IPC (Inter-process communication) межпроцессное взаимодействие.
-## Пример из файла: callback_addressed_queue_example.php
+# php-cron-requests-events EXAMPLES
+
+## Обработчик событий CRON
+### Пример из файла: callback_cron.php
+
+Данный файл будет запущен по расписанию, путь к файлу указан в поле $cron_jobs[$job_process_id]['callback']
+
+#### Переменные
+- $cron_session, хранит служебные поля сессии каждого задания $cron_jobs в отдельности
+- $job_process_id, содержит порядковый номер задания из $cron_jobs
+
+Переменные сохраниют свои значения между запусками задач по расписанию, но до тех пор пока поля в $cron_jobs[$job_process_id] не будут изменены.
+
+## IPC (Inter-process communication) межпроцессное взаимодействие.
+### Пример из файла: callback_addressed_queue_example.php
 
 В данном примере IPC реализован по типу мьютекс, все участвующие процессы получают доступ к файлу данных в монопольном режиме.
 
