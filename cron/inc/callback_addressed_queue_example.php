@@ -189,7 +189,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
-					usleep(2000); // test delay 
+					usleep(2000); // test load, micro delay 
 					
 					
 					if(CRON_LOG_LEVEL > 3){
