@@ -80,7 +80,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					$boot['handlers'][$process_id]= [// add active handler
 						'process_id'=>$process_id,
 						'last_update'=> microtime(true),
-						'count_start' => 0
+						'count_start' => 0,
+						'last_start' => 0
 					];
 					
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
@@ -139,10 +140,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				}
 			endif;
 
-
-
-
-
+			// example 6, use LIFO mode
 			function count_frames(& $queue_resource){ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
 				$process_id= getmypid(); 
@@ -150,11 +148,10 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
-				if(is_array($boot) && count($boot) > 5){
-					if(isset($boot['handlers'][$process_id])) {
-						$boot['handlers'][$process_id]['count_start'] ++;
-					}
-					
+				if(is_array($boot) && count($boot) > 5 && isset($boot['handlers'][$process_id])){
+					$boot['handlers'][$process_id]['count_start'] ++;
+					$boot['handlers'][$process_id]['last_start']= microtime(true);
+						
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
 					fwrite($queue_resource, serialize($boot), 4096);
 					fflush($queue_resource);
@@ -176,7 +173,6 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				
 			}
 
-			// example 6, use LIFO mode
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
