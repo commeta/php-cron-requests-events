@@ -68,38 +68,42 @@ Array
 (
     [workers] => Array
         (
-            [14575] => Array
+            [11807] => Array
                 (
-                    [process_id] => 14575
-                    [last_update] => 1672897202.3705
+                    [process_id] => 11807
+                    [last_update] => 1673039402.2942
                 )
 
         )
 
     [handlers] => Array
         (
-            [14640] => Array
+            [11872] => Array
                 (
-                    [process_id] => 14640
-                    [last_update] => 1672897211.6983
+                    [process_id] => 11872
+                    [last_update] => 1673039411.5832
+                    [count_start] => 271
                 )
 
-            [14643] => Array
+            [11874] => Array
                 (
-                    [process_id] => 14643
-                    [last_update] => 1672897211.7723
+                    [process_id] => 11874
+                    [last_update] => 1673039411.6445
+                    [count_start] => 256
                 )
 
-            [14645] => Array
+            [11876] => Array
                 (
-                    [process_id] => 14645
-                    [last_update] => 1672897211.8554
+                    [process_id] => 11876
+                    [last_update] => 1673039411.6997
+                    [count_start] => 244
                 )
 
-            [14646] => Array
+            [11877] => Array
                 (
-                    [process_id] => 14646
-                    [last_update] => 1672897211.9214
+                    [process_id] => 11877
+                    [last_update] => 1673039411.743
+                    [count_start] => 233
                 )
 
         )
