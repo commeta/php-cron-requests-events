@@ -51,7 +51,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '21:00:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '00:10:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -63,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '21:00:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '00:10:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -224,6 +224,7 @@ if(
 			// use fseek\fread and parser on finite state machines for find index key\value
 			// alignment data with leading zeros
 			
+			
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 			// PHP 7.4.3 with Zend OPcache
 			// 1 process, no concurency
@@ -264,7 +265,8 @@ if(
 				if(is_array($boot) && count($boot) > 5){
 					$boot['handlers'][$process_id]= [// add active handler
 						'process_id'=>$process_id,
-						'last_update'=> microtime(true)
+						'last_update'=> microtime(true),
+						'count_start' => 0
 					];
 					
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
@@ -286,46 +288,84 @@ if(
 				}
 			}
 			
+			
 			$boot= queue_address_pop(4096, 0, false, "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
-			
-			
+				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
 			if(!is_array($index_data) && count($index_data) < 5) {
 				return false; // file read error
 			}
-			
-			
-			
-			// example 1, get first element
-			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
-			
-			// example 2, get last - 10 element, and get first frame in callback function
-			$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
 
-			
-			// example 3, linear read
-			for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
-				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
-			}
-			
-			// example 4, replace frames in file
-			for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
-			}
-			
-			
-			// example 5, random access
-			shuffle($index_data);
-			for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
-				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
-			}
+			if(count($boot['handlers']) < 1):
+				// example 1, get first element
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
+				
+				
+				// example 2, get last - 10 element, and get first frame in callback function
+				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
 
+				
+				// example 3, linear read
+				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+				}
+				
+				
+				// example 4, replace frames in file
+				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
+				}
+				
+				
+				// example 5, random access
+				shuffle($index_data);
+				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+				}
+			endif;
+
+
+
+
+
+			function count_frames(& $queue_resource){ // Inter-process communication IPC
+				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
+				$process_id= getmypid(); 
+				
+				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
+				$boot= unserialize(trim(fread($queue_resource, 4096)));
+				
+				if(is_array($boot) && count($boot) > 5){
+					if(isset($boot['handlers'][$process_id])) {
+						$boot['handlers'][$process_id]['count_start'] ++;
+					}
+					
+					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
+					fwrite($queue_resource, serialize($boot), 4096);
+					fflush($queue_resource);
+				} else { // frame error
+					if(CRON_LOG_LEVEL > 3){
+						if(CRON_LOG_FILE){
+							@file_put_contents(
+								CRON_LOG_FILE, 
+									microtime(true) . " ERROR: init boot frame\n",
+								FILE_APPEND | LOCK_EX
+							);
+						}
+					}
+					
+					_die();				
+					
+				}
+				
+				
+			}
 
 			// example 6, use LIFO mode
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop($frame_size);
+				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
 
 				if($multicore_long_time_micro_job === true) continue;
 				
@@ -334,6 +374,9 @@ if(
 				} elseif($multicore_long_time_micro_job !== true) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
+					
+					usleep(2000); // test delay 
+					
 					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
@@ -800,10 +843,11 @@ if(
 	}
 
 	
+	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
 	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
-
+	
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$stat= fstat($cron_resource);
@@ -813,7 +857,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
