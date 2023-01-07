@@ -239,7 +239,7 @@ Array
         (
             [19233] => Array
                 (
-                    [process_id] => 19233 // system process id, httpd child process
+                    [process_id] => 19233 // system process id, Apache\Nginx child process
                     [last_update] => 1673109611.4496 // time start
                     [count_start] => 194 // count processed queue elements
                     [last_start] => 1673109612.0502 // time last IPC operation
