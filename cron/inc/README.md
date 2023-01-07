@@ -16,11 +16,12 @@ Array // $cron_session
     [1] => Array
         (
             [md5] => 6e2ab79f4e8f5056a4f6a59475ffc31a
-            [last_update] => 1673029671
+            [last_update] => 1673054971
             [complete] => 1
+            [last_complete] => 1673054971
         )
 
-    [start_counter] => 11450
+    [start_counter] => 37
 )
 ```
 
