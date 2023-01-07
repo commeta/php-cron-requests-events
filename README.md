@@ -220,14 +220,14 @@ $boot= [ // 0-3 sector, frame size 4096
 
 #### Структура IPC кадра
 ```
-// Данные из нулевого фрейма отработавшей задачи
+// zero data frame from completed job
 Array
 (
     [workers] => Array
         (
             [3856] => Array
                 (
-                    [process_id] => 3856
+                    [process_id] => 3856 // system process id, httpd child process
                     [last_update] => 1673056021.273
                 )
 
