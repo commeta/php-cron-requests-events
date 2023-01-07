@@ -23,7 +23,7 @@
  
  ////////////////////////////////////////////////////////////////////////
 // CRON Jobs
-define("CRON_SITE_ROOT", preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR);
+define("CRON_SITE_ROOT", dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
 $cron_jobs= [];
 
@@ -51,7 +51,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:47:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -63,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '04:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -117,9 +117,9 @@ if(!function_exists('open_cron_socket')) {
 	function open_cron_socket($cron_url_key, $job_process_id= false){ // Start job in parallel process
 		static $wget= false;
 		
-		if($job_process_id !== false) $cron_url_key.= '&process_id=' . $job_process_id;
-		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . "/". basename(__FILE__) ."?cron=" . $cron_url_key;
-
+		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
+		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
+		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . basename(__FILE__) ."?cron=" . $cron_url_key;
 		
 		if(strtolower(PHP_OS) == 'linux' && $wget === false) {
 			foreach(explode(':', getenv('PATH')) as $path){
@@ -294,7 +294,7 @@ if(
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
-			if(!is_array($index_data) && count($index_data) < 5) {
+			if(!is_array($index_data)) {
 				return false; // file read error
 			}
 
@@ -724,7 +724,7 @@ if(
 	
 	function multithreading_dispatcher(& $job, & $cron_resource, & $cron_session, & $cron_dat_file){  // main loop job list
 		// Dispatcher init
-		$job_process_id= intval($_GET["process_id"]);
+		$job_process_id= intval($_GET["job_process_id"]);
 		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
 		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 		
@@ -818,9 +818,9 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// multithreading 
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
-		isset($_GET["process_id"])
+		isset($_GET["job_process_id"])
 	){
-		$job_process_id= intval($_GET["process_id"]);
+		$job_process_id= intval($_GET["job_process_id"]);
 		$job= $cron_jobs[$job_process_id];
 		
 		if(isset($cron_jobs[$job_process_id]) && $job['multithreading']){
@@ -846,7 +846,6 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
-
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
