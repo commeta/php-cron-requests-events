@@ -1,19 +1,18 @@
 <?php
 
 function queue_address_manager_extend($mode){ // example: multicore queue
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$frame_size= 95;
 		$process_id= getmypid();
 		
-		if(!file_exists($dat_file)) touch($dat_file);
+		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
 		
 		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			unlink($dat_file); // reset DB file
-			touch($dat_file);
+			unlink(CRON_QUEUE_FILE); // reset DB file
+			touch(CRON_QUEUE_FILE);
 			
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
@@ -112,7 +111,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				return false; // file read error
 			}
 
-			if(is_array($boot) && count($boot['handlers']) < 2): // first handler
+
+			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
@@ -135,11 +135,10 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], []);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
-				
 				
 				// example 5, random access
 				shuffle($index_data);
@@ -174,7 +173,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
-				} elseif($multicore_long_time_micro_job !== true) {
+				} elseif($multicore_long_time_micro_job !== []) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
