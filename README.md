@@ -106,7 +106,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 
 ### Обработчик событий CRON
-#### Пример из файла: callback_cron.php
+#### Пример из файла: cron/inc/callback_cron.php
 
 Данный файл будет запущен по расписанию, путь к файлу указан в поле $cron_jobs[$job_process_id]['callback']
 
@@ -130,10 +130,10 @@ Array // $cron_session
 )
 ```
 
+
 ### Пример многопоточной очереди php multicore api
-```
-cron/inc/callback_addressed_queue_example.php
-```
+#### Пример из файла: cron/inc/callback_addressed_queue_example.php
+
 - вызов queue_address_manager_extend(true); // создает список микро задач и помещает их в очередь.
 - вызов queue_address_manager_extend(false); // запускает обработчик микро задачи.
 
