@@ -94,6 +94,7 @@ define("CRON_LOG_LEVEL", 2);
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_SECURITY", false); // set true for high danger environment
 
+define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 
 ////////////////////////////////////////////////////////////////////////
 // Debug
@@ -187,21 +188,20 @@ if(
 	}
 	
 	
-	// Functions: system api
+	// Functions: system api 
 	function queue_address_manager($mode){ // example: multicore queue
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
 		$frame_size= 95;
 		$process_id= getmypid();
 		
-		if(!file_exists($dat_file)) touch($dat_file);
+		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
 		
 		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
 			
-			unlink($dat_file); // reset DB file
-			touch($dat_file);
+			unlink(CRON_QUEUE_FILE); // reset DB file
+			touch(CRON_QUEUE_FILE);
 			
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
@@ -300,7 +300,8 @@ if(
 				return false; // file read error
 			}
 
-			if(is_array($boot) && count($boot['handlers']) < 2): // first handler
+
+			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
@@ -323,11 +324,10 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], true);
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], []);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
-				
 				
 				// example 5, random access
 				shuffle($index_data);
@@ -362,7 +362,7 @@ if(
 				
 				if($multicore_long_time_micro_job === false) {
 					break 1;
-				} elseif($multicore_long_time_micro_job !== true) {
+				} elseif($multicore_long_time_micro_job !== []) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
@@ -391,8 +391,7 @@ if(
 	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	function queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false){ // push data frame in stack
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		$queue_resource= fopen($dat_file, "r+");
+		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$return_cursor= false;
 
 		if($frame_size !== false){
@@ -411,6 +410,9 @@ if(
 			$stat= fstat($queue_resource);
 			if($frame_cursor !== false){
 				$return_cursor= $frame_cursor;
+				
+				for($i= mb_strlen($frame); $i <= $frame_size; $i++) $frame.= chr(0);
+				
 				fseek($queue_resource, $frame_cursor);
 				fwrite($queue_resource, $frame, $frame_size);
 				fflush($queue_resource);
@@ -433,8 +435,7 @@ if(
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
 	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false){ // pop data frame from stack
-		$dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . 'queue.dat';
-		$queue_resource= fopen($dat_file, "r+");
+		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$value= false;
 		
 		if(flock($queue_resource, LOCK_EX)) {
@@ -460,11 +461,13 @@ if(
 			
 			if($frame_cursor !== false){
 				if($frame_replace !== false){ // replace frame
-					$frame_replace= serialize($frame_replace);
-
-					if(mb_strlen($frame_replace) <= $frame_size){
+					$serialized_frame_replace= serialize($frame_replace);
+					
+					if(mb_strlen($serialized_frame_replace) < $frame_size){
+						for($i= mb_strlen($serialized_frame_replace); $i <= $frame_size; $i++) $serialized_frame_replace.= chr(0);
+						
 						fseek($queue_resource, $cursor); 
-						fwrite($queue_resource, $frame_replace, $frame_size);
+						fwrite($queue_resource, $serialized_frame_replace, $frame_size);
 						fflush($queue_resource);
 					}
 				}
@@ -846,6 +849,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
+		
 
 		//###########################################
 		// check jobs
