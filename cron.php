@@ -137,7 +137,7 @@ if(!function_exists('open_cron_socket')) {
 			is_callable("shell_exec") &&
 			$wget
 		){
-			shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
+			shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
 		} else {
 			@fclose( 
 				@fopen(
