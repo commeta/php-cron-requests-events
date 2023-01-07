@@ -119,14 +119,27 @@ if(!function_exists('open_cron_socket')) {
 		static $wget= false;
 		static $curl= false;
 		
+		
+		if(
+			isset($_SERVER['HTTPS']) &&
+			($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+			isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+			$_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
+		) {
+			$protocol= 'https://';
+		} else {
+			$protocol= 'http://';
+		}
+		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
 		
-		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
+		$cron_url= $protocol . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_url_key;
 		
 		if(
+			is_callable("shell_exec") &&
 			strtolower(PHP_OS) == 'linux' && 
 			$wget === false && 
 			$curl === false
@@ -159,7 +172,7 @@ if(!function_exists('open_cron_socket')) {
 					false, 
 					stream_context_create([
 						'http'=>[
-							'timeout' => 0.04
+							'timeout' => 0.04 // minimal time out to start process
 						]
 					])
 				)
