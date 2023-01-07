@@ -761,7 +761,6 @@ if(
 			$stat= fstat($cron_resource);
 			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
-			
 			cron_session_init($cron_session, $job, $job_process_id);
 			cron_check_job($cron_session, $job, false, false, $job_process_id);
 			write_cron_session($cron_resource, $cron_session);
@@ -877,12 +876,10 @@ if(
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
-		write_cron_session($cron_resource, $cron_session);
 
 		if(CRON_DELAY == 0){
 			while(true){
 				singlethreading_dispatcher($cron_jobs, $cron_session);
-				write_cron_session($cron_resource, $cron_session);
 				memory_profiler($cron_jobs);
 				
 				if(CRON_LOG_FILE){
@@ -894,6 +891,7 @@ if(
 		}
 		
 		//###########################################
+		write_cron_session($cron_resource, $cron_session);
 		if(CRON_LOG_FILE) cron_log_rotate();
 		flock($cron_resource, LOCK_UN);
 	}
