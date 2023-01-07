@@ -105,6 +105,31 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
 
+### Обработчик событий CRON
+#### Пример из файла: callback_cron.php
+
+Данный файл будет запущен по расписанию, путь к файлу указан в поле $cron_jobs[$job_process_id]['callback']
+
+#### Переменные
+- $cron_session, хранит служебные поля сессии каждого задания $cron_jobs в отдельности
+- $job_process_id, содержит порядковый номер задания из $cron_jobs
+
+Переменные сохраниют свои значения между запусками задач по расписанию, но до тех пор пока поля в $cron_jobs[$job_process_id] не будут изменены.
+```
+Array // $cron_session
+(
+    [1] => Array
+        (
+            [md5] => 6e2ab79f4e8f5056a4f6a59475ffc31a
+            [last_update] => 1673054971
+            [complete] => 1
+            [last_complete] => 1673054971
+        )
+
+    [start_counter] => 37
+)
+```
+
 ### Пример многопоточной очереди php multicore api
 ```
 cron/inc/callback_addressed_queue_example.php
@@ -174,6 +199,93 @@ $multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= fa
 В LIFO режиме основная работа с файлом происходит в последних секторах, благодаря этому данные легко буферизируются и кэшируются несколькими слоями Zend Engine и ядра операционной системы. При линейном чтении\записи обмен между процессами будет проходить по короткой дистанции.
 
 Время доступа к кадрам от 0.00005 секунды в зависимости от размера кадра, интенсивности параллельных запросов, размера файла, времени загрузки секторов файловой системы и т.д. 
+
+
+
+#### Структура загрузочной записи
+```
+// Reserved index struct
+$boot= [ // 0-3 sector, frame size 4096
+	'workers'=> [], // array process_id values
+	'handlers'=> [], // array process_id values
+	'system_variables'=> [],
+	'reserved'=>[],
+	'index_offset' => 4097, // data index offset
+	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
+	'data_offset' => 1024 * 16 + 4098, // data offset
+	'data_frame_size' => $frame_size, // data frame size
+];
+```
+
+
+
+#### Структура IPC кадра
+```
+// Данные из нулевого фрейма отработавшей задачи
+Array
+(
+    [workers] => Array
+        (
+            [3856] => Array
+                (
+                    [process_id] => 3856
+                    [last_update] => 1673056021.273
+                )
+
+        )
+
+    [handlers] => Array
+        (
+            [3925] => Array
+                (
+                    [process_id] => 3925
+                    [last_update] => 1673056031.9299
+                    [count_start] => 231
+                    [last_start] => 1673056032.4982
+                )
+
+            [3928] => Array
+                (
+                    [process_id] => 3928
+                    [last_update] => 1673056031.9974
+                    [count_start] => 221
+                    [last_start] => 1673056032.499
+                )
+
+            [3930] => Array
+                (
+                    [process_id] => 3930
+                    [last_update] => 1673056032.0626
+                    [count_start] => 285
+                    [last_start] => 1673056032.5001
+                )
+
+            [3931] => Array
+                (
+                    [process_id] => 3931
+                    [last_update] => 1673056032.1173
+                    [count_start] => 267
+                    [last_start] => 1673056032.501
+                )
+
+        )
+
+    [system_variables] => Array
+        (
+        )
+
+    [reserved] => Array
+        (
+        )
+
+    [index_offset] => 4097
+    [index_frame_size] => 16384
+    [data_offset] => 20482
+    [data_frame_size] => 95
+)
+```
+
+
 
 ### Потребление ресурсов
 Управляющий задачами процесс запускается в фоновом режиме с использованием механизма сетевых запросов. 
