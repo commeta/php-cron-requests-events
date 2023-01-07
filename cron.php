@@ -23,7 +23,7 @@
  
  ////////////////////////////////////////////////////////////////////////
 // CRON Jobs
-define("CRON_SITE_ROOT", dirname(__FILE__) . DIRECTORY_SEPARATOR);
+define("CRON_ROOT", dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
 $cron_jobs= [];
 
@@ -34,7 +34,7 @@ $cron_jobs= [];
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
 ##########
@@ -43,7 +43,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
@@ -52,7 +52,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
 	'time' => '04:47:00', // "hours:minutes:seconds"execute job on the specified time every day
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
+	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
 ];
@@ -64,7 +64,7 @@ for( // CRON job 3, multicore example, four cores,
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
 		'time' => '04:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
+		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
 	];
@@ -75,15 +75,15 @@ for( // CRON job 3, multicore example, four cores,
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '01-01-2023', // "day-month-year" execute job on the specified date
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
 
 ////////////////////////////////////////////////////////////////////////
 // Variables
-define("CRON_LOG_FILE", CRON_SITE_ROOT . 'cron/log/cron.log'); // false switched off
-define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
+define("CRON_LOG_FILE", CRON_ROOT . 'cron/log/cron.log'); // false switched off
+define("CRON_DAT_FILE", CRON_ROOT . 'cron/dat/cron.dat');
 
 define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
 
