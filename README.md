@@ -227,8 +227,8 @@ Array
         (
             [3856] => Array
                 (
-                    [process_id] => 3856 // system process id, httpd child process
-                    [last_update] => 1673056021.273
+                    [process_id] => 3856 
+                    [last_update] => 1673056021.273 
                 )
 
         )
@@ -237,10 +237,10 @@ Array
         (
             [3925] => Array
                 (
-                    [process_id] => 3925
-                    [last_update] => 1673056031.9299
-                    [count_start] => 231
-                    [last_start] => 1673056032.4982
+                    [process_id] => 3925 // system process id, httpd child process
+                    [last_update] => 1673056031.9299 // time start
+                    [count_start] => 231 // count processed queue elements
+                    [last_start] => 1673056032.4982 // time last IPC operation
                 )
 
             [3928] => Array
