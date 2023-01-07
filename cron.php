@@ -256,7 +256,7 @@ if(
 			
 			// example INIT
 			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
-				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
+				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
@@ -298,19 +298,17 @@ if(
 				return false; // file read error
 			}
 
-			if(count($boot['handlers']) < 1):
+			if(is_array($boot) && count($boot['handlers']) < 2): // first handler
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
 				//usleep(2000); // test load, micro delay 
-
 
 				
 				// example 2, get last - 10 element, and get first frame in callback function
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
 				// task handler
 				//usleep(2000); // test load, micro delay 
-
 
 				
 				// example 3, linear read
@@ -340,7 +338,7 @@ if(
 
 			// example 6, use LIFO mode
 			function count_frames(& $queue_resource){ // Inter-process communication IPC
-				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 memory page
+				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
@@ -848,6 +846,7 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
