@@ -17,6 +17,8 @@ php crontab, based on url requests/event-loop, daemon mode, multithreading, seco
 - Триггером для запуска задач служит запрос через URI
 - Подключается в корневом index.php одной строчкой include('cron.php');
 - Альтернативный режим подключения: в файле .htaccess добавить строку: php_value auto_append_file "cron.php"
+- Еще альтернативный режим подключения: в файле php.ini добавить строку: auto_append_file="cron.php"
+- Экстренный режим подключения: добавить в системный cron запуск через wget или curl на закачку url скрипта
 - Создает в каталоге запуска подкаталоги cron/dat и cron/log
 - При первом запуске создает cron/dat/cron.dat в нем хранит переменные между запусками
 - В cron/log/cron.log хранит лог, есть ротация логов
