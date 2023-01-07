@@ -51,7 +51,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '00:50:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -63,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '00:50:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -88,7 +88,7 @@ define("CRON_DAT_FILE", CRON_SITE_ROOT . 'cron/dat/cron.dat');
 define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
-define("CRON_LOG_ROTATE_MAX_FILES", 2);
+define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
@@ -397,9 +397,8 @@ if(
 
 		if($frame_size !== false){
 			$frame= serialize($value);
-			$value_size= mb_strlen($frame);
 			
-			if($frame_size < $value_size){ // fill
+			if($frame_size < mb_strlen($frame)){ // fill
 				return false;
 			}
 		} else {
@@ -648,6 +647,7 @@ if(
 		}
 		
 		$cron_session[$job_process_id]['complete']= true;
+		$cron_session[$job_process_id]['last_complete']= time();
 	}
 	
 		
@@ -847,7 +847,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
