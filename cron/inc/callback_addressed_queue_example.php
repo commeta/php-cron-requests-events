@@ -108,7 +108,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
-			if(!is_array($index_data) && count($index_data) < 5) {
+			if(!is_array($index_data)) {
 				return false; // file read error
 			}
 
