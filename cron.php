@@ -235,7 +235,7 @@ if(
 				'reserved'=>[],
 				'index_offset' => 4097, // data index offset
 				'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-				'data_offset' => 1024 * 16 + 4098, // data offset
+				'data_offset' => 1024 * 16 + 4098 + $frame_size, // data offset
 				'data_frame_size' => $frame_size, // data frame size
 			];
 			
