@@ -119,7 +119,9 @@ if(!function_exists('open_cron_socket')) {
 		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
-		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . basename(__FILE__) ."?cron=" . $cron_url_key;
+		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
+			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
+			basename(__FILE__) ."?cron=" . $cron_url_key;
 		
 		if(strtolower(PHP_OS) == 'linux' && $wget === false) {
 			foreach(explode(':', getenv('PATH')) as $path){
@@ -645,7 +647,6 @@ if(
 		}
 		
 		$cron_session[$job_process_id]['complete']= true;
-		$cron_session[$job_process_id]['last_complete']= time();
 	}
 	
 		
@@ -845,7 +846,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
