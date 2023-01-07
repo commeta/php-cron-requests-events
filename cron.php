@@ -145,12 +145,8 @@ if(!function_exists('open_cron_socket')) {
 			$curl === false
 		){
 			foreach(explode(':', getenv('PATH')) as $path){
-				if(is_executable($path.'/wget')) {
-					$wget= $path.'/wget';
-				}
-				if(is_executable($path.'/curl')) {
-					$curl= $path.'/curl';
-				}
+				if(is_executable($path.'/wget')) $wget= $path.'/wget';
+				if(is_executable($path.'/curl')) $curl= $path.'/curl';
 			}
 		}
 		
@@ -173,8 +169,8 @@ if(!function_exists('open_cron_socket')) {
 					'r', 
 					false, 
 					stream_context_create([
-						'http'=>[
-							'timeout' => 0.04 // minimal time out to start process
+						'http'=>[ // minimal time out to start process, block mode
+							'timeout' => 0.04 // it will be necessary to increase for loaded systems
 						]
 					])
 				)
