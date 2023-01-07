@@ -51,7 +51,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '04:47:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '19:40:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -63,7 +63,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '04:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '19:40:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -117,18 +117,26 @@ define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 if(!function_exists('open_cron_socket')) { 
 	function open_cron_socket($cron_url_key, $job_process_id= false){ // Start job in parallel process
 		static $wget= false;
+		static $curl= false;
 		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
+		
 		$cron_url= 'https://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_url_key;
 		
-		if(strtolower(PHP_OS) == 'linux' && $wget === false) {
+		if(
+			strtolower(PHP_OS) == 'linux' && 
+			$wget === false && 
+			$curl === false
+		){
 			foreach(explode(':', getenv('PATH')) as $path){
 				if(is_executable($path.'/wget')) {
 					$wget= $path.'/wget';
-					break 1;
+				}
+				if(is_executable($path.'/curl')) {
+					$curl= $path.'/curl';
 				}
 			}
 		}
@@ -138,6 +146,11 @@ if(!function_exists('open_cron_socket')) {
 			$wget
 		){
 			shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
+		} elseif(
+			is_callable("shell_exec") &&
+			$curl
+		){
+			shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
 		} else {
 			@fclose( 
 				@fopen(
@@ -850,7 +863,6 @@ if(
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
 		
-
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
