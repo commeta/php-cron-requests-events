@@ -126,15 +126,15 @@ if(!function_exists('open_cron_socket')) {
 			isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
 			$_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
 		) {
-			$protocol= 'https://';
+			$protocol= 'https';
 		} else {
-			$protocol= 'http://';
+			$protocol= 'http';
 		}
 		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
 		
-		$cron_url= $protocol . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
+		$cron_url= $protocol . '://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_url_key;
 		
@@ -158,12 +158,14 @@ if(!function_exists('open_cron_socket')) {
 			is_callable("shell_exec") &&
 			$wget
 		){
-			shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
+			if($protocol ==  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
+			else shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
 		} elseif(
 			is_callable("shell_exec") &&
 			$curl
 		){
-			shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
+			if($protocol ==  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
+			else shell_exec($curl . ' -I --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
 		} else {
 			@fclose( 
 				@fopen(
