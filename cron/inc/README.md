@@ -84,50 +84,51 @@ $boot= [ // 0-3 sector, frame size 4096
 
 #### Структура IPC кадра
 ```
-Array // Данные из нулевого фрейма отработавшей задачи
+// Данные из нулевого фрейма отработавшей задачи
+Array
 (
     [workers] => Array
         (
-            [6112] => Array
+            [21974] => Array
                 (
-                    [process_id] => 6112
-                    [last_update] => 1673041802.5961
+                    [process_id] => 21974
+                    [last_update] => 1673054645.4367
                 )
 
         )
 
     [handlers] => Array
         (
-            [6175] => Array
+            [22019] => Array
                 (
-                    [process_id] => 6175
-                    [last_update] => 1673041811.7822
-                    [count_start] => 279
-                    [last_start] => 1673041812.59
+                    [process_id] => 22019
+                    [last_update] => 1673054651.7739
+                    [count_start] => 275
+                    [last_start] => 1673054652.5543
                 )
 
-            [6178] => Array
+            [22021] => Array
                 (
-                    [process_id] => 6178
-                    [last_update] => 1673041811.8563
-                    [count_start] => 262
-                    [last_start] => 1673041812.5891
+                    [process_id] => 22021
+                    [last_update] => 1673054651.8445
+                    [count_start] => 261
+                    [last_start] => 1673054652.5518
                 )
 
-            [6180] => Array
+            [22024] => Array
                 (
-                    [process_id] => 6180
-                    [last_update] => 1673041811.9494
-                    [count_start] => 239
-                    [last_start] => 1673041812.5873
+                    [process_id] => 22024
+                    [last_update] => 1673054651.9344
+                    [count_start] => 241
+                    [last_start] => 1673054652.5531
                 )
 
-            [6181] => Array
+            [22025] => Array
                 (
-                    [process_id] => 6181
-                    [last_update] => 1673041812.0234
-                    [count_start] => 224
-                    [last_start] => 1673041812.5861
+                    [process_id] => 22025
+                    [last_update] => 1673054652.0009
+                    [count_start] => 227
+                    [last_start] => 1673054652.5523
                 )
 
         )
