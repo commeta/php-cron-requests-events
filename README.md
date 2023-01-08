@@ -332,13 +332,18 @@ cron.php работает в 4-х режимах:
 - GNU Wget 1.20.3
 
 ##### Плоский профиль Xdebug, CacheGrind
+До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
+
+После запуска управляющего процесса
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
+
+После запуска процесса потомка
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
+
+После запуска примера наполнения очереди
 ![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
+
+После запуска примера извлечения из очереди
 ![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png"example_queue_address_manager_extend_pop_flock.png")
-
-
-
-
 
