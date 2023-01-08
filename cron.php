@@ -707,7 +707,7 @@ if(
 	
 	function cron_check_job($job, $job_process_id, $mode){
 		global $cron_session;
-		$time= PHP_INT_MAX;
+		$time= time();
 		
 		
 		if(isset($job['date']) || isset($job['time'])){
@@ -895,7 +895,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-
+		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher();
