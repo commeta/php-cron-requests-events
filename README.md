@@ -345,5 +345,5 @@ cron.php работает в 4-х режимах:
 ![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
 
 После запуска процесса потомка, примера извлечения из очереди include cron/inc/callback_addressed_queue_example.php
-![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png"example_queue_address_manager_extend_pop_flock.png")
+![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
 
