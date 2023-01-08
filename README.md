@@ -241,46 +241,46 @@ Array
 (
     [workers] => Array
         (
-            [280120] => Array
+            [281372] => Array
                 (
-                    [process_id] => 280120
-                    [last_update] => 1673201101.7125
+                    [process_id] => 281372
+                    [last_update] => 1673202601.72
                 )
 
         )
 
     [handlers] => Array
         (
-            [280123] => Array
+            [281373] => Array
                 (
-                    [process_id] => 280123 // system process id, Apache\PHP FPM child process
-                    [last_update] => 1673201111.7156 // time start
-                    [count_start] => 251 // count processed queue element
-                    [last_start] => 1673201112.0207 // time last IPC operation
+                    [process_id] => 281373 // system process id, Apache\PHP FPM child process
+                    [last_update] => 1673202611.7216 // time start
+                    [count_start] => 237 // count processed queue element
+                    [last_start] => 1673202612.027 // time last IPC operation
                 )
 
-            [280121] => Array
+            [281374] => Array
                 (
-                    [process_id] => 280121
-                    [last_update] => 1673201111.7167
-                    [count_start] => 258
-                    [last_start] => 1673201112.0227
+                    [process_id] => 281374
+                    [last_update] => 1673202611.7221
+                    [count_start] => 274
+                    [last_start] => 1673202612.0251
                 )
 
-            [280120] => Array
+            [281375] => Array
                 (
-                    [process_id] => 280120
-                    [last_update] => 1673201111.7177
-                    [count_start] => 250
-                    [last_start] => 1673201112.0227
+                    [process_id] => 281375
+                    [last_update] => 1673202611.7228
+                    [count_start] => 249
+                    [last_start] => 1673202612.025
                 )
 
-            [280122] => Array
+            [281370] => Array
                 (
-                    [process_id] => 280122
-                    [last_update] => 1673201111.7181
-                    [count_start] => 245
-                    [last_start] => 1673201112.0207
+                    [process_id] => 281370
+                    [last_update] => 1673202611.7239
+                    [count_start] => 244
+                    [last_start] => 1673202612.0271
                 )
 
         )
