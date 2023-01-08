@@ -168,7 +168,7 @@ if(!function_exists('open_cron_socket')) {
 					'r', 
 					false, 
 					stream_context_create([
-						'http'=>[ // responce  time 0.004 * 10 = 0.04 timeout start process, block mode
+						'http'=>[ // responce time 0.004 * 10 = 0.04 timeout start process, block mode
 							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
 						]
 					])
@@ -693,13 +693,9 @@ if(
 		global $cron_session;
 		$time= time();
 		
-		
 		if(isset($job['date']) || isset($job['time'])){
 			$time_stamp= false;
 			$unlocked= false;
-			
-			if(isset($job['date'])) $d= explode('-', $job['date']);		
-			if(isset($job['time'])) $t= explode(':', $job['time']);
 			
 			if( // unlock job
 				isset($job['time']) &&
@@ -712,6 +708,9 @@ if(
 			}
 			
 			if($cron_session[$job_process_id]['complete'] === true) return true;
+			
+			if(isset($job['date'])) $d= explode('-', $job['date']);		
+			if(isset($job['time'])) $t= explode(':', $job['time']);
 			
 			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
