@@ -49,7 +49,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '21:30:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '00:45:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -61,7 +61,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '21:30:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '00:45:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -90,8 +90,6 @@ define("CRON_LOG_ROTATE_MAX_FILES", 5);
 define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
-define("CRON_SECURITY", false); // set true for high danger environment
-
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 
 ////////////////////////////////////////////////////////////////////////
@@ -523,7 +521,7 @@ if(
 	}
 
 	function _die($return= ''){
-		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
+		global $cron_resource, $cron_limit_exception;
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
@@ -534,7 +532,7 @@ if(
 	}
 	
 	function cron_restart(){// restart cron
-		global $cron_resource, $cron_session, $cron_limit_exception, $cron_dat_file;
+		global $cron_resource, $cron_limit_exception;
 		$cron_limit_exception->disable();
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
@@ -601,8 +599,8 @@ if(
 		}
 		$counter= time();
 
-		if(CRON_LOG_FILE && filesize(CRON_LOG_FILE) >  CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
-			rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
+		if(CRON_LOG_FILE && @filesize(CRON_LOG_FILE) > CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
+			@rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
 			
 			file_put_contents(
 				CRON_LOG_FILE, 
@@ -615,12 +613,12 @@ if(
 			$log_files_size = 0;
 						
 			foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
-				$log_files_size+= filesize($file_log_rotate);
+				$log_files_size+= @filesize($file_log_rotate);
 				if ($file_log_rotate == CRON_LOG_FILE) {
 					continue;
 				}
 					
-				$log_mtime = filectime($file_log_rotate);
+				$log_mtime = @filectime($file_log_rotate);
 				if ($log_mtime < $the_oldest) {
 					$log_old_file = $file_log_rotate;
 					$the_oldest = $log_mtime;
@@ -642,24 +640,11 @@ if(
 
 	
 	function callback_connector($job, $job_process_id, $mode){ 
-		global $cron_session;
-		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $job_process_id); 
 		} else {
-			// include connector
-			
 			if(file_exists($job['callback'])) {
-				if(CRON_SECURITY) {
-					$cron_security_md5_before_include= md5(serialize([$cron_session, $job]));
-					$cron_security_variables_before_include= [$cron_session, $job];
-				}
-				
 				include $job['callback'];
-				
-				if(CRON_SECURITY && $cron_security_md5_before_include != md5(serialize([$cron_session, $job]))) {
-					list($cron_session, $job) = $cron_security_variables_before_include;
-				}
 			} else {
 				if(CRON_LOG_FILE){
 					file_put_contents(
@@ -676,7 +661,6 @@ if(
 				}
 			}
 		}
-		
 	}
 	
 		
@@ -717,29 +701,32 @@ if(
 			if(isset($job['date'])) $d= explode('-', $job['date']);		
 			if(isset($job['time'])) $t= explode(':', $job['time']);
 			
+			if( // unlock job
+				isset($job['time']) &&
+				!isset($job['date']) &&
+				$cron_session[$job_process_id]['last_update'] != 0 &&
+				date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
+				$cron_session[$job_process_id]['complete']
+			){
+				$cron_session[$job_process_id]['complete']= false;
+			}
+			
+			if($cron_session[$job_process_id]['complete'] === true) return true;
+			
 			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
 				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
 				
-				if($time_stamp < $time && $cron_session[$job_process_id]['complete'] === false) $unlocked= true;
+				if($time_stamp < $time) $unlocked= true;
 			} else {
 				if(isset($job['date'])){ // check date, one - time
 					$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
 					
-					if($time_stamp < $time && $cron_session[$job_process_id]['complete'] === false) $unlocked= true;
+					if($time_stamp < $time) $unlocked= true;
 				}
 				if(isset($job['time'])){ // check time, every day
 					$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
 					
-					if($time_stamp < $time && $cron_session[$job_process_id]['complete'] === false) $unlocked= true;
-					
-					if( // unlock job
-						$cron_session[$job_process_id]['last_update'] != 0 &&
-						date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
-						$cron_session[$job_process_id]['complete']
-					){
-						$cron_session[$job_process_id]['complete']= false;
-						$unlocked= true;
-					}
+					if($time_stamp < $time) $unlocked= true;
 				}
 			}
 			
@@ -761,7 +748,7 @@ if(
 	
  
 	function singlethreading_dispatcher(){ // main loop job list
-		global $cron_jobs, $cron_session;
+		global $cron_jobs;
 		
 		foreach($cron_jobs as $job_process_id=> $job){
 			cron_session_init($job, $job_process_id);
@@ -873,7 +860,7 @@ if(
 	){
 		$job_process_id= intval($_GET["job_process_id"]);
 		$job= $cron_jobs[$job_process_id];
-		
+
 		if(isset($cron_jobs[$job_process_id]) && $job['multithreading']){
 			multithreading_dispatcher();
 		}
