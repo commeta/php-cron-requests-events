@@ -168,7 +168,7 @@ if(!function_exists('open_cron_socket')) {
 					'r', 
 					false, 
 					stream_context_create([
-						'http'=>[ // minimal time out to start process, block mode
+						'http'=>[ // responce  time 0.004 * 10 = 0.04 timeout start process, block mode
 							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
 						]
 					])
