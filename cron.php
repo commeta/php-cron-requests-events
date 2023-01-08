@@ -702,6 +702,8 @@ if(
 	}
 	
 	function cron_check_job(& $cron_session, & $job, $mode, $main, $job_process_id){
+		$time= time();
+		
 		if(isset($job['date']) || isset($job['time'])){
 			$time_stamp= false;
 			
@@ -718,7 +720,7 @@ if(
 					$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
 					
 					if( // unlock job
-						date('d-m-Y', time()) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
+						date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
 						$cron_session[$job_process_id]['complete']
 					){
 						$cron_session[$job_process_id]['complete']= false;
@@ -727,14 +729,14 @@ if(
 			}
 			
 			if(
-				$time_stamp < time() &&
+				$time_stamp < $time &&
 				$cron_session[$job_process_id]['complete'] === false
 			){
 				callback_connector($job, $cron_session, $mode, $job_process_id);
 			}
 		} else {
 			if(
-				$cron_session[$job_process_id]['last_update'] + $job['interval'] < time()
+				$cron_session[$job_process_id]['last_update'] + $job['interval'] < $time
 			){
 				callback_connector($job, $cron_session, $mode, $job_process_id);
 			}
@@ -773,12 +775,13 @@ if(
 
 	function memory_profiler(& $cron_jobs){
 		static  $profiler= [];
+		$time= time();
 		
-		if(!isset($profiler['time'])) $profiler['time']= time();
-		if($profiler['time'] > time() - 15){
+		if(!isset($profiler['time'])) $profiler['time']= $time;
+		if($profiler['time'] > $time - 15){
 			return true;
 		}
-		$profiler['time']= time();
+		$profiler['time']= $time;
 		
 		if(!isset($profiler['memory_get_usage'])){
 			$profiler['memory_get_usage']= 0;
@@ -799,7 +802,7 @@ if(
 				file_put_contents(
 					CRON_LOG_FILE,
 					implode(' ', [
-						'date'=> date('m/d/Y H:i:s', time()),
+						'date'=> date('m/d/Y H:i:s', $time),
 						'message'=> 'INFO:',
 						'name' => 'memory_get_usage',
 						'value' => $profiler['memory_get_usage'],
@@ -809,11 +812,11 @@ if(
 			}
 		} 
 		
-		if(!isset($profiler['callback_time'])) $profiler['callback_time']= time();
-		if($profiler['callback_time'] > time() - 60){
+		if(!isset($profiler['callback_time'])) $profiler['callback_time']= $time;
+		if($profiler['callback_time'] > $time - 60){
 			return true;
 		}
-		$profiler['callback_time']= time();
+		$profiler['callback_time']= $time;
 		
 		foreach($cron_jobs as $job){
 			if(is_file($job['callback'])){
@@ -858,7 +861,6 @@ if(
 	}
 
 	
-	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
 	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
@@ -872,7 +874,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher($cron_jobs, $cron_session);
