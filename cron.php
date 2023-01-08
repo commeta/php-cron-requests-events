@@ -639,7 +639,9 @@ if(
 	}
 
 	
-	function callback_connector($job, $job_process_id, $mode){ 
+	function callback_connector($job, $job_process_id, $mode){
+		global $cron_session;
+		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $job_process_id); 
 		} else {
