@@ -30,7 +30,6 @@ $cron_jobs= [];
 ###########################
 # EXAMPLES
 
-
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
@@ -38,7 +37,6 @@ $cron_jobs[]= [ // CRON Job 1, example
 	'multithreading' => false
 ];
 ##########
-
 
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
@@ -709,7 +707,7 @@ if(
 	
 	function cron_check_job($job, $job_process_id, $mode){
 		global $cron_session;
-		$time= time();
+		$time= PHP_INT_MAX;
 		
 		
 		if(isset($job['date']) || isset($job['time'])){
@@ -911,7 +909,7 @@ if(
 					cron_log_rotate();
 				}
 				
-				sleep(1); // delay, min values increases load on server: read(2) syscalls for the process
+				sleep(1); // delay, min values increases load on server: write(2) syscalls for the process
 			}
 		}
 		
