@@ -317,9 +317,28 @@ cron.php работает в 4-х режимах:
 
 
 Можно подключать данный CRON к любой CMS, это никак не скажется на производительности. 
-##### Тестовый стенд:
+##### Тестовый стенд 1:
 - Centos 8
 - Apache/2.4.6 mpm-itk/2.4.7-04 mod_fcgid/2.3.9
 - 1 ядро: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 - PHP 7.4.3 with Zend OPcache
 - GNU Wget 1.14
+
+##### Тестовый стенд 2:
+- Ubuntu 22
+- nginx/1.22.1 php fpm
+- 12 thread: AMD Ryzen 5 2600X Six-Core Processor
+- PHP 8.2.0 with Zend OPcache, PHP-FPM
+- GNU Wget 1.20.3
+
+##### Плоский профиль Xdebug, CacheGrind
+(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
+(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
+(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
+(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
+(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png"example_queue_address_manager_extend_pop_flock.png")
+
+
+
+
+
