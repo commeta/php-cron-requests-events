@@ -1,5 +1,5 @@
 # php-cron-requests-events
-php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in FastCGI/FPM handler environment.
+php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in Apache/FastCGI/FPM handler environment.
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 Низкоуровневый код, отсутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
@@ -230,7 +230,7 @@ $boot= [ // 0-3 sector, frame size 4096
 ```
 // zero data frame from completed job
 // 12 thread: AMD Ryzen 5 2600X Six-Core Processor
-// PHP 8.2.0 with Zend OPcache, FastCGI PHP-FPM
+// PHP 8.2.0 with Zend OPcache, PHP-FPM
 // 4 process, concurency
 Array
 (
