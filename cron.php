@@ -167,8 +167,8 @@ if(!function_exists('open_cron_socket')) {
 					$cron_url, 
 					'r', 
 					false, 
-					stream_context_create([
-						'http'=>[ // script responce time 0.004 * 10 (5x empty opcache, 5x high LA) = 0.04 timeout start process, block mode
+					stream_context_create([ // block mode
+						'http'=>[ // script responce time 0.004 * 10 (5x empty\off opcache, 5x high LA) = 0.04 timeout start process
 							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
 						]
 					])
@@ -428,7 +428,7 @@ if(
 		}
 
 		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor);
+			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
 			
 			$stat= fstat($queue_resource);
 			if($frame_cursor !== false){
@@ -462,7 +462,7 @@ if(
 		$value= false;
 		
 		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace);
+			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace); // callback anonymous
 			
 			$stat= fstat($queue_resource);
 
@@ -591,13 +591,17 @@ if(
 	}
 
 	function cron_log_rotate(){ // LOG Rotate
-		static  $counter= false;
-		
-		if(CRON_DELAY == 0 && $counter === false) $counter= time();
-		if(CRON_DELAY == 0 && $counter > time() - 600){
+		global $cron_session;
+
+		if(!isset($cron_session['log_rotate_last_update'])) {
+			$cron_session['log_rotate_last_update']= 0;
+		}
+
+		if(CRON_DELAY == 0 && $cron_session['log_rotate_last_update'] > time() - 600){
 			return true;
 		}
-		$counter= time();
+		
+		$cron_session['log_rotate_last_update']= time();
 
 		if(CRON_LOG_FILE && @filesize(CRON_LOG_FILE) > CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
 			@rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
@@ -863,7 +867,7 @@ if(
 		isset($_GET["job_process_id"])
 	){
 		$job_process_id= intval($_GET["job_process_id"]);
-		$job= $cron_jobs[$job_process_id];
+		if(isset($cron_jobs[$job_process_id])) $job= $cron_jobs[$job_process_id];
 
 		if(isset($cron_jobs[$job_process_id]) && $job['multithreading']){
 			multithreading_dispatcher();
@@ -900,13 +904,13 @@ if(
 					cron_log_rotate();
 				}
 				
-				sleep(1);
+				sleep(1); // delay in infinite loop CRON_DELAY = 0
 			}
 		}
 		
 		//###########################################
-		write_cron_session();
 		if(CRON_LOG_FILE) cron_log_rotate();
+		write_cron_session();
 		flock($cron_resource, LOCK_UN);
 	}
 
