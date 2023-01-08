@@ -103,13 +103,18 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 
 ### Параметры запуска
-- define("CRON_LOG_FILE", CRON_SITE_ROOT . "cron/log/cron.log"); // Путь к файлу журнала, false - отключает журнал
-- define("CRON_DAT_FILE", CRON_SITE_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
-- define("CRON_DELAY", 180); // Тайм аут до следующего запуска в секундах, повышает нагрузку на низких значениях, увеличивает точность для даты и времени 
+- define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Путь к файлу журнала, false - отключает журнал
+- define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
+- define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
+- define("CRON_DELAY", 0); // Тайм аут до следующего запуска в секундах, 0 - резидентный режим (фоновая служба) 
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
 - define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
 - define("CRON_URL_KEY", 'my_secret_key'); // Ключ запуска в URI
 - $paths= "/usr/bin:/usr/local/bin"; // Если переменная окружения PATH пуста, используем системные пути, каталоги поиска исполняемых файлов: wget, curl
+- $profiler['time'] > $time - 15 // 15 сек. интервал проверки времени модификации cron.php, если новее то перезапуск
+- $profiler['callback_time'] > $time - 60 // 60 сек. интервал проверки времени модификации include callback файлов, если новее то перезапуск
+- $cron_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
+- ini_set('MAX_EXECUTION_TIME', 600); // Максимальное время выполнения, 0 в резидентном режиме 
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
