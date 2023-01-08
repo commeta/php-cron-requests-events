@@ -643,8 +643,8 @@ if(
 	}
 
 	
-	function callback_connector($mode, $job_process_id){ 
-		global $cron_session, $job;
+	function callback_connector($job, $job_process_id){ 
+		global $cron_session;
 		
 		if($mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $job_process_id); 
@@ -746,7 +746,7 @@ if(
 			}
 			
 			if($unlocked){
-				callback_connector($job['multithreading'], $job_process_id);
+				callback_connector($job, $job_process_id);
 				$cron_session[$job_process_id]['complete']= true;
 				$cron_session[$job_process_id]['last_update']= time();
 			}
@@ -754,7 +754,7 @@ if(
 			if(
 				$cron_session[$job_process_id]['last_update'] + $job['interval'] < $time
 			){
-				callback_connector($job['multithreading'], $job_process_id);
+				callback_connector($job, $job_process_id);
 				$cron_session[$job_process_id]['complete']= true;
 				$cron_session[$job_process_id]['last_update']= time();
 			}
