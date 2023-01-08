@@ -105,7 +105,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ### Параметры запуска
 - define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Путь к файлу журнала, false - отключает журнал
 - define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
-- define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
+- define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat'); // Путь к системному файлу многопроцессной очереди
 - define("CRON_DELAY", 0); // Тайм аут до следующего запуска в секундах, 0 - резидентный режим (фоновая служба) 
 - define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Максимальный размер логов в МБ
 - define("CRON_LOG_ROTATE_MAX_FILES", 5); // Хранить максимум 5 файлов архивных журналов
