@@ -332,11 +332,11 @@ cron.php работает в 4-х режимах:
 - GNU Wget 1.20.3
 
 ##### Плоский профиль Xdebug, CacheGrind
-(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
-(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
-(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
-(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
-(https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png"example_queue_address_manager_extend_pop_flock.png")
+![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
+![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
+![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
+![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
+![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png"example_queue_address_manager_extend_pop_flock.png")
 
 
 
