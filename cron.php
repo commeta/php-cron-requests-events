@@ -676,8 +676,8 @@ if(
 		if(isset($cron_session[$job_process_id]['md5'])) {
 			if($cron_session[$job_process_id]['md5'] != md5(serialize($job))){
 				$cron_session[$job_process_id]['md5']= md5(serialize($job));
-				unset($cron_session[$job_process_id]['last_update']);
-				unset($cron_session[$job_process_id]['complete']);
+				$cron_session[$job_process_id]['last_update']= 0;
+				$cron_session[$job_process_id]['complete']= false;
 			}
 		} else {
 			$cron_session[$job_process_id]['md5']= md5(serialize($job));
@@ -704,8 +704,8 @@ if(
 				isset($job['time']) &&
 				!isset($job['date']) &&
 				$cron_session[$job_process_id]['last_update'] != 0 &&
-				date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update']) &&
-				$cron_session[$job_process_id]['complete']
+				$cron_session[$job_process_id]['complete']  &&
+				date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update'])
 			){
 				$cron_session[$job_process_id]['complete']= false;
 			}
@@ -790,7 +790,7 @@ if(
 		$time= time();
 		
 		if(!isset($profiler['time'])) $profiler['time']= $time;
-		if($profiler['time'] > $time - 15){
+		if($profiler['time'] > $time - 15){ // delayed start
 			return true;
 		}
 		$profiler['time']= $time;
@@ -825,7 +825,7 @@ if(
 		} 
 		
 		if(!isset($profiler['callback_time'])) $profiler['callback_time']= $time;
-		if($profiler['callback_time'] > $time - 60){
+		if($profiler['callback_time'] > $time - 60){ // delayed start
 			return true;
 		}
 		$profiler['callback_time']= $time;
