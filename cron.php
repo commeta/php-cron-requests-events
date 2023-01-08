@@ -888,7 +888,7 @@ if(
 					cron_log_rotate();
 				}
 				
-				sleep(1);
+				sleep(1); // delay, min values increases load on server: read(2) syscalls for the process
 			}
 		}
 		
