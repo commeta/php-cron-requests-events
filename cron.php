@@ -49,7 +49,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '00:45:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '01:05:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -61,7 +61,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '00:45:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '01:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -168,7 +168,7 @@ if(!function_exists('open_cron_socket')) {
 					'r', 
 					false, 
 					stream_context_create([
-						'http'=>[ // responce time 0.004 * 10 = 0.04 timeout start process, block mode
+						'http'=>[ // script responce time 0.004 * 10 (5x empty opcache, 5x high LA) = 0.04 timeout start process, block mode
 							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
 						]
 					])
@@ -767,10 +767,12 @@ if(
 		$cron_resource= fopen($cron_dat_file, "r+");
 		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 			$stat= fstat($cron_resource);
-			$cs= unserialize(@fread($cron_resource, $stat['size']));
+			$cs= unserialize(fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
+			
 			cron_session_init($job, $job_process_id);
 			cron_check_job($job, $job_process_id, false);
+			
 			write_cron_session();
 			flock($cron_resource, LOCK_UN);
 		}
