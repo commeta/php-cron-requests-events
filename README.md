@@ -234,6 +234,9 @@ $boot= [ // 0-3 sector, frame size 4096
 #### Структура IPC кадра
 ```
 // zero data frame from completed job
+// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
+// PHP 8.2.0 with Zend OPcache, FastCGI PHP-FPM
+// 4 process, concurency
 Array
 (
     [workers] => Array
