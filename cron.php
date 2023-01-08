@@ -643,10 +643,10 @@ if(
 	}
 
 	
-	function callback_connector($job, $job_process_id){ 
+	function callback_connector($job, $job_process_id, $mode){ 
 		global $cron_session;
 		
-		if($mode){ // multithreading\singlethreading
+		if($job['multithreading'] && $mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, $job_process_id); 
 		} else {
 			// include connector
@@ -707,7 +707,7 @@ if(
 		}
 	}
 	
-	function cron_check_job($job, $main, $job_process_id){
+	function cron_check_job($job, $job_process_id, $mode){
 		global $cron_session;
 		$time= time();
 		
@@ -746,7 +746,7 @@ if(
 			}
 			
 			if($unlocked){
-				callback_connector($job, $job_process_id);
+				callback_connector($job, $job_process_id, $mode);
 				$cron_session[$job_process_id]['complete']= true;
 				$cron_session[$job_process_id]['last_update']= time();
 			}
@@ -754,7 +754,7 @@ if(
 			if(
 				$cron_session[$job_process_id]['last_update'] + $job['interval'] < $time
 			){
-				callback_connector($job, $job_process_id);
+				callback_connector($job, $job_process_id, $mode);
 				$cron_session[$job_process_id]['complete']= true;
 				$cron_session[$job_process_id]['last_update']= time();
 			}
@@ -767,7 +767,7 @@ if(
 		
 		foreach($cron_jobs as $job_process_id=> $job){
 			cron_session_init($job_process_id);
-			cron_check_job($job, true, $job_process_id);
+			cron_check_job($job, $job_process_id, true);
 		}
 	}
 	
@@ -786,7 +786,7 @@ if(
 			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
 			cron_session_init($job_process_id);
-			cron_check_job($job, false, $job_process_id);
+			cron_check_job($job, $job_process_id, false);
 			write_cron_session();
 			flock($cron_resource, LOCK_UN);
 		}
@@ -897,7 +897,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher();
