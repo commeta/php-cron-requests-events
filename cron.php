@@ -144,11 +144,15 @@ if(!function_exists('open_cron_socket')) {
 			$wget === false && 
 			$curl === false
 		){
-			foreach(explode(':', getenv('PATH')) as $path){
+			if(!getenv('PATH')) $paths= "/usr/bin:/usr/local/bin";
+			else $paths= getenv('PATH');
+			
+			foreach(explode(':', $paths) as $path){
 				if(is_executable($path.'/wget')) $wget= $path.'/wget';
 				if(is_executable($path.'/curl')) $curl= $path.'/curl';
 			}
 		}
+
 		
 		if(
 			is_callable("shell_exec") &&
