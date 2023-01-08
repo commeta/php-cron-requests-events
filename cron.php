@@ -49,7 +49,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '19:32:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '21:05:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -61,7 +61,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '19:32:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '21:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -680,8 +680,8 @@ if(
 	}
 	
 		
-	function cron_session_init($job_process_id){
-		global $cron_session, $job;
+	function cron_session_init($job, $job_process_id){
+		global $cron_session;
 		static $init= [];
 		
 		if(isset($init[$job_process_id])) return true;
@@ -764,7 +764,7 @@ if(
 		global $cron_jobs, $cron_session;
 		
 		foreach($cron_jobs as $job_process_id=> $job){
-			cron_session_init($job_process_id);
+			cron_session_init($job, $job_process_id);
 			cron_check_job($job, $job_process_id, true);
 		}
 	}
@@ -783,7 +783,7 @@ if(
 			$stat= fstat($cron_resource);
 			$cs= unserialize(@fread($cron_resource, $stat['size']));
 			if(is_array($cs)) $cron_session= $cs;
-			cron_session_init($job_process_id);
+			cron_session_init($job, $job_process_id);
 			cron_check_job($job, $job_process_id, false);
 			write_cron_session();
 			flock($cron_resource, LOCK_UN);
@@ -895,7 +895,7 @@ if(
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
 		}
-		
+
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher();
