@@ -331,7 +331,7 @@ cron.php работает в 4-х режимах:
 - PHP 8.2.0 with Zend OPcache, PHP-FPM
 - GNU Wget 1.20.3
 
-##### Плоский профиль Xdebug, CacheGrind
+##### Плоский профиль Xdebug, KCacheGrind
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
 
@@ -341,9 +341,9 @@ cron.php работает в 4-х режимах:
 После запуска процесса потомка, include cron/inc/callback_cron.php
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
 
-После запуска процесса потомка, примера наполнения очереди include cron/inc/callback_addressed_queue_example.php
+После запуска процесса потомка, пример наполнения очереди include cron/inc/callback_addressed_queue_example.php
 ![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
 
-После запуска процесса потомка, примера извлечения из очереди include cron/inc/callback_addressed_queue_example.php
+После запуска процесса потомка, пример извлечения из очереди include cron/inc/callback_addressed_queue_example.php
 ![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
 
