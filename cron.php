@@ -675,8 +675,9 @@ if(
 		
 		if(isset($cron_session[$job_process_id]['md5'])) {
 			if($cron_session[$job_process_id]['md5'] != md5(serialize($job))){
-				$cron_session[$job_process_id]= [];
 				$cron_session[$job_process_id]['md5']= md5(serialize($job));
+				unset($cron_session[$job_process_id]['last_update']);
+				unset($cron_session[$job_process_id]['complete']);
 			}
 		} else {
 			$cron_session[$job_process_id]['md5']= md5(serialize($job));
