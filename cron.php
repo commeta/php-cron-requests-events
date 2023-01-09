@@ -52,7 +52,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '23:38:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '00:55:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -64,7 +64,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) { 
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '23:38:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '00:55:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -283,7 +283,7 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									microtime() . " ERROR: init boot frame\n",
+									sprintf("%f ERROR: init boot frame\n", microtime()),
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -376,9 +376,7 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									microtime() . 
-									" INFO: queue_manager " . 
-									$multicore_long_time_micro_job['count'] . " \n",
+									sprintf("%f INFO: queue_manager %d\n", microtime(), $multicore_long_time_micro_job['count']),
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -612,7 +610,7 @@ if(
 					unlink($log_old_file);
 					file_put_contents(
 						CRON_LOG_FILE, 
-						date('m/d/Y H:i:s', time()) . "INFO: log removal\n",
+						date('m/d/Y H:i:s', time()) . " INFO: log removal\n",
 						FILE_APPEND | LOCK_EX
 					);
 				}
