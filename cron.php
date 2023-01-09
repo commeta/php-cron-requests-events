@@ -49,7 +49,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '01:05:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '22:17:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -61,7 +61,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '01:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '22:17:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -236,7 +236,7 @@ if(
 					'count'=> $i
 				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
-				if($frame_cursor !== false) $index_data[$i]= $frame_cursor;  // example add cursor to index
+				if($frame_cursor !== 0) $index_data[$i]= $frame_cursor;  // example add cursor to index
 			}
 						
 			// Example save index
@@ -290,7 +290,7 @@ if(
 				}
 			}
 			
-			$boot= queue_address_pop(4096, 0, false, "init_boot_frame");
+			$boot= queue_address_pop(4096, 0, [], "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
@@ -323,7 +323,7 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], []);
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], [true]);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -357,11 +357,11 @@ if(
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
+				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, [], "count_frames");
 				
-				if($multicore_long_time_micro_job === false) {
+				if($multicore_long_time_micro_job === []) {
 					break 1;
-				} elseif($multicore_long_time_micro_job !== []) {
+				} elseif($multicore_long_time_micro_job !==  [true]) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
@@ -387,14 +387,14 @@ if(
 
 
 	// value - pushed value
-	// frame_size - set frame size
+	// frame_size - set frame size, 0 - auto
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// return frame cursor offset
-	function queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false){ // push data frame in stack
+	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''){ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
-		$return_cursor= false;
+		$return_cursor= 0;
 
-		if($frame_size !== false){
+		if($frame_size !== 0){
 			$frame= serialize($value);
 			
 			if($frame_size < mb_strlen($frame)){ // fill
@@ -405,10 +405,10 @@ if(
 		}
 
 		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
+			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
 			
 			$stat= fstat($queue_resource);
-			if($frame_cursor !== false){
+			if($frame_cursor !== PHP_INT_MAX){
 				$return_cursor= $frame_cursor;
 				$frame_length= mb_strlen($frame);
 				for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
@@ -435,12 +435,12 @@ if(
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
 	// return value from stack frame, false if null or error
-	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false){ // pop data frame from stack
+	function queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''){ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
-		$value= false;
+		$value= [];
 		
 		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== false) @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace); // callback anonymous
+			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace); // callback anonymous
 			
 			$stat= fstat($queue_resource);
 
@@ -450,7 +450,7 @@ if(
 				return false;
 			}
 
-			if($frame_cursor !== false){
+			if($frame_cursor !== PHP_INT_MAX){
 				$cursor= $frame_cursor;
 			} else {
 				if($stat['size'] - $frame_size > 0) $cursor= $stat['size'] - $frame_size;
@@ -458,10 +458,11 @@ if(
 			}
 
 			fseek($queue_resource, $cursor); // get data frame
-			$value= unserialize(trim(fread($queue_resource, $frame_size)));
+			$v= unserialize(trim(fread($queue_resource, $frame_size)));
+			if($v !== false) $value= $v;
 			
-			if($frame_cursor !== false){
-				if($frame_replace !== false){ // replace frame
+			if($frame_cursor !== PHP_INT_MAX){
+				if($frame_replace !== []){ // replace frame
 					$serialized_frame_replace= serialize($frame_replace);
 					$length_frame_replace= mb_strlen($serialized_frame_replace);
 					
@@ -474,7 +475,7 @@ if(
 					}
 				}
 				
-			} elseif($value !== false) { // LIFO mode	
+			} elseif($value !== []) { // LIFO mode	
 				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
 				else $trunc= 0; // truncate file
 
