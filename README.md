@@ -190,7 +190,7 @@ Array // $cron_session
 // frame_cursor - адрес, смещение в файле
 // callback - вызывает функцию во время блокировки файла очереди
 // возвращает позицию курсора фрейма
-queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false); // поместить в очередь
+queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
@@ -204,7 +204,7 @@ queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= 
 // frame_replace - переменная для замены
 // callback - вызывает функцию во время блокировки файла очереди
 // возвращает значение со стека
-$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false); // забрать из очереди
+$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''); // забрать из очереди
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
