@@ -513,9 +513,10 @@ if(
 		if($return == 'restart'){ // restart cron
 			if(isset($cron_dat_file)) touch($cron_dat_file, time() - CRON_DELAY);
 			open_cron_socket(CRON_URL_KEY);
+			$return= '';
 		}
 		
-		die($return);
+		die();
 	}
 	
 
