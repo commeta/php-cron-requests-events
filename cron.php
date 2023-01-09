@@ -463,9 +463,10 @@ if(
 			if($frame_cursor !== false){
 				if($frame_replace !== false){ // replace frame
 					$serialized_frame_replace= serialize($frame_replace);
+					$length_frame_replace= mb_strlen($serialized_frame_replace);
 					
-					if(mb_strlen($serialized_frame_replace) < $frame_size){
-						for($i= mb_strlen($serialized_frame_replace); $i <= $frame_size; $i++) $serialized_frame_replace.= chr(0);
+					if($length_frame_replace < $frame_size){
+						for($i= $length_frame_replace; $i <= $frame_size; $i++) $serialized_frame_replace.= chr(0);
 						
 						fseek($queue_resource, $cursor); 
 						fwrite($queue_resource, $serialized_frame_replace, $frame_size);
