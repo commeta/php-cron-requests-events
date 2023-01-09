@@ -49,7 +49,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			// execution time: 0.046951055526733 end - start, 1000 cycles
 			for($i= 0; $i < 1000; $i++){ // exanple add data in queue, any array serialized size < $frame_size
 				$frame_cursor= queue_address_push([
-					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
+					'url'=> sprintf("https://multicore_long_time_micro_job?param=&d", $i),
 					'count'=> $i
 				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
