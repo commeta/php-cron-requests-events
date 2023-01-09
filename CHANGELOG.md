@@ -2,5 +2,6 @@
 
 ## Alfa release [v0.1] (2022-12-23)
 
-## Beta release [v0.1] (2022-01-07)
-### 2021-01-08 Bug fix: all test complete, stable version
+## Beta release [v0.1] (2023-01-07)
+### 2023-01-08 Bug fix: all test complete, stable version
+### 2023-01-10 PHP > 7.0 strict mode: all test complete
