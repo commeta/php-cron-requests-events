@@ -57,7 +57,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			}
 						
 			// Example save index
-			if(count($index_data) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
+			if(count($index_data) === 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				// 13774 bytes index size
 				// 95000 bytes db size
 				queue_address_push($index_data, $boot['index_frame_size'], $boot['index_offset']);
@@ -117,7 +117,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 
 
 			// examples use adressed mode
-			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process or use $job_process_id
+			if(is_array($boot) && count($boot['handlers']) === 1): // first handler process or use $job_process_id
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
