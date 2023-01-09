@@ -52,7 +52,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '00:55:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '01:49:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -64,7 +64,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) { 
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '00:55:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '01:49:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -196,6 +196,10 @@ if(
 		$frame_size= 95;
 		$process_id= getmypid();
 		
+		$value_replace= [];
+		$value_completed= [true];
+		
+		
 		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
 		
 		if($mode){
@@ -294,7 +298,7 @@ if(
 				}
 			}
 			
-			$boot= queue_address_pop(4096, 0, [], "init_boot_frame");
+			$boot= queue_address_pop(4096, 0, $value_replace, "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
@@ -327,7 +331,7 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], [true]);
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], $value_completed);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -361,11 +365,11 @@ if(
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, [], "count_frames");
+				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, $value_replace, "count_frames");
 				
-				if($multicore_long_time_micro_job === []) {
+				if($multicore_long_time_micro_job === $value_replace) {
 					break 1;
-				} elseif($multicore_long_time_micro_job !==  [true]) {
+				} elseif($multicore_long_time_micro_job !==  $value_completed) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
@@ -553,15 +557,15 @@ if(
 
 		if(CRON_DAEMON_MODE){
 			set_time_limit(0);
-			ini_set('MAX_EXECUTION_TIME', 0);
+			ini_set('MAX_EXECUTION_TIME', "0");
 		} else {
 			set_time_limit(600);
-			ini_set('MAX_EXECUTION_TIME', 600);
+			ini_set('MAX_EXECUTION_TIME', "600");
 		}
 		
-		ini_set('error_reporting', E_ALL);
-		ini_set('display_errors', 1); // 1 to debug
-		ini_set('display_startup_errors', 1);
+		ini_set('error_reporting', "E_ALL");
+		ini_set('display_errors', "1"); // 1 to debug
+		ini_set('display_startup_errors', "1");
 		
 		register_shutdown_function('_die');
 	}
@@ -623,7 +627,7 @@ if(
 		global $cron_session;
 		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
-			open_cron_socket(CRON_URL_KEY, $job_process_id); 
+			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			if(file_exists($job['callback'])) {
 				include $job['callback'];
