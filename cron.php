@@ -21,6 +21,9 @@
  * 
  */
  
+// declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
+
+ 
  ////////////////////////////////////////////////////////////////////////
 // CRON Jobs
 define("CRON_ROOT", dirname(__FILE__) . DIRECTORY_SEPARATOR);
