@@ -96,21 +96,6 @@ define("CRON_LOG_LEVEL", 2);
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 
-////////////////////////////////////////////////////////////////////////
-// Debug
-/*
-@file_put_contents(
-	CRON_LOG_FILE, 
-	microtime() . " DEBUG: start  microtime:" . 
-		print_r([
-			$_SERVER['QUERY_STRING'], 
-			$_SERVER['SERVER_NAME'], 
-			$_SERVER['REQUEST_METHOD'], 
-			$_SERVER['REQUEST_URI']
-		] , true) . " \n",
-	FILE_APPEND | LOCK_EX
-);
-*/
  
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -240,7 +225,7 @@ if(
 			// execution time: 0.046951055526733 end - start, 1000 cycles
 			for($i= 0; $i < 1000; $i++){ // exanple add data in queue, any array serialized size < $frame_size
 				$frame_cursor= queue_address_push([
-					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
+					'url'=> sprintf("https://multicore_long_time_micro_job?param=&d", $i),
 					'count'=> $i
 				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
@@ -584,7 +569,7 @@ if(
 		$cron_session['log_rotate_last_update']= time();
 
 		if(CRON_LOG_FILE && @filesize(CRON_LOG_FILE) > CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
-			@rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . time());
+			@rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . (string) time());
 			
 			file_put_contents(
 				CRON_LOG_FILE, 
@@ -638,7 +623,7 @@ if(
 						implode(' ', [
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
-							'job_process_id' => $job_process_id,
+							'job_process_id' => (string) $job_process_id,
 							'callback' => $job['callback'],
 							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
 						]) . "\n",
@@ -777,7 +762,7 @@ if(
 						'date'=> date('m/d/Y H:i:s', $time),
 						'message'=> 'INFO:',
 						'name' => 'memory_get_usage',
-						'value' => $profiler['memory_get_usage'],
+						'value' => (string) $profiler['memory_get_usage'],
 					]) . "\n",
 					FILE_APPEND | LOCK_EX
 				);
@@ -823,7 +808,7 @@ if(
 			if($job['multithreading']){
 				// Dispatcher init
 				$job_process_id= intval($_GET["job_process_id"]);
-				$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
+				$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . (string) $job_process_id . '.dat';
 				if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 				
 				$cron_resource= fopen($cron_dat_file, "r+");
