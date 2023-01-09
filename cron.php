@@ -187,30 +187,6 @@ if(
 	$_REQUEST["cron"] == CRON_URL_KEY
 ){
 	////////////////////////////////////////////////////////////////////////
-	// Classes: system api
-	class time_limit_exception { // Exit if time exceed time_limit
-		protected $enabled= false;
-
-		public function __construct() {
-			register_shutdown_function( array($this, 'onShutdown') );
-		}
-		
-		public function enable() {
-			$this->enabled= true;
-		}   
-		
-		public function disable() {
-			$this->enabled= false;
-		}   
-		
-		public function onShutdown() { 
-			if ($this->enabled) { //Maximum execution time of $time_limit$ second exceeded
-				_die();
-			}   
-		}   
-	}
-	
-	
 	// Functions: system api 
 	function queue_address_manager($mode){ // example: multicore queue
 		$frame_size= 95;
@@ -523,8 +499,7 @@ if(
 	}
 
 	function _die($return= ''){
-		global $cron_resource, $cron_limit_exception;
-		$cron_limit_exception->disable();
+		global $cron_resource;
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			write_cron_session();
@@ -534,8 +509,7 @@ if(
 	}
 	
 	function cron_restart(){// restart cron
-		global $cron_resource, $cron_limit_exception;
-		$cron_limit_exception->disable();
+		global $cron_resource;
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){
 			write_cron_session();
@@ -547,6 +521,8 @@ if(
 		die();
 	}
 	
+
+
 
 	function fcgi_finish_request(){
 		// check if fastcgi_finish_request is callable
@@ -860,8 +836,7 @@ if(
 	$cron_resource= true;
 	$cron_session= [];
 	
-	$cron_limit_exception= new time_limit_exception;
-	$cron_limit_exception->enable();
+	register_shutdown_function('_die');
 
 	////////////////////////////////////////////////////////////////////////
 	// multithreading 
