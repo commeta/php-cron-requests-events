@@ -410,8 +410,8 @@ if(
 			$stat= fstat($queue_resource);
 			if($frame_cursor !== false){
 				$return_cursor= $frame_cursor;
-				
-				for($i= mb_strlen($frame); $i <= $frame_size; $i++) $frame.= chr(0);
+				$frame_length= mb_strlen($frame);
+				for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
 				
 				fseek($queue_resource, $frame_cursor);
 				fwrite($queue_resource, $frame, $frame_size);
