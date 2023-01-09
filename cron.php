@@ -389,7 +389,7 @@ if(
 
 	// value - pushed value
 	// frame_size - set frame size, 0 - auto
-	// frame_cursor - false for LIFO mode, get frame from cursor position
+	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
 	// return frame cursor offset
 	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''){ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
@@ -433,8 +433,8 @@ if(
 
 
 	// frame_size - set frame size
-	// frame_cursor - false for LIFO mode, get frame from cursor position
-	// frame_replace - false is off, delete frame
+	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
+	// frame_replace - [] is off, replace frame
 	// return value from stack frame, false if null or error
 	function queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''){ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
