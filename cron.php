@@ -83,7 +83,8 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 define("CRON_LOG_FILE", CRON_ROOT . 'cron/log/cron.log'); // false switched off
 define("CRON_DAT_FILE", CRON_ROOT . 'cron/dat/cron.dat');
 
-define("CRON_DELAY", 0);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
+define("CRON_DELAY", 1);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
+define("CRON_DAEMON_MODE", true);  // true\false - enable\disable daemon mode
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
@@ -501,7 +502,7 @@ if(
 	}
 
 	function _die($return= ''){
-		global $cron_resource;
+		global $cron_resource, $cron_dat_file;
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			write_cron_session();
@@ -510,6 +511,7 @@ if(
 		}
 		
 		if($return == 'restart'){ // restart cron
+			if(isset($cron_dat_file)) touch($cron_dat_file, time() - CRON_DELAY);
 			open_cron_socket(CRON_URL_KEY);
 		}
 		
@@ -548,7 +550,7 @@ if(
 			proc_nice(19);
 		}
 
-		if(CRON_DELAY == 0){
+		if(CRON_DAEMON_MODE){
 			set_time_limit(0);
 			ini_set('MAX_EXECUTION_TIME', 0);
 		} else {
@@ -570,7 +572,7 @@ if(
 			$cron_session['log_rotate_last_update']= 0;
 		}
 
-		if(CRON_DELAY == 0 && $cron_session['log_rotate_last_update'] > time() - 600){
+		if(CRON_DAEMON_MODE && $cron_session['log_rotate_last_update'] > time() - 600){
 			return true;
 		}
 		
@@ -858,17 +860,15 @@ if(
 		// check jobs
 		singlethreading_dispatcher();
 
-		if(CRON_DELAY == 0){
-			while(true){
-				singlethreading_dispatcher();
-				memory_profiler();
+		while(CRON_DAEMON_MODE){
+			singlethreading_dispatcher();
+			memory_profiler();
 				
-				if(CRON_LOG_FILE){
-					cron_log_rotate();
-				}
-				
-				sleep(1); // delay in infinite loop CRON_DELAY = 0
+			if(CRON_LOG_FILE){
+				cron_log_rotate();
 			}
+				
+			sleep(CRON_DELAY); // delay in infinite loop
 		}
 		
 		//###########################################
@@ -883,7 +883,7 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
 	if(file_exists(CRON_DAT_FILE)){
-		if(CRON_DELAY == 0){
+		if(CRON_DAEMON_MODE){
 			$cron_resource= fopen(CRON_DAT_FILE, "r");
 			$cron_started= true;
 			
