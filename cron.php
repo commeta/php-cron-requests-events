@@ -111,9 +111,9 @@ define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
-	function open_cron_socket($cron_url_key, $job_process_id= false){ // Start job in parallel process
-		static $wget= false;
-		static $curl= false;
+	function open_cron_socket($cron_url_key, $job_process_id= ''){ // Start job in parallel process
+		static $wget= '';
+		static $curl= '';
 		
 		
 		if(
@@ -128,7 +128,7 @@ if(!function_exists('open_cron_socket')) {
 		}
 		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
-		if($job_process_id !== false) $cron_url_key.= '&job_process_id=' . $job_process_id;
+		if($job_process_id !== '') $cron_url_key.= '&job_process_id=' . $job_process_id;
 		
 		$cron_url= $protocol . '://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
@@ -137,8 +137,8 @@ if(!function_exists('open_cron_socket')) {
 		if(
 			is_callable("shell_exec") &&
 			strtolower(PHP_OS) == 'linux' && 
-			$wget === false && 
-			$curl === false
+			$wget === '' && 
+			$curl === ''
 		){
 			if(!getenv('PATH')) $paths= "/usr/bin:/usr/local/bin";
 			else $paths= getenv('PATH');
@@ -151,13 +151,13 @@ if(!function_exists('open_cron_socket')) {
 		
 		if(
 			is_callable("shell_exec") &&
-			$wget
+			$wget !== ''
 		){
 			if($protocol ==  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
 			else shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
 		} elseif(
 			is_callable("shell_exec") &&
-			$curl
+			$curl !== ''
 		){
 			if($protocol ==  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
 			else shell_exec($curl . ' -I --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
@@ -508,24 +508,13 @@ if(
 			fclose($cron_resource);
 		}
 		
+		if($return == 'restart'){ // restart cron
+			open_cron_socket(CRON_URL_KEY);
+		}
+		
 		die($return);
 	}
 	
-	function cron_restart(){// restart cron
-		global $cron_resource;
-		
-		if(isset($cron_resource) && is_resource($cron_resource)){
-			write_cron_session();
-			flock($cron_resource, LOCK_UN);
-			fclose($cron_resource);
-		}
-		
-		open_cron_socket(CRON_URL_KEY);
-		die();
-	}
-	
-
-
 
 	function fcgi_finish_request(){
 		// check if fastcgi_finish_request is callable
@@ -684,13 +673,13 @@ if(
 		$time= time();
 		
 		if(isset($job['date']) || isset($job['time'])){
-			$time_stamp= false;
+			$time_stamp= 0;
 			$unlocked= false;
 			
 			if( // unlock job
 				isset($job['time']) &&
 				!isset($job['date']) &&
-				$cron_session[$job_process_id]['last_update'] != 0 &&
+				$cron_session[$job_process_id]['last_update'] !== 0 &&
 				$cron_session[$job_process_id]['complete']  &&
 				date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update'])
 			){
@@ -746,30 +735,6 @@ if(
 	}
 	
 	
-	function multithreading_dispatcher(){  // main loop job list
-		global $job, $cron_resource, $cron_session, $cron_dat_file;
-		
-		// Dispatcher init
-		$job_process_id= intval($_GET["job_process_id"]);
-		$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
-		if(!file_exists($cron_dat_file)) touch($cron_dat_file);
-		
-		$cron_resource= fopen($cron_dat_file, "r+");
-		if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-			$stat= fstat($cron_resource);
-			$cs= unserialize(fread($cron_resource, $stat['size']));
-			if(is_array($cs)) $cron_session= $cs;
-			
-			cron_session_init($job, $job_process_id);
-			cron_check_job($job, $job_process_id, false);
-			
-			write_cron_session();
-			flock($cron_resource, LOCK_UN);
-		}
-		
-		fclose($cron_resource);
-	}
-
 
 	function memory_profiler(){
 		global $cron_jobs;
@@ -791,7 +756,7 @@ if(
 		}
 		
 		if($profiler['filemtime'] != filemtime(__FILE__) || !file_exists(__FILE__)){ // write in main file event, restart
-			cron_restart();
+			_die('restart');
 		}
 		
 		if($profiler['memory_get_usage'] < memory_get_usage()){
@@ -826,7 +791,7 @@ if(
 				}
 				
 				if($profiler['filemtime_' . $job['callback']] != $filemtime_callback){ // write in callback file event, restart
-					cron_restart();
+					_die('restart');
 				}
 			}
 		}
@@ -836,21 +801,36 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// start in background
 	init_background_cron();
-	
-	$cron_dat_file= CRON_DAT_FILE;
-	$cron_resource= true;
 	$cron_session= [];
 	
 	////////////////////////////////////////////////////////////////////////
-	// multithreading 
+	// multithreading Dispatcher
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["job_process_id"])
 	){
 		$job_process_id= intval($_GET["job_process_id"]);
 		if(isset($cron_jobs[$job_process_id])) $job= $cron_jobs[$job_process_id];
 
-		if(isset($cron_jobs[$job_process_id]) && $job['multithreading']){
-			multithreading_dispatcher();
+		if($job['multithreading']){
+			// Dispatcher init
+			$job_process_id= intval($_GET["job_process_id"]);
+			$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
+			if(!file_exists($cron_dat_file)) touch($cron_dat_file);
+			
+			$cron_resource= fopen($cron_dat_file, "r+");
+			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+				$stat= fstat($cron_resource);
+				$cs= unserialize(fread($cron_resource, $stat['size']));
+				if(is_array($cs)) $cron_session= $cs;
+				
+				cron_session_init($job, $job_process_id);
+				cron_check_job($job, $job_process_id, false);
+				
+				write_cron_session();
+				flock($cron_resource, LOCK_UN);
+			}
+			
+			fclose($cron_resource);
 		}
 		
 		_die();
@@ -859,7 +839,9 @@ if(
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
-	if(@filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
+	$cron_dat_file= CRON_DAT_FILE;
+	
+	if(filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
 	
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
