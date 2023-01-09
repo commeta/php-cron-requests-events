@@ -1,4 +1,5 @@
 <?php
+// declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
 
 function queue_address_manager_extend($mode){ // example: multicore queue
 		$frame_size= 95;
