@@ -504,6 +504,8 @@ if(
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			write_cron_session();
+			flock($cron_resource, LOCK_UN);
+			fclose($cron_resource);
 		}
 		
 		die($return);
