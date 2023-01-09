@@ -168,7 +168,7 @@ if(!function_exists('open_cron_socket')) {
 					'r', 
 					false, 
 					stream_context_create([ // block mode
-						'http'=>[ // script responce time 0.004 * 10 (5x empty\off opcache, 5x high LA) = 0.04 timeout start process
+						'http'=>[ // script responce time 0.004 * 10 (Linux Kernel Load Average\OPcache\FLOPS) = 0.04 timeout start process
 							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
 						]
 					])
@@ -244,7 +244,7 @@ if(
 			];
 			
 			queue_address_push($boot, 4096, 0);
-			$index_data= []; // index - address array, frame_cursor is key of array, 
+			$index_data= []; // example index - address array, frame_cursor is key of array, 
 			// if big data base - save partitions of search index in file, 
 			// use fseek\fread and parser on finite state machines for find index key\value
 			// alignment data with leading zeros
@@ -254,16 +254,16 @@ if(
 			// PHP 7.4.3 with Zend OPcache
 			// 1 process, no concurency
 			// execution time: 0.046951055526733 end - start, 1000 cycles
-			for($i= 0; $i < 1000; $i++){
+			for($i= 0; $i < 1000; $i++){ // exanple add data in queue, any array serialized size < $frame_size
 				$frame_cursor= queue_address_push([
 					'url'=> "https://multicore_long_time_micro_job?param=" . $i,
 					'count'=> $i
 				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
-				if($frame_cursor !== false) $index_data[$i]= $frame_cursor; 
+				if($frame_cursor !== false) $index_data[$i]= $frame_cursor;  // example add cursor to index
 			}
 						
-
+			// Example save index
 			if(count($index_data) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				// 13774 bytes index size
 				// 95000 bytes db size
@@ -314,7 +314,6 @@ if(
 				}
 			}
 			
-			
 			$boot= queue_address_pop(4096, 0, false, "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
@@ -324,7 +323,8 @@ if(
 			}
 
 
-			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process
+			// examples use adressed mode
+			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process or use $job_process_id
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
@@ -413,6 +413,7 @@ if(
 	// value - pushed value
 	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
+	// return frame cursor offset
 	function queue_address_push($value, $frame_size= false, $frame_cursor= false, $callback= false){ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$return_cursor= false;
@@ -457,6 +458,7 @@ if(
 	// frame_size - set frame size
 	// frame_cursor - false for LIFO mode, get frame from cursor position
 	// frame_replace - false is off, delete frame
+	// return value from stack frame, false if null or error
 	function queue_address_pop($frame_size, $frame_cursor= false, $frame_replace= false, $callback= false){ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$value= false;
