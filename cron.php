@@ -52,7 +52,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '01:49:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '02:25:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -64,7 +64,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) { 
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '01:49:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '02:25:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -75,7 +75,7 @@ for( // CRON job 3, multicore example, four cores,
 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'date' => '01-01-2023', // "day-month-year" execute job on the specified date
+	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
@@ -122,9 +122,9 @@ if(!function_exists('open_cron_socket')) {
 		
 		if(
 			isset($_SERVER['HTTPS']) &&
-			($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+			($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1) ||
 			isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
-			$_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
+			$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'
 		) {
 			$protocol= 'https';
 		} else {
@@ -140,7 +140,7 @@ if(!function_exists('open_cron_socket')) {
 		
 		if(
 			is_callable("shell_exec") &&
-			strtolower(PHP_OS) == 'linux' && 
+			strtolower(PHP_OS) === 'linux' && 
 			$wget === '' && 
 			$curl === ''
 		){
@@ -157,13 +157,13 @@ if(!function_exists('open_cron_socket')) {
 			is_callable("shell_exec") &&
 			$wget !== ''
 		){
-			if($protocol ==  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
+			if($protocol ===  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
 			else shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
 		} elseif(
 			is_callable("shell_exec") &&
 			$curl !== ''
 		){
-			if($protocol ==  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
+			if($protocol ===  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
 			else shell_exec($curl . ' -I --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
 		} else {
 			@fclose( 
@@ -188,7 +188,7 @@ if(!function_exists('open_cron_socket')) {
 // main
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] == CRON_URL_KEY
+	$_REQUEST["cron"] === CRON_URL_KEY
 ){
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api 
@@ -248,7 +248,7 @@ if(
 			}
 						
 			// Example save index
-			if(count($index_data) == 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
+			if(count($index_data) === 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				// 13774 bytes index size
 				// 95000 bytes db size
 				queue_address_push($index_data, $boot['index_frame_size'], $boot['index_offset']);
@@ -308,7 +308,7 @@ if(
 
 
 			// examples use adressed mode
-			if(is_array($boot) && count($boot['handlers']) == 1): // first handler process or use $job_process_id
+			if(is_array($boot) && count($boot['handlers']) === 1): // first handler process or use $job_process_id
 				// example 1, get first element
 				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
 				// task handler
@@ -515,7 +515,7 @@ if(
 			fclose($cron_resource);
 		}
 		
-		if($return == 'restart'){ // restart cron
+		if($return === 'restart'){ // restart cron
 			if(isset($cron_dat_file)) touch($cron_dat_file, time() - CRON_DELAY);
 			open_cron_socket(CRON_URL_KEY);
 		}
@@ -598,7 +598,7 @@ if(
 						
 			foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
 				$log_files_size+= @filesize($file_log_rotate);
-				if ($file_log_rotate == CRON_LOG_FILE) {
+				if ($file_log_rotate === CRON_LOG_FILE) {
 					continue;
 				}
 					
@@ -658,7 +658,7 @@ if(
 		$init[$job_process_id]= true;
 		
 		if(isset($cron_session[$job_process_id]['md5'])) {
-			if($cron_session[$job_process_id]['md5'] != md5(serialize($job))){
+			if($cron_session[$job_process_id]['md5'] !== md5(serialize($job))){
 				$cron_session[$job_process_id]['md5']= md5(serialize($job));
 				$cron_session[$job_process_id]['last_update']= 0;
 				$cron_session[$job_process_id]['complete']= false;
@@ -689,7 +689,7 @@ if(
 				!isset($job['date']) &&
 				$cron_session[$job_process_id]['last_update'] !== 0 &&
 				$cron_session[$job_process_id]['complete']  &&
-				date('d-m-Y', $time) != date('d-m-Y', $cron_session[$job_process_id]['last_update'])
+				date('d-m-Y', $time) !== date('d-m-Y', $cron_session[$job_process_id]['last_update'])
 			){
 				$cron_session[$job_process_id]['complete']= false;
 			}
@@ -763,7 +763,7 @@ if(
 			$profiler['filemtime']= filemtime(__FILE__);
 		}
 		
-		if($profiler['filemtime'] != filemtime(__FILE__) || !file_exists(__FILE__)){ // write in main file event, restart
+		if($profiler['filemtime'] !== filemtime(__FILE__) || !file_exists(__FILE__)){ // write in main file event, restart
 			_die('restart');
 		}
 		
@@ -798,7 +798,7 @@ if(
 					$profiler['filemtime_' . $job['callback']]= $filemtime_callback;
 				}
 				
-				if($profiler['filemtime_' . $job['callback']] != $filemtime_callback){ // write in callback file event, restart
+				if($profiler['filemtime_' . $job['callback']] !== $filemtime_callback){ // write in callback file event, restart
 					_die('restart');
 				}
 			}
