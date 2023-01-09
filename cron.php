@@ -566,6 +566,8 @@ if(
 		ini_set('error_reporting', E_ALL);
 		ini_set('display_errors', 1); // 1 to debug
 		ini_set('display_startup_errors', 1);
+		
+		register_shutdown_function('_die');
 	}
 
 	function cron_log_rotate(){ // LOG Rotate
@@ -836,8 +838,6 @@ if(
 	$cron_resource= true;
 	$cron_session= [];
 	
-	register_shutdown_function('_die');
-
 	////////////////////////////////////////////////////////////////////////
 	// multithreading 
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
