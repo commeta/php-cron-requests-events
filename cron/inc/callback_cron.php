@@ -1,6 +1,4 @@
 <?php
-// declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
-
 // Write log
 if(CRON_LOG_LEVEL > 2){
 	if(CRON_LOG_FILE){
