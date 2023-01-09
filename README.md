@@ -343,7 +343,7 @@ cron.php работает в 4-х режимах:
 - PHP 8.2.0 with Zend OPcache, PHP-FPM
 - GNU Wget 1.20.3
 
-##### Плоский профиль [Xdebug](https://xdebug.org/docs/), [KCacheGrind](https://kcachegrind.sourceforge.net/html/Documentation.html)
+##### Плоский профиль [Xdebug](https://xdebug.org/docs/), [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
 
