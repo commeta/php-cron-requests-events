@@ -48,7 +48,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 					'count'=> $i
 				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
-				if($frame_cursor !== false) $index_data[$i]= $frame_cursor;  // example add cursor to index
+				if($frame_cursor !== 0) $index_data[$i]= $frame_cursor;  // example add cursor to index
 			}
 						
 			// Example save index
@@ -102,7 +102,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				}
 			}
 			
-			$boot= queue_address_pop(4096, 0, false, "init_boot_frame");
+			$boot= queue_address_pop(4096, 0, [], "init_boot_frame");
 			if(!is_array($boot) && count($boot) < 5) return false; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
@@ -135,7 +135,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], []);
+					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], [true]);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -169,11 +169,11 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop($frame_size,  false, false, "count_frames");
+				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, [], "count_frames");
 				
-				if($multicore_long_time_micro_job === false) {
+				if($multicore_long_time_micro_job === []) {
 					break 1;
-				} elseif($multicore_long_time_micro_job !== []) {
+				} elseif($multicore_long_time_micro_job !==  [true]) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
 					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
 					
