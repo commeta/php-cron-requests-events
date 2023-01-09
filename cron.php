@@ -436,7 +436,7 @@ if(
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
 	// frame_replace - [] is off, replace frame
 	// return value from stack frame, false if null or error
-	function queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''){ // pop data frame from stack
+	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''){ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$value= [];
 		
@@ -689,7 +689,7 @@ if(
 				$cron_session[$job_process_id]['complete']= false;
 			}
 			
-			if($cron_session[$job_process_id]['complete'] === true) return true;
+			if($cron_session[$job_process_id]['complete']) return true;
 			
 			if(isset($job['date'])) $d= explode('-', $job['date']);		
 			if(isset($job['time'])) $t= explode(':', $job['time']);
@@ -812,28 +812,30 @@ if(
 		isset($_GET["job_process_id"])
 	){
 		$job_process_id= intval($_GET["job_process_id"]);
-		if(isset($cron_jobs[$job_process_id])) $job= $cron_jobs[$job_process_id];
+		if(isset($cron_jobs[$job_process_id])) {
+			$job= $cron_jobs[$job_process_id];
 
-		if($job['multithreading']){
-			// Dispatcher init
-			$job_process_id= intval($_GET["job_process_id"]);
-			$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
-			if(!file_exists($cron_dat_file)) touch($cron_dat_file);
-			
-			$cron_resource= fopen($cron_dat_file, "r+");
-			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
-				$stat= fstat($cron_resource);
-				$cs= unserialize(fread($cron_resource, $stat['size']));
-				if(is_array($cs)) $cron_session= $cs;
+			if($job['multithreading']){
+				// Dispatcher init
+				$job_process_id= intval($_GET["job_process_id"]);
+				$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . $job_process_id . '.dat';
+				if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 				
-				cron_session_init($job, $job_process_id);
-				cron_check_job($job, $job_process_id, false);
+				$cron_resource= fopen($cron_dat_file, "r+");
+				if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
+					$stat= fstat($cron_resource);
+					$cs= unserialize(fread($cron_resource, $stat['size']));
+					if(is_array($cs)) $cron_session= $cs;
+					
+					cron_session_init($job, $job_process_id);
+					cron_check_job($job, $job_process_id, false);
+					
+					write_cron_session();
+					flock($cron_resource, LOCK_UN);
+				}
 				
-				write_cron_session();
-				flock($cron_resource, LOCK_UN);
+				fclose($cron_resource);
 			}
-			
-			fclose($cron_resource);
 		}
 		
 		_die();
