@@ -91,7 +91,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									microtime(true) . " ERROR: init boot frame\n",
+									microtime() . " ERROR: init boot frame\n",
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -184,7 +184,7 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									microtime(true) . 
+									microtime() . 
 									" INFO: queue_manager " . 
 									$multicore_long_time_micro_job['count'] . " \n",
 								FILE_APPEND | LOCK_EX
