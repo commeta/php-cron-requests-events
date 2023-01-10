@@ -2,7 +2,7 @@
 // declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
 
 function queue_address_manager_extend($mode) // :void
-{ // example: multicore queue
+	{ // example: multicore queue
 		$frame_size= 95;
 		$process_id= getmypid();
 		
@@ -84,7 +84,7 @@ function queue_address_manager_extend($mode) // :void
 				
 				if(is_array($boot) && count($boot) > 5){
 					$boot['handlers'][$process_id]= [// add active handler
-						'process_id'=>$process_id,
+						'process_id'=> $process_id,
 						'last_update'=> microtime(true),
 						'count_start' => 0,
 						'last_start' => 0
