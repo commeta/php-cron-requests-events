@@ -366,6 +366,7 @@ OPCache memory: 69.48KB (PHP 8.2 данные, строки, байткод, Dyn
 
 ### Ссылки:
 - [Nginx, Php-Fpm и что это вообще?](https://perfect-inc.com/journal/nginx-php-fpm-i-chto-eto-voobshche/)
+- [fastcgi_ignore_client_abort](https://nginx.org/ru/docs/http/ngx_http_fastcgi_module.html#fastcgi_ignore_client_abort)
 - [PHP jit in depth](https://php.watch/articles/jit-in-depth)
 - [Обзор расширения OPCache для PHP](https://habr.com/ru/company/vk/blog/310054/)
 - [luajit Dynamic Assembler](https://luajit.org/dynasm.html)
