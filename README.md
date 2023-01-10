@@ -372,6 +372,7 @@ OPCache memory: 69.48KB (PHP 8.2 данные, строки, байткод, Dyn
 - [Nginx: как узнать время обработки запроса](https://codedepth.wordpress.com/2017/05/04/nginx-request-time/)
 - [Тюним память и сетевой стек в Linux](https://habr.com/ru/company/odnoklassniki/blog/266005/)
 - [PHP 8: Как включить JIT](https://sergeymukhin.com/blog/php-8-kak-vklyucit-jit) 
+- [Опции настройки OPcache](https://www.php.net/manual/ru/opcache.configuration.php)
 - [Знакомство с межпроцессным взаимодействием на Linux](https://habr.com/ru/post/122108/)
 - [Semaphore, Shared Memory and IPC Functions](http://www.nusphere.com/kb/phpmanual/ref.sem.htm)
 - [Использование разделяемой памяти в PHP](http://codenet.ru/webmast/php/Shared-Memory.php)
@@ -381,4 +382,5 @@ OPCache memory: 69.48KB (PHP 8.2 данные, строки, байткод, Dyn
 - [Xdebug](https://xdebug.org/docs/)
 - [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 - [https://github.com/php/php-src](https://github.com/php/php-src)
+- [php-src/ext/opcache/jit/zend_jit.h](https://github.com/php/php-src/blob/master/ext/opcache/jit/zend_jit.h)
 
