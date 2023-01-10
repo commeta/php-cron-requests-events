@@ -455,7 +455,7 @@ if(
 
 			fseek($queue_resource, $cursor); // get data frame
 			$v= unserialize(trim(fread($queue_resource, $frame_size)));
-			if($v !== false) $value= $v;
+			if(is_array($v)) $value= $v;
 			
 			if($frame_cursor !== PHP_INT_MAX){
 				if($frame_replace !== []){ // replace frame
@@ -528,7 +528,7 @@ if(
 		
 		ob_start();
 		
-		header(filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING).' 200 OK');
+		header($_SERVER['SERVER_PROTOCOL'] . " 200 OK");
 		header('Content-Encoding: none');
 		header('Content-Length: '.ob_get_length());
 		header('Connection: close');
