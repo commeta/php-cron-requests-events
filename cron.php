@@ -393,10 +393,10 @@ if(
 			$frame= serialize($value);
 			
 			if($frame_size < mb_strlen($frame)){ // fill
-				return false;
+				return $return_cursor;
 			}
 		} else {
-			return false;
+			return $return_cursor;
 		}
 
 		if(flock($queue_resource, LOCK_EX)) {
@@ -443,7 +443,7 @@ if(
 			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
 				fclose($queue_resource);
-				return false;
+				return $value;
 			}
 
 			if($frame_cursor !== PHP_INT_MAX){
