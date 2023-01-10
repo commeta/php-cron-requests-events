@@ -1,5 +1,5 @@
 # php-cron-requests-events
-php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in Apache/FastCGI/FPM handler environment.
+php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in modApache/CGI/FPM handler environment.
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/cron.png "php-cron-requests-events")
 Низкоуровневый код, отсутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
@@ -25,7 +25,7 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 - Работает в отдельном процессе с низким приоритетом 19
 - Предотвращает запуск процесса если предыдущий не завершен
 - Есть режим ожидания пока предыдущий процесс не закончит работу - очередь
-- Работает на всех SAPI (CLI только запуск): modApache, PHP-FPM, CGI, FastCGI. Версии PHP от 5.4 до 8.2.0
+- Работает на всех SAPI: (CLI только запуск), modApache, PHP-FPM, CGI. Версии PHP от 5.4 до 8.2.0
 - Минимальный объем PHP кода: 27.8 Кб (16.6 Кб без пробелов и комментариев)
 - Дружественный код для opcache.jit компилятора
 
