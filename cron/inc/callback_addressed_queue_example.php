@@ -1,7 +1,8 @@
 <?php
 // declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
 
-function queue_address_manager_extend($mode){ // example: multicore queue
+function queue_address_manager_extend($mode) // :void
+{ // example: multicore queue
 		$frame_size= 95;
 		$process_id= getmypid();
 		
@@ -73,7 +74,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			
 			
 			// example INIT
-			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
+			function init_boot_frame(& $queue_resource) // :void 
+			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
@@ -108,11 +110,11 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			}
 			
 			$boot= queue_address_pop(4096, 0, $value_replace, "init_boot_frame");
-			if(!is_array($boot) && count($boot) < 5) return false; // file read error
+			if(!is_array($boot) && count($boot) < 5) return; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
 			if(!is_array($index_data)) {
-				return false; // file read error
+				return; // file read error
 			}
 
 
@@ -155,7 +157,8 @@ function queue_address_manager_extend($mode){ // example: multicore queue
 			endif;
 
 			// example 6, use LIFO mode
-			function count_frames(& $queue_resource){ // Inter-process communication IPC
+			function count_frames(& $queue_resource) // :void 
+			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
