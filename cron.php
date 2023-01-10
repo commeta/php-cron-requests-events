@@ -100,7 +100,8 @@ define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
-	function open_cron_socket($cron_url_key, $job_process_id= ''){ // Start job in parallel process
+	function open_cron_socket($cron_url_key, $job_process_id= '') // :void 
+	{ // Start job in parallel process
 		static $wget= '';
 		static $curl= '';
 		
@@ -177,7 +178,8 @@ if(
 ){
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api 
-	function queue_address_manager($mode){ // example: multicore queue
+	function queue_address_manager($mode) // :void 
+	{ // example: multicore queue
 		$frame_size= 95;
 		$process_id= getmypid();
 		
@@ -249,7 +251,8 @@ if(
 			
 			
 			// example INIT
-			function init_boot_frame(& $queue_resource){ // Inter-process communication IPC
+			function init_boot_frame(& $queue_resource) // :void 
+			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
@@ -284,11 +287,11 @@ if(
 			}
 			
 			$boot= queue_address_pop(4096, 0, $value_replace, "init_boot_frame");
-			if(!is_array($boot) && count($boot) < 5) return false; // file read error
+			if(!is_array($boot) && count($boot) < 5) return; // file read error
 				
 			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
 			if(!is_array($index_data)) {
-				return false; // file read error
+				return; // file read error
 			}
 
 
@@ -331,7 +334,8 @@ if(
 			endif;
 
 			// example 6, use LIFO mode
-			function count_frames(& $queue_resource){ // Inter-process communication IPC
+			function count_frames(& $queue_resource) // :void 
+			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
 				$process_id= getmypid(); 
 				
@@ -381,7 +385,8 @@ if(
 	// frame_size - set frame size, 0 - auto
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
 	// return frame cursor offset
-	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''){ // push data frame in stack
+	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
+	{ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$return_cursor= 0;
 
@@ -426,7 +431,8 @@ if(
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
 	// frame_replace - [] is off, replace frame
 	// return value from stack frame, false if null or error
-	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''){ // pop data frame from stack
+	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= '') // :array 
+	{ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$value= [];
 		
@@ -482,7 +488,8 @@ if(
 	}
 	
 	
-	function write_cron_session(){
+	function write_cron_session() //:void 
+	{
 		global  $cron_resource, $cron_session;
 		
 		$serialized= serialize($cron_session);
@@ -491,7 +498,8 @@ if(
 		ftruncate($cron_resource, mb_strlen($serialized));
 	}
 
-	function _die($return= ''){
+	function _die($return= '') // :void 
+	{
 		global $cron_resource, $cron_dat_file;
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
@@ -509,7 +517,8 @@ if(
 	}
 	
 
-	function fcgi_finish_request(){
+	function fcgi_finish_request() // :void 
+	{
 		// check if fastcgi_finish_request is callable
 		if(is_callable('fastcgi_finish_request')) {
 			session_write_close();
@@ -532,7 +541,8 @@ if(
 	}
 
 
-	function init_background_cron(){
+	function init_background_cron() // :void 
+	{
 		ignore_user_abort(true);
 		fcgi_finish_request();
 
@@ -555,7 +565,8 @@ if(
 		register_shutdown_function('_die');
 	}
 
-	function cron_log_rotate(){ // LOG Rotate
+	function cron_log_rotate() // :void 
+	{ // LOG Rotate
 		global $cron_session;
 
 		if(!isset($cron_session['log_rotate_last_update'])) {
@@ -563,7 +574,7 @@ if(
 		}
 
 		if(CRON_DAEMON_MODE && $cron_session['log_rotate_last_update'] > time() - 600){
-			return true;
+			return;
 		}
 		
 		$cron_session['log_rotate_last_update']= time();
@@ -608,7 +619,8 @@ if(
 	}
 
 	
-	function callback_connector($job, $job_process_id, $mode){
+	function callback_connector($job, $job_process_id, $mode) // :void 
+	{
 		global $cron_session;
 		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
@@ -635,11 +647,12 @@ if(
 	}
 	
 		
-	function cron_session_init($job, $job_process_id){
+	function cron_session_init($job, $job_process_id) // :void 
+	{
 		global $cron_session;
 		static $init= [];
 		
-		if(isset($init[$job_process_id])) return true;
+		if(isset($init[$job_process_id])) return;
 		$init[$job_process_id]= true;
 		
 		if(isset($cron_session[$job_process_id]['md5'])) {
@@ -661,7 +674,8 @@ if(
 		}
 	}
 	
-	function cron_check_job($job, $job_process_id, $mode){
+	function cron_check_job($job, $job_process_id, $mode) // :void 
+	{
 		global $cron_session;
 		$time= time();
 		
@@ -679,7 +693,7 @@ if(
 				$cron_session[$job_process_id]['complete']= false;
 			}
 			
-			if($cron_session[$job_process_id]['complete']) return true;
+			if($cron_session[$job_process_id]['complete']) return;
 			
 			if(isset($job['date'])) $d= explode('-', $job['date']);		
 			if(isset($job['time'])) $t= explode(':', $job['time']);
@@ -718,7 +732,8 @@ if(
 	}
 	
  
-	function singlethreading_dispatcher(){ // main loop job list
+	function singlethreading_dispatcher() // :void 
+	{ // main loop job list
 		global $cron_jobs;
 		
 		foreach($cron_jobs as $job_process_id=> $job){
@@ -729,14 +744,15 @@ if(
 	
 	
 
-	function memory_profiler(){
+	function memory_profiler() // :void 
+	{
 		global $cron_jobs;
 		static  $profiler= [];
 		$time= time();
 		
 		if(!isset($profiler['time'])) $profiler['time']= $time;
 		if($profiler['time'] > $time - 15){ // delayed start
-			return true;
+			return;
 		}
 		$profiler['time']= $time;
 		
@@ -771,7 +787,7 @@ if(
 		
 		if(!isset($profiler['callback_time'])) $profiler['callback_time']= $time;
 		if($profiler['callback_time'] > $time - 60){ // delayed start
-			return true;
+			return;
 		}
 		$profiler['callback_time']= $time;
 		
