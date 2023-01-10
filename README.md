@@ -120,7 +120,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - ini_set('MAX_EXECUTION_TIME', 600); // Максимальное время выполнения, 0 в резидентном режиме
 - 'timeout' => 0.04 // Время блокировки, тайм аут для экстренного запуска через fopen. [Время ответа сервера](https://codedepth.wordpress.com/2017/05/04/nginx-request-time/) * 10 в зависимости от [Linux Kernel Load Average](https://habr.com/ru/company/odnoklassniki/blog/266005/)\OPcache\FLOPS
 - usleep(2000); // В примерах многопроцессной очереди имитирует нагрузку, в данной точке предпологается обработка данных, неограниченно по времени
-- declare(strict_types=1); // Строгая типизация для PHP > 7.0, позволяет использовать [Jit\OPCache оптимизацию](https://habr.com/ru/company/vk/blog/304748/) 
+- declare(strict_types=1); // Строгая типизация для PHP > 7.0, позволяет использовать [Jit\OPCache оптимизацию](https://sergeymukhin.com/blog/php-8-kak-vklyucit-jit) 
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
