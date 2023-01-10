@@ -530,7 +530,7 @@ if(
 		
 		header($_SERVER['SERVER_PROTOCOL'] . " 200 OK");
 		header('Content-Encoding: none');
-		header('Content-Length: '.ob_get_length());
+		header('Content-Length: ' . (string) ob_get_length());
 		header('Connection: close');
 		http_response_code(200);
 
