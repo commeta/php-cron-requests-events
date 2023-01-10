@@ -21,7 +21,7 @@
  * 
  */
  
-// declare(strict_types = 1); // strict typing, recommended if PHP > 7.0
+// declare(strict_types = 1); // strict typing PHP > 7.0
 
  
  ////////////////////////////////////////////////////////////////////////
@@ -41,6 +41,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ];
 ##########
 
+
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
@@ -48,11 +49,11 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'multithreading' => true
 ];
 ##########
- 
- 
+
+
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '20:03:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '23:46:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -62,9 +63,9 @@ for( // CRON job 3, multicore example, four cores,
 	$i= 0;
 	$i< 4; // Max processor cores
 	$i++	
-) { 
+) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '20:03:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '23:46:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -130,7 +131,7 @@ if(!function_exists('open_cron_socket')) {
 		) {
 			$protocol= 'https';
 			$host= "localhost";
-			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR; // site root
+			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR; // site root path
 			
 			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_url_key . "\n";
 			echo 'or change $host= "localhost" your domain' . "\n";
@@ -275,7 +276,7 @@ if(
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
 				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
-				if(is_array($boot) && count($boot) > 5){
+				if(is_array($boot)){
 					$boot['handlers'][$process_id]= [// add active handler
 						'process_id'=> $process_id,
 						'last_update'=> microtime(true),
@@ -291,7 +292,7 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									sprintf("%f ERROR: init boot frame\n", microtime()),
+								sprintf("%f ERROR: init boot frame\n", microtime(true)),
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -372,7 +373,7 @@ if(
 			while(true){ // example: loop from the end
 				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, $value_replace, "count_frames");
 				
-				if($multicore_long_time_micro_job === $value_replace) {
+				if(count($multicore_long_time_micro_job) === 0) {
 					break 1;
 				} elseif($multicore_long_time_micro_job !==  $value_completed) {
 					// $content= file_get_contents($multicore_long_time_micro_job['url']);
@@ -385,7 +386,7 @@ if(
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-									sprintf("%f INFO: queue_manager %d\n", microtime(), $multicore_long_time_micro_job['count']),
+								sprintf("%f INFO: queue_manager %d\n", microtime(true), $multicore_long_time_micro_job['count']),
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -475,7 +476,7 @@ if(
 			if(is_array($v)) $value= $v;
 			
 			if($frame_cursor !== PHP_INT_MAX){
-				if($frame_replace !== []){ // replace frame
+				if(count($frame_replace) !== 0){ // replace frame
 					$serialized_frame_replace= serialize($frame_replace);
 					$length_frame_replace= mb_strlen($serialized_frame_replace);
 					
@@ -488,7 +489,7 @@ if(
 					}
 				}
 				
-			} elseif($value !== []) { // LIFO mode	
+			} elseif(is_array($v)) { // LIFO mode	
 				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
 				else $trunc= 0; // truncate file
 
