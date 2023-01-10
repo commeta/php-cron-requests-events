@@ -129,7 +129,7 @@ if(!function_exists('open_cron_socket')) {
 			!array_key_exists('REQUEST_METHOD', $_SERVER)
 		) {
 			$protocol= 'https';
-			$host= "cron.ru";
+			$host= "localhost";
 			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 			
 			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_url_key . "\n";
