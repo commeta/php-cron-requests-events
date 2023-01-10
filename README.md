@@ -190,7 +190,7 @@ IPC реализован по типу мьютекс, все участвующ
 // frame_size - размер кадра в байтах, 0 авто (int)
 // frame_cursor - адрес, смещение в файле, PHP_INT_MAX - LIFO режим (int)
 // callback - вызывает анонимную функцию во время блокировки файла очереди (string) :void
-// возвращает позицию курсора фрейма (int)
+// возвращает позицию курсора фрейма (int), 0 в случае ошибки
 queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
 ```
 1. блокирующая операция
@@ -204,7 +204,7 @@ queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback
 // frame_cursor - адрес, смещение в файле, PHP_INT_MAX - LIFO режим (int)
 // frame_replace - переменная для замены (array)
 // callback - вызывает анонимную функцию во время блокировки файла очереди (string) :void
-// возвращает значение со стека (array)
+// возвращает значение со стека (array), пустой массив [] в случае ошибки или пустой очереди
 $multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''); // забрать из очереди
 ```
 1. блокирующая операция
