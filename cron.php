@@ -96,6 +96,7 @@ define("CRON_LOG_LEVEL", 2);
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 
+
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
@@ -103,7 +104,6 @@ if(!function_exists('open_cron_socket')) {
 	{ // Start job in parallel process
 		static $wget= '';
 		static $curl= '';
-		
 		
 		if(
 			isset($_SERVER['HTTPS']) &&
@@ -117,12 +117,29 @@ if(!function_exists('open_cron_socket')) {
 		}
 		
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
-		if($job_process_id !== '') $cron_url_key.= '&job_process_id=' . $job_process_id;
+
+		if(isset($_SERVER["HTTP_HOST"])) {
+			$host= strtolower($_SERVER["HTTP_HOST"]);
+			
+			if($job_process_id !== '') $cron_url_key.= '&job_process_id=' . $job_process_id;
+		} elseif( // sapi: CLI
+			defined('STDIN') ||
+			php_sapi_name() === 'cli' ||
+			array_key_exists('SHELL', $_ENV) ||
+			!array_key_exists('REQUEST_METHOD', $_SERVER)
+		) {
+			$protocol= 'https';
+			$host= "cron.ru";
+			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+			
+			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_url_key . "\n";
+			echo 'or change $host= "localhost" your domain' . "\n";
+		}
 		
-		$cron_url= $protocol . '://' . strtolower(@$_SERVER["HTTP_HOST"]) . '/' . 
+		$cron_url= $protocol . '://' . $host . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_url_key;
-		
+			
 		if(
 			is_callable("shell_exec") &&
 			strtolower(PHP_OS) === 'linux' && 
