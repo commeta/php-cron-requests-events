@@ -25,9 +25,9 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 - Работает в отдельном процессе с низким приоритетом 19
 - Предотвращает запуск процесса если предыдущий не завершен
 - Есть режим ожидания пока предыдущий процесс не закончит работу - очередь
-- Работает на всех SAPI (кроме CLI): modApache, [PHP-FPM](https://perfect-inc.com/journal/nginx-php-fpm-i-chto-eto-voobshche/), CGI, FastCGI. Версии PHP от 5.4 до 8.2.0
+- Работает на всех SAPI (кроме CLI): modApache, PHP-FPM, CGI, FastCGI. Версии PHP от 5.4 до 8.2.0
 - Минимальный объем PHP кода: 27.8 Кб (16.6 Кб без пробелов и комментариев)
-- Дружественный код под [Jit\OPCache](https://php.watch/articles/jit-in-depth) оптимизацию, [OPCache memory](https://habr.com/ru/company/vk/blog/310054/): 90.58KB (данные, строки, байткод, [DynASM](https://luajit.org/dynasm.html), служебка)
+- Дружественный код под Jit\OPCache оптимизацию, OPCache memory: 90.58KB (данные, строки, байткод, DynASM, служебка)
 
 
 ### Пример запуска задачи
@@ -118,9 +118,9 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - $profiler['callback_time'] > $time - 60 // 60 сек. интервал проверки времени модификации include callback файлов, если новее то перезапуск
 - $cron_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
 - ini_set('MAX_EXECUTION_TIME', 600); // Максимальное время выполнения, 0 в резидентном режиме
-- 'timeout' => 0.04 // Время блокировки, тайм аут для экстренного запуска через fopen. [Время ответа сервера](https://codedepth.wordpress.com/2017/05/04/nginx-request-time/) * 10 в зависимости от [Linux Kernel Load Average](https://habr.com/ru/company/odnoklassniki/blog/266005/)\OPcache\FLOPS
+- 'timeout' => 0.04 // Время блокировки, тайм аут для экстренного запуска через fopen. Время ответа сервера * 10 в зависимости от Linux Kernel Load Average\OPcache\FLOPS
 - usleep(2000); // В примерах многопроцессной очереди имитирует нагрузку, в данной точке предпологается обработка данных, неограниченно по времени
-- declare(strict_types=1); // Строгая типизация для PHP > 7.0, позволяет использовать [Jit\OPCache оптимизацию](https://sergeymukhin.com/blog/php-8-kak-vklyucit-jit) 
+- declare(strict_types=1); // Строгая типизация для PHP > 7.0, позволяет использовать Jit\OPCache оптимизацию
 
 При подборе параметра CRON_DELAY можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
@@ -161,7 +161,7 @@ Array // $cron_session
 2. Добавляем в общий список задач, событие для запуска обработчиков микро задач - handlers. Событие CRON job 3 запускает парелелльно несколько процессов, каждый из которых получает из общей очереди микро задачи, и немедленно их исполняет.
 
 #### IPC передача данных между процессами
-[IPC реализован по типу мьютекс](https://habr.com/ru/post/122108/), все участвующие процессы получают доступ к файлу данных в монопольном режиме.
+IPC реализован по типу мьютекс, все участвующие процессы получают доступ к файлу данных в монопольном режиме.
 
 Процесс захватывает файл данных с помощью системного механизма консультативной блокировки файла, все остальные процессы выстраиваются в очередь в ожидании снятия блокировки.
 
@@ -171,7 +171,7 @@ Array // $cron_session
 Стек очереди по принципу Last In, First Out последним пришёл — первым ушёл. Линейная структура данных с мгновенным доступом, чтение и запись происходит в монопольном режиме. Процесс потомок ждет пока параллельный потомок освободит файл очереди, чтобы получить свое микро задание.
 
 
-Во взаимодействии принимает участие [Page Cache Linux Kernel](https://habr.com/ru/company/smart_soft/blog/228937/), чтение\запись первых и последних секторов файла, по умолчанию всегда будет [кэшировано операционной системой](https://drupal-admin.ru/blog/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-linux-%D0%BF%D0%BE%D0%B4-%D0%BD%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D1%83-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9-%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D0%B8-%D0%BD%D0%B0-%D0%B4%D0%B8%D1%81%D0%BA). 
+Во взаимодействии принимает участие Page Cache Linux Kernel, чтение\запись первых и последних секторов файла, по умолчанию всегда будет кэшировано операционной системой. 
 Таким образом передача данных между процессами будет с минимальными задержками, на уровне Shared Memory.
 
 
@@ -215,9 +215,9 @@ $multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= PH
 5. позволяет забрать\заменить кадр в любой позиции файла очереди
 
 
-В обоих функциях применяются низкоуровневые операции, opcache оптимизатор кода и [jit компилятор](https://corsix.github.io/dynasm-doc/index.html) сокращают издержки. Данные читаются и записываются кадрами, размер кадра подбирается по объему передаваемых данных + служебные поля. 
+В обоих функциях применяются низкоуровневые операции, opcache оптимизатор кода и jit компилятор сокращают издержки. Данные читаются и записываются кадрами, размер кадра подбирается по объему передаваемых данных + служебные поля. 
 
-В LIFO режиме основная работа с файлом происходит в последних секторах, благодаря этому данные легко буферизируются и кэшируются несколькими слоями Zend Engine и [ядра операционной системы](https://habr.com/ru/company/otus/blog/706702/). При линейном чтении\записи обмен между процессами будет проходить по короткой дистанции.
+В LIFO режиме основная работа с файлом происходит в последних секторах, благодаря этому данные легко буферизируются и кэшируются несколькими слоями Zend Engine и ядра операционной системы. При линейном чтении\записи обмен между процессами будет проходить по короткой дистанции.
 
 Время доступа к кадрам от 0.00005 секунды в зависимости от размера кадра, интенсивности параллельных запросов, размера файла, времени загрузки секторов файловой системы и т.д. 
 
@@ -345,7 +345,7 @@ cron.php работает в 4-х режимах:
 - PHP 8.2.0 with Zend OPcache, PHP-FPM
 - GNU Wget 1.20.3
 
-##### Плоский профиль [Xdebug](https://xdebug.org/docs/), [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
+##### Плоский профиль Xdebug, KCacheGrind
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
 
@@ -360,4 +360,21 @@ cron.php работает в 4-х режимах:
 
 После запуска процесса потомка, пример извлечения из очереди include cron/inc/callback_addressed_queue_example.php
 ![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
+
+
+### Ссылки:
+- [Nginx, Php-Fpm и что это вообще?](https://perfect-inc.com/journal/nginx-php-fpm-i-chto-eto-voobshche/)
+- [PHP jit in depth](https://php.watch/articles/jit-in-depth)
+- [Обзор расширения OPCache для PHP](https://habr.com/ru/company/vk/blog/310054/)
+- [luajit Dynamic Assembler](https://luajit.org/dynasm.html)
+- [Unofficial DynASM Documentation](https://corsix.github.io/dynasm-doc/index.html)
+- [Nginx: как узнать время обработки запроса](https://codedepth.wordpress.com/2017/05/04/nginx-request-time/)
+- [Тюним память и сетевой стек в Linux](https://habr.com/ru/company/odnoklassniki/blog/266005/)
+- [PHP 8: Как включить JIT](https://sergeymukhin.com/blog/php-8-kak-vklyucit-jit) 
+- [Знакомство с межпроцессным взаимодействием на Linux](https://habr.com/ru/post/122108/)
+- [Page-кэш, или как связаны между собой оперативная память и файлы](https://habr.com/ru/company/smart_soft/blog/228937/)
+- [Оптимизация Linux под нагрузку. Кэширование операций записи на диск](https://drupal-admin.ru/blog/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-linux-%D0%BF%D0%BE%D0%B4-%D0%BD%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D1%83-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9-%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D0%B8-%D0%BD%D0%B0-%D0%B4%D0%B8%D1%81%D0%BA)
+- [манипуляции с дисковым кэшем Linux](https://habr.com/ru/company/otus/blog/706702/)
+- [Xdebug](https://xdebug.org/docs/)
+- [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 
