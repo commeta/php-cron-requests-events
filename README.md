@@ -372,9 +372,12 @@ cron.php работает в 4-х режимах:
 - [Тюним память и сетевой стек в Linux](https://habr.com/ru/company/odnoklassniki/blog/266005/)
 - [PHP 8: Как включить JIT](https://sergeymukhin.com/blog/php-8-kak-vklyucit-jit) 
 - [Знакомство с межпроцессным взаимодействием на Linux](https://habr.com/ru/post/122108/)
+- [Semaphore, Shared Memory and IPC Functions](http://www.nusphere.com/kb/phpmanual/ref.sem.htm)
+- [Использование разделяемой памяти в PHP](http://codenet.ru/webmast/php/Shared-Memory.php)
 - [Page-кэш, или как связаны между собой оперативная память и файлы](https://habr.com/ru/company/smart_soft/blog/228937/)
 - [Оптимизация Linux под нагрузку. Кэширование операций записи на диск](https://drupal-admin.ru/blog/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-linux-%D0%BF%D0%BE%D0%B4-%D0%BD%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D1%83-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9-%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D0%B8-%D0%BD%D0%B0-%D0%B4%D0%B8%D1%81%D0%BA)
 - [манипуляции с дисковым кэшем Linux](https://habr.com/ru/company/otus/blog/706702/)
 - [Xdebug](https://xdebug.org/docs/)
 - [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
+- [https://github.com/php/php-src](https://github.com/php/php-src)
 
