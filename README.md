@@ -243,52 +243,52 @@ $boot= [ // 0-3 sector, frame size 4096
 ```
 // zero data frame from completed job
 // 12 thread: AMD Ryzen 5 2600X Six-Core Processor
-// PHP 8.2.0 with Zend OPcache, PHP-FPM
+// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
 // 4 process, concurency
 Array
 (
     [workers] => Array
         (
-            [281372] => Array
+            [674899] => Array
                 (
-                    [process_id] => 281372
-                    [last_update] => 1673202601.72
+                    [process_id] => 674899
+                    [last_update] => 1673385541.0922
                 )
 
         )
 
     [handlers] => Array
         (
-            [281373] => Array
+            [674897] => Array
                 (
-                    [process_id] => 281373 // system process id, Apache\PHP FPM child process
-                    [last_update] => 1673202611.7216 // time start
-                    [count_start] => 237 // count processed queue element
-                    [last_start] => 1673202612.027 // time last IPC operation
+                    [process_id] => 674897  // system process id, Apache\PHP FPM child process
+                    [last_update] => 1673385551.0974 // time start
+                    [count_start] => 242 // count processed queue element
+                    [last_start] => 1673385551.4157 // time last IPC operation
                 )
 
-            [281374] => Array
+            [674898] => Array
                 (
-                    [process_id] => 281374
-                    [last_update] => 1673202611.7221
-                    [count_start] => 274
-                    [last_start] => 1673202612.0251
+                    [process_id] => 674898
+                    [last_update] => 1673385551.0985
+                    [count_start] => 256
+                    [last_start] => 1673385551.4177
                 )
 
-            [281375] => Array
+            [674899] => Array
                 (
-                    [process_id] => 281375
-                    [last_update] => 1673202611.7228
-                    [count_start] => 249
-                    [last_start] => 1673202612.025
+                    [process_id] => 674899
+                    [last_update] => 1673385551.0996
+                    [count_start] => 254
+                    [last_start] => 1673385551.4158
                 )
 
-            [281370] => Array
+            [674896] => Array
                 (
-                    [process_id] => 281370
-                    [last_update] => 1673202611.7239
-                    [count_start] => 244
-                    [last_start] => 1673202612.0271
+                    [process_id] => 674896
+                    [last_update] => 1673385551.1006
+                    [count_start] => 252
+                    [last_start] => 1673385551.4178
                 )
 
         )
