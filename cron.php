@@ -52,7 +52,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '02:25:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '20:03:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -64,7 +64,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) { 
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '02:25:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '20:03:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -130,7 +130,7 @@ if(!function_exists('open_cron_socket')) {
 		) {
 			$protocol= 'https';
 			$host= "localhost";
-			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR; // site root
 			
 			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_url_key . "\n";
 			echo 'or change $host= "localhost" your domain' . "\n";
@@ -277,7 +277,7 @@ if(
 				
 				if(is_array($boot) && count($boot) > 5){
 					$boot['handlers'][$process_id]= [// add active handler
-						'process_id'=>$process_id,
+						'process_id'=> $process_id,
 						'last_update'=> microtime(true),
 						'count_start' => 0,
 						'last_start' => 0
@@ -397,10 +397,10 @@ if(
 	}
 
 
-	// value - pushed value
-	// frame_size - set frame size, 0 - auto
-	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
-	// return frame cursor offset
+	// value - pushed value (array)
+	// frame_size - set frame size, 0 - auto (int)
+	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
+	// return frame cursor offset (int), 0 if error
 	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
 	{ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
@@ -443,10 +443,10 @@ if(
 	}
 
 
-	// frame_size - set frame size
-	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position
-	// frame_replace - [] is off, replace frame
-	// return value from stack frame, false if null or error
+	// frame_size - set frame size (int)
+	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
+	// frame_replace - [] is off, replace frame (array)
+	// return value from stack frame, empty array [] if error or lifo queue end (array)
 	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= '') // :array 
 	{ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
@@ -522,6 +522,7 @@ if(
 			write_cron_session();
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
+			unset($cron_resource);
 		}
 		
 		if($return === 'restart'){ // restart cron
@@ -529,12 +530,18 @@ if(
 			open_cron_socket(CRON_URL_KEY);
 		}
 		
-		die();
+		exit();
 	}
 	
 
 	function fcgi_finish_request() // :void 
 	{
+		header($_SERVER['SERVER_PROTOCOL'] . " 200 OK");
+		header('Content-Encoding: none');
+		header('Content-Length: ' . (string) ob_get_length());
+		header('Connection: close');
+		http_response_code(200);
+		
 		// check if fastcgi_finish_request is callable
 		if(is_callable('fastcgi_finish_request')) {
 			session_write_close();
@@ -542,15 +549,7 @@ if(
 		}
 
 		while(ob_get_level()) ob_end_clean();
-		
 		ob_start();
-		
-		header($_SERVER['SERVER_PROTOCOL'] . " 200 OK");
-		header('Content-Encoding: none');
-		header('Content-Length: ' . (string) ob_get_length());
-		header('Connection: close');
-		http_response_code(200);
-
 		@ob_end_flush();
 		@ob_flush();
 		@flush();
@@ -813,6 +812,7 @@ if(
 				
 				if(!isset($profiler['filemtime_' . $job['callback']])){
 					$profiler['filemtime_' . $job['callback']]= $filemtime_callback;
+					continue;
 				}
 				
 				if($profiler['filemtime_' . $job['callback']] !== $filemtime_callback){ // write in callback file event, restart
@@ -821,8 +821,8 @@ if(
 			}
 		}
 	}
-	
-		
+
+
 	////////////////////////////////////////////////////////////////////////
 	// start in background
 	init_background_cron();
