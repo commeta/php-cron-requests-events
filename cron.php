@@ -96,7 +96,6 @@ define("CRON_LOG_LEVEL", 2);
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
 
- 
 ////////////////////////////////////////////////////////////////////////
 // Functions
 if(!function_exists('open_cron_socket')) { 
@@ -130,7 +129,7 @@ if(!function_exists('open_cron_socket')) {
 			$wget === '' && 
 			$curl === ''
 		){
-			if(!getenv('PATH')) $paths= "/usr/bin:/usr/local/bin";
+			if(!getenv('PATH')) $paths= "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin";
 			else $paths= getenv('PATH');
 			
 			foreach(explode(':', $paths) as $path){
@@ -488,7 +487,7 @@ if(
 	}
 	
 	
-	function write_cron_session() //:void 
+	function write_cron_session() // :void 
 	{
 		global  $cron_resource, $cron_session;
 		
