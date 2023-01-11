@@ -184,12 +184,12 @@ IPC реализован по типу мьютекс, все участвующ
 
 #### Функции
 ```
-// value - переменная для помещения в стек (array)
-// frame_size - размер кадра в байтах, 0 авто (int)
+// frame - переменная для помещения в стек (string)
+// frame_size - размер кадра в байтах (int)
 // frame_cursor - адрес, смещение в файле, PHP_INT_MAX - LIFO режим (int)
 // callback - вызывает анонимную функцию во время блокировки файла очереди (string) :void
 // возвращает позицию курсора фрейма (int), 0 в случае ошибки
-queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
+queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
@@ -200,10 +200,10 @@ queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback
 ```
 // frame_size - размер кадра, в байтах (int)
 // frame_cursor - адрес, смещение в файле, PHP_INT_MAX - LIFO режим (int)
-// frame_replace - переменная для замены (array)
+// frame_replace - переменная для замены (string)
 // callback - вызывает анонимную функцию во время блокировки файла очереди (string) :void
-// возвращает значение со стека (array), пустой массив [] в случае ошибки или пустой очереди
-$multicore_long_time_micro_job= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= ''); // забрать из очереди
+// возвращает значение со стека (string), пустой фрейм '' в случае ошибки или пустой очереди
+$frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= ''); // забрать из очереди
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
