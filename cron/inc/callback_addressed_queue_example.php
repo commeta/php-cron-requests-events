@@ -25,7 +25,6 @@ if(isset($job['queue_address_manager'])){
 
 	// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
 	// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
-	// 4 process, concurency
 	// 1673479681.945600 INFO: queue_manager 0.014953 678399 2
 
 	// 1673479692.254133 INFO: queue_manager 0.317006 678399 4
@@ -39,9 +38,8 @@ if(isset($job['queue_address_manager'])){
 ###########################################
 	// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 	// PHP 7.4.3 with Zend OPcache
-	// 1 process, no concurency
-
 	// 1673479321.668813 INFO: queue_manager 0.087133 7452 2
+	
 	// 1673479332.170000 INFO: queue_manager 0.571906 7464 3
 	// 1673479332.170225 INFO: queue_manager 0.432375 7469 5
 	// 1673479332.172232 INFO: queue_manager 0.376356 7470 6
