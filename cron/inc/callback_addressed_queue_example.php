@@ -26,27 +26,29 @@ if(isset($job['queue_address_manager'])){
 	// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
 	// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
 	// 4 process, concurency
-	// 1673385541.105537 INFO: queue_manager 0.013440 674899 2
+	// 1673479681.945600 INFO: queue_manager 0.014953 678399 2
 
-	// 1673385551.415635 INFO: queue_manager 3
-	// 1673385551.415714 INFO: queue_manager 0.318399 674897 3
-	// 1673385551.415715 INFO: queue_manager 2
-	// 1673385551.415816 INFO: queue_manager 0.316251 674899 5
-	// 1673385551.417642 INFO: queue_manager 1
-	// 1673385551.417729 INFO: queue_manager 0.319278 674898 4
-	// 1673385551.417729 INFO: queue_manager 0
-	// 1673385551.417840 INFO: queue_manager 0.317326 674896 6
+	// 1673479692.254133 INFO: queue_manager 0.317006 678399 4
+	// 1673479692.254179 INFO: queue_manager 0.316919 678400 5
+	// 1673479692.256135 INFO: queue_manager 0.320812 678401 3
+	// 1673479692.256229 INFO: queue_manager 0.317146 678402 6
 ###########################################
 
-	// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
-	// PHP 7.4.0 with Zend OPcache, PHP-FPM
-	// 4 process, concurency
-	// 1673387161.323667 INFO: queue_manager 0.019589 677929 2
 
-	// 1673387171.628240 INFO: queue_manager 0.320392 677926 4
-	// 1673387171.628537 INFO: queue_manager 0.319548 677928 5
-	// 1673387171.630191 INFO: queue_manager 0.322428 677929 6
-	// 1673387171.630246 INFO: queue_manager 0.321841 677930 3
+	
+###########################################
+	// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+	// PHP 7.4.3 with Zend OPcache
+	// 1 process, no concurency
+
+	// 1673479321.668813 INFO: queue_manager 0.087133 7452 2
+	// 1673479332.170000 INFO: queue_manager 0.571906 7464 3
+	// 1673479332.170225 INFO: queue_manager 0.432375 7469 5
+	// 1673479332.172232 INFO: queue_manager 0.376356 7470 6
+	// 1673479332.173088 INFO: queue_manager 0.500547 7467 4	
+	
+	
+	
 }
 
 
