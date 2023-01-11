@@ -19,7 +19,9 @@ if(isset($job['queue_address_manager'])){
 		}
 	}
 	
-	
+// fragment log file
+###########################################
+
 	// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
 	// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
 	// 4 process, concurency
@@ -33,7 +35,17 @@ if(isset($job['queue_address_manager'])){
 	// 1673385551.417729 INFO: queue_manager 0.319278 674898 4
 	// 1673385551.417729 INFO: queue_manager 0
 	// 1673385551.417840 INFO: queue_manager 0.317326 674896 6
+###########################################
 
+	// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
+	// PHP 7.4.3 with Zend OPcache
+	// 1 process, no concurency
+	// 1673387161.323667 INFO: queue_manager 0.019589 677929 2
+
+	// 1673387171.628240 INFO: queue_manager 0.320392 677926 4
+	// 1673387171.628537 INFO: queue_manager 0.319548 677928 5
+	// 1673387171.630191 INFO: queue_manager 0.322428 677929 6
+	// 1673387171.630246 INFO: queue_manager 0.321841 677930 3
 }
 
 ?>
