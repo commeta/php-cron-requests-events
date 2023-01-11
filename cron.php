@@ -33,6 +33,7 @@ $cron_jobs= [];
 ###########################
 # EXAMPLES
 
+
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
@@ -41,6 +42,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ];
 ##########
 
+
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
@@ -48,15 +50,16 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'multithreading' => true
 ];
 ##########
- // 2592 28624 29184 31760
- // 68400 87104 91808 109248
+
+
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '00:24:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '02:22:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
 ];
+
 
 for( // CRON job 3, multicore example, four cores, 
 	$i= 0;
@@ -64,12 +67,13 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '00:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '02:22:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
 	];
 }
+
 ##########
 
 
@@ -95,7 +99,6 @@ define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
-
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -198,9 +201,7 @@ if(
 	{ // example: multicore queue
 		$frame_size= 95;
 		$process_id= getmypid();
-		
-		$value_replace= [];
-		$value_completed= [true];
+		$frame_completed= serialize([true]);
 		
 		
 		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
@@ -208,7 +209,7 @@ if(
 		if($mode){
 			// example: multicore queue worker
 			// use:
-			// queue_address_push($multicore_long_time_micro_job); // add micro job in queue from worker process
+			// queue_address_push(serialize($value)); // add micro job in queue from worker process
 			
 			unlink(CRON_QUEUE_FILE); // reset DB file
 			touch(CRON_QUEUE_FILE);
@@ -230,7 +231,7 @@ if(
 				'last_update'=> microtime(true)
 			];
 			
-			queue_address_push($boot, 4096, 0);
+			queue_address_push(serialize($boot), 4096, 0);
 			$index_data= []; // example index - address array, frame_cursor is key of array, 
 			// if big data base - save partitions of search index in file, 
 			// use fseek\fread and parser on finite state machines for find index key\value
@@ -242,10 +243,11 @@ if(
 			// 1 process, no concurency
 			// execution time: 0.046951055526733 end - start, 1000 cycles
 			for($i= 0; $i < 1000; $i++){ // exanple add data in queue, any array serialized size < $frame_size
-				$frame_cursor= queue_address_push([
-					'url'=> sprintf("https://multicore_long_time_micro_job?param=&d", $i),
-					'count'=> $i
-				], $frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
+				$frame_cursor= queue_address_push(
+					serialize([
+						'url'=> sprintf("https://multicore_long_time_micro_job?param=&d", $i),
+						'count'=> $i]), 
+					$frame_size, $boot['data_offset'] + $i * $boot['data_frame_size']);
 				
 				if($frame_cursor !== 0) $index_data[$i]= $frame_cursor;  // example add cursor to index
 			}
@@ -255,13 +257,13 @@ if(
 			if(count($index_data) === 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				// 13774 bytes index size
 				// 95000 bytes db size
-				queue_address_push($index_data, $boot['index_frame_size'], $boot['index_offset']);
+				queue_address_push(serialize($index_data), $boot['index_frame_size'], $boot['index_offset']);
 			}
 		} else {
 			// example: multicore queue handler
 			// use:
-			// $multicore_long_time_micro_job= queue_address_pop(); // get micro job from queue in children processess 
-			// exec $multicore_long_time_micro_job - in a parallel thread
+			// $value= unserialize(queue_address_pop()); // get micro job from queue in children processess 
+			// exec $value - in a parallel thread
 			
 			// use index mode
 			// addressed data base, random access
@@ -303,10 +305,10 @@ if(
 				}
 			}
 			
-			$boot= queue_address_pop(4096, 0, $value_replace, "init_boot_frame");
-			if(!is_array($boot) && count($boot) < 5) return; // file read error
+			$boot= unserialize(queue_address_pop(4096, 0, '', "init_boot_frame"));
+			if(!is_array($boot)) return; // file read error
 				
-			$index_data= queue_address_pop($boot['index_frame_size'], $boot['index_offset']); 
+			$index_data= unserialize(queue_address_pop($boot['index_frame_size'], $boot['index_offset'])); 
 			if(!is_array($index_data)) {
 				return; // file read error
 			}
@@ -315,20 +317,20 @@ if(
 			// examples use adressed mode
 			if(is_array($boot) && count($boot['handlers']) === 1): // first handler process or use $job_process_id
 				// example 1, get first element
-				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[0]);
+				$value= unserialize(queue_address_pop($frame_size, $index_data[0]));
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 2, get last - 10 element, and get first frame in callback function
-				$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
+				$value= unserialize(queue_address_pop($frame_size, $index_data[count($index_data) - 10]));
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 3, linear read
 				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -336,7 +338,7 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i], $value_completed);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i], $frame_completed));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -344,7 +346,7 @@ if(
 				// example 5, random access
 				shuffle($index_data);
 				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
-					$multicore_long_time_micro_job= queue_address_pop($frame_size, $index_data[$i]);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -371,22 +373,23 @@ if(
 
 			// execution time: 0.051764011383057 end - start, 1000 cycles
 			while(true){ // example: loop from the end
-				$multicore_long_time_micro_job= queue_address_pop($frame_size,  PHP_INT_MAX, $value_replace, "count_frames");
+				$frame= queue_address_pop($frame_size,  PHP_INT_MAX, '', "count_frames");
+				$value= unserialize($frame);
 				
-				if(count($multicore_long_time_micro_job) === 0) {
+				if($frame === '') {
 					break 1;
-				} elseif($multicore_long_time_micro_job !==  $value_completed) {
-					// $content= file_get_contents($multicore_long_time_micro_job['url']);
-					// file_put_contents('cron/temp/url-' . $multicore_long_time_micro_job['count'] . '.html', $content);
+				} elseif($frame !==  $frame_completed) {
+					// $content= file_get_contents($value['url']);
+					// file_put_contents('cron/temp/url-' . $value['count'] . '.html', $content);
 					
-					usleep(2000); // test load, micro delay 
+					usleep(2000); // test load, micro delay 0.002 sec
 					
 					
 					if(CRON_LOG_LEVEL > 3){
 						if(CRON_LOG_FILE){
 							@file_put_contents(
 								CRON_LOG_FILE, 
-								sprintf("%f INFO: queue_manager %d\n", microtime(true), $multicore_long_time_micro_job['count']),
+								sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
 								FILE_APPEND | LOCK_EX
 							);
 						}
@@ -399,18 +402,16 @@ if(
 	}
 
 
-	// value - pushed value (array)
-	// frame_size - set frame size, 0 - auto (int)
+	// frame - pushed value (string)
+	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
 	// return frame cursor offset (int), 0 if error
-	function queue_address_push($value, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
+	function queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
 	{ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
 		$return_cursor= 0;
 
 		if($frame_size !== 0){
-			$frame= serialize($value);
-			
 			if($frame_size < mb_strlen($frame)){ // fill
 				return $return_cursor;
 			}
@@ -447,12 +448,12 @@ if(
 
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
-	// frame_replace - [] is off, replace frame (array)
-	// return value from stack frame, empty array [] if error or lifo queue end (array)
-	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= [], $callback= '') // :array 
+	// frame_replace - empty('') is off, replace frame (string)
+	// return value from stack frame, empty string '' if error or lifo queue end (string)
+	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= '') // :string 
 	{ // pop data frame from stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
-		$value= [];
+		$frame= '';
 		
 		if(flock($queue_resource, LOCK_EX)) {
 			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace); // callback anonymous
@@ -462,7 +463,7 @@ if(
 			if($stat['size'] < 1){ // queue file is empty
 				flock($queue_resource, LOCK_UN);
 				fclose($queue_resource);
-				return $value;
+				return $frame;
 			}
 
 			if($frame_cursor !== PHP_INT_MAX){
@@ -473,24 +474,23 @@ if(
 			}
 
 			fseek($queue_resource, $cursor); // get data frame
-			$v= unserialize(trim(fread($queue_resource, $frame_size)));
-			if(is_array($v)) $value= $v;
+			$v= trim(fread($queue_resource, $frame_size));
+			if(mb_strlen($v) > 0) $frame= $v;
 			
 			if($frame_cursor !== PHP_INT_MAX){
-				if(count($frame_replace) !== 0){ // replace frame
-					$serialized_frame_replace= serialize($frame_replace);
-					$length_frame_replace= mb_strlen($serialized_frame_replace);
+				if($frame_replace !== ''){ // replace frame
+					$length_frame_replace= mb_strlen($frame_replace);
 					
 					if($length_frame_replace < $frame_size){
-						for($i= $length_frame_replace; $i <= $frame_size; $i++) $serialized_frame_replace.= chr(0);
+						for($i= $length_frame_replace; $i <= $frame_size; $i++) $frame_replace.= chr(0);
 						
 						fseek($queue_resource, $cursor); 
-						fwrite($queue_resource, $serialized_frame_replace, $frame_size);
+						fwrite($queue_resource, $frame_replace, $frame_size);
 						fflush($queue_resource);
 					}
 				}
 				
-			} elseif(is_array($v)) { // LIFO mode	
+			} elseif(mb_strlen($v) > 0) { // LIFO mode	
 				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
 				else $trunc= 0; // truncate file
 
@@ -502,7 +502,7 @@ if(
 		}
 		
 		fclose($queue_resource);
-		return $value;
+		return $frame;
 	}
 	
 	
