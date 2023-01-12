@@ -54,7 +54,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '04:16:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:40:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -67,7 +67,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '04:16:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '04:40:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -413,7 +413,7 @@ if(
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
-	// return frame cursor offset (int), 0 if error
+	// return frame cursor offset (int), 0 if error or boot frame
 	function queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
 	{ // push data frame in stack
 		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
@@ -489,12 +489,14 @@ if(
 				if($frame_replace !== ''){ // replace frame
 					$length_frame_replace= mb_strlen($frame_replace);
 					
-					if($length_frame_replace < $frame_size){
+					if($length_frame_replace <= $frame_size){
 						for($i= $length_frame_replace; $i <= $frame_size; $i++) $frame_replace.= chr(0);
 						
 						fseek($queue_resource, $cursor); 
 						fwrite($queue_resource, $frame_replace, $frame_size);
 						fflush($queue_resource);
+					} else {
+						return '';
 					}
 				}
 				
@@ -652,7 +654,7 @@ if(
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			if(file_exists($job['callback'])) {
-				include $job['callback'];
+				include $job['callback']; // or switch case function list
 			} else {
 				if(CRON_LOG_FILE){
 					file_put_contents(
