@@ -37,6 +37,17 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 - Дружественный код для opcache.jit компилятора
 
 
+## Установка
+Скачайте скрипт в любой каталог сайта:
+- PHP: 
+```
+file_put_content('__FILE__', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
+```
+- CLI: 
+```
+wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
+```
+
 ## Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
 ```
