@@ -54,7 +54,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '02:22:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:16:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -67,7 +67,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '02:22:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '04:16:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -118,7 +118,7 @@ if(!function_exists('open_cron_socket')) {
 		} else {
 			$protocol= 'http';
 		}
-		
+
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 
 		if(isset($_SERVER["HTTP_HOST"])) {
@@ -202,18 +202,18 @@ if(
 		$frame_size= 95;
 		$process_id= getmypid();
 		$frame_completed= serialize([true]);
-		
-		
+
+
 		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
-		
+
 		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_address_push(serialize($value)); // add micro job in queue from worker process
-			
+
 			unlink(CRON_QUEUE_FILE); // reset DB file
 			touch(CRON_QUEUE_FILE);
-			
+
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
 				'workers'=> [], // array process_id values
@@ -236,8 +236,8 @@ if(
 			// if big data base - save partitions of search index in file, 
 			// use fseek\fread and parser on finite state machines for find index key\value
 			// alignment data with leading zeros
-			
-			
+
+
 			// 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
 			// PHP 7.4.3 with Zend OPcache
 			// 1 process, no concurency
@@ -251,8 +251,8 @@ if(
 				
 				if($frame_cursor !== 0) $index_data[$i]= $frame_cursor;  // example add cursor to index
 			}
-			
-						
+
+
 			// Example save index
 			if(count($index_data) === 1000){ // SIZE DATA FRAME ERROR if count elements != 1000
 				// 13774 bytes index size
@@ -286,8 +286,12 @@ if(
 						'last_start' => 0
 					];
 					
+					$frame= serialize($boot);
+					$frame_length= mb_strlen($frame);
+					for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
+					
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
-					fwrite($queue_resource, serialize($boot), 4096);
+					fwrite($queue_resource,$frame, 4096);
 					fflush($queue_resource);
 				} else { // frame error
 					if(CRON_LOG_LEVEL > 3){
@@ -364,9 +368,13 @@ if(
 				if(isset($boot['handlers'][$process_id])){
 					$boot['handlers'][$process_id]['count_start']++;
 					$boot['handlers'][$process_id]['last_start']= microtime(true);
-						
+					
+					$frame= serialize($boot);
+					$frame_length= mb_strlen($frame);
+					for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
+					
 					fseek($queue_resource, 0); // save 0-3 sectors, boot frame
-					fwrite($queue_resource, serialize($boot), 4096);
+					fwrite($queue_resource, $frame, 4096);
 					fflush($queue_resource);
 				}
 			}
@@ -402,7 +410,7 @@ if(
 	}
 
 
-	// frame - pushed value (string)
+	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
 	// return frame cursor offset (int), 0 if error
