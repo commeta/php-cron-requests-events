@@ -54,7 +54,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '06:10:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:40:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -67,7 +67,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '06:10:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '04:40:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -122,7 +122,7 @@ if(!function_exists('open_cron_socket')) {
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 
 		if(isset($_SERVER["HTTP_HOST"])) {
-			$host= strtolower(filter_var($_SERVER["HTTP_HOST"], FILTER_SANITIZE_URL));
+			$host= strtolower($_SERVER["HTTP_HOST"]);
 			
 			if($job_process_id !== '') $cron_url_key.= '&job_process_id=' . $job_process_id;
 		} elseif( // sapi: CLI
@@ -276,8 +276,7 @@ if(
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
-				$frame= trim(fread($queue_resource, 4096));
-				$boot= unserialize($frame);
+				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(is_array($boot)){
 					$boot['handlers'][$process_id]= [// add active handler
@@ -310,12 +309,10 @@ if(
 				}
 			}
 			
-			$frame= queue_address_pop(4096, 0, '', "init_boot_frame");
-			$boot= unserialize($frame);
+			$boot= unserialize(queue_address_pop(4096, 0, '', "init_boot_frame"));
 			if(!is_array($boot)) return; // file read error
 				
-			$frame= queue_address_pop($boot['index_frame_size'], $boot['index_offset']);
-			$index_data= unserialize($frame); 
+			$index_data= unserialize(queue_address_pop($boot['index_frame_size'], $boot['index_offset'])); 
 			if(!is_array($index_data)) {
 				return; // file read error
 			}
@@ -324,23 +321,20 @@ if(
 			// examples use adressed mode
 			if(is_array($boot) && count($boot['handlers']) === 1): // first handler process or use $job_process_id
 				// example 1, get first element
-				$frame= queue_address_pop($frame_size, $index_data[0]);
-				$value= unserialize($frame);
+				$value= unserialize(queue_address_pop($frame_size, $index_data[0]));
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 2, get last - 10 element, and get first frame in callback function
-				$frame= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
-				$value= unserialize($frame);
+				$value= unserialize(queue_address_pop($frame_size, $index_data[count($index_data) - 10]));
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 3, linear read
 				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
-					$frame= queue_address_pop($frame_size, $index_data[$i]);
-					$value= unserialize($frame);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -348,8 +342,7 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$frame= queue_address_pop($frame_size, $index_data[$i], $frame_completed);
-					$value= unserialize($frame);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i], $frame_completed));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -357,8 +350,7 @@ if(
 				// example 5, random access
 				shuffle($index_data);
 				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
-					$frame= queue_address_pop($frame_size, $index_data[$i]);
-					$value= unserialize($frame);
+					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -371,8 +363,7 @@ if(
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
-				$frame= trim(fread($queue_resource, 4096));
-				$boot= unserialize($frame);
+				$boot= unserialize(trim(fread($queue_resource, 4096)));
 				
 				if(isset($boot['handlers'][$process_id])){
 					$boot['handlers'][$process_id]['count_start']++;
@@ -867,9 +858,8 @@ if(
 				$cron_resource= fopen($cron_dat_file, "r+");
 				if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 					$stat= fstat($cron_resource);
-					$frame= fread($cron_resource, $stat['size']);
-					$value= unserialize($frame);
-					if(is_array($value)) $cron_session= $value;
+					$cs= unserialize(fread($cron_resource, $stat['size']));
+					if(is_array($cs)) $cron_session= $cs;
 					
 					cron_session_init($job, $job_process_id);
 					cron_check_job($job, $job_process_id, false);
@@ -895,10 +885,8 @@ if(
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$stat= fstat($cron_resource);
-		
-		$frame= fread($cron_resource, $stat['size']);
-		$value= unserialize($frame);
-		if(is_array($value)) $cron_session= $value;
+		$cs= unserialize(@fread($cron_resource, $stat['size']));
+		if(is_array($cs)) $cron_session= $cs;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
