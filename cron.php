@@ -490,7 +490,9 @@ if(
 					$length_frame_replace= mb_strlen($frame_replace);
 					
 					if($length_frame_replace <= $frame_size){
-						for($i= $length_frame_replace; $i <= $frame_size; $i++) $frame_replace.= chr(0);
+						if($length_frame_replace < $frame_size){
+							for($i= $length_frame_replace; $i <= $frame_size; $i++) $frame_replace.= chr(0);
+						}
 						
 						fseek($queue_resource, $cursor); 
 						fwrite($queue_resource, $frame_replace, $frame_size);
