@@ -660,14 +660,16 @@ if(
 			
 			
 			if(isset($job['function'])){ // use call function mode
+				/*
 				switch($job['function']){
 					case 'queue_address_manager':
 						queue_address_manager($job['param']);
 						break;
 				}
+				*/
 				
-				//if(isset($job['param'])) call_user_func($job['function'], $job['param']);
-				//else call_user_func($job['function']);
+				if(isset($job['param'])) call_user_func($job['function'], $job['param']);
+				else call_user_func($job['function']);
 				
 			} else { // include callback mode
 				if(file_exists($job['callback'])) {
