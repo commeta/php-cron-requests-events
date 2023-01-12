@@ -658,31 +658,30 @@ if(
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			
-			
-			if(isset($job['function'])){ // use call function mode			
+			if(isset($job['function'])){ // use call function mode
 				if(isset($job['param'])) call_user_func($job['function'], $job['param']);
 				else call_user_func($job['function']);
-				
-			} else { // include callback mode
-				if(file_exists($job['callback'])) {
-					include $job['callback'];
+			}
+			
+			if(file_exists($job['callback'])) {
+				include $job['callback'];
 					
-				} else {
-					if(CRON_LOG_FILE){
-						file_put_contents(
-							CRON_LOG_FILE,
-							implode(' ', [
-								'date'=> date('m/d/Y H:i:s', time()),
-								'message'=> 'ERROR:',
-								'job_process_id' => (string) $job_process_id,
-								'callback' => $job['callback'],
-								'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
-							]) . "\n",
-							FILE_APPEND | LOCK_EX
-						);
-					}
+			} else {
+				if(CRON_LOG_FILE){
+					file_put_contents(
+						CRON_LOG_FILE,
+						implode(' ', [
+							'date'=> date('m/d/Y H:i:s', time()),
+							'message'=> 'ERROR:',
+							'job_process_id' => (string) $job_process_id,
+							'callback' => $job['callback'],
+							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
+						]) . "\n",
+						FILE_APPEND | LOCK_EX
+					);
 				}
 			}
+			
 		}
 	}
 	
