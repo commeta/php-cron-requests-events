@@ -53,11 +53,13 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
  
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '21:00:00', // "hours:minutes:seconds"execute job on the specified time every day
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
-	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
+	'time' => '09:05:00', // "hours:minutes:seconds"execute job on the specified time every day
+	//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
+	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
 ];
+
 
 for( // CRON job 3, multicore example, four cores, 
 	$i= 0;
@@ -65,12 +67,14 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '21:00:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		'callback' => CRON_SITE_ROOT . "cron/inc/callback_addressed_queue_example.php",
-		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
+		'time' => '09:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
+		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
 	];
 }
+
 ##########
 
 
@@ -86,6 +90,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - time - Устанавливает время для старта в 24-ом формате 07:20:00, если дата не указана то выполняет каждый день
 - date - Устанавливает дату для старта в формате 31-12-2022
 - callback - PHP скрипт, будет выполнен по истечении интервала
+- function - Выполняет указанную функцию, если указан param то передает его в параметрах
 - multithreading - Запуск в фоновом режиме true\false
 
 Если указаны параметры date или time то аргумент interval будет проигнорирован, точность регулируется параметром CRON_DELAY, зависит от активности запросов к хосту, если в момент наступления времени события, запросов к серверу не было - запустит задачу при первом запуске.
