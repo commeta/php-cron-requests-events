@@ -1,6 +1,10 @@
 # php-cron-requests-events
 php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in modApache/CGI/FPM sapi environment.
 
+
+[README_RU.md на русском](README_RU.md)
+
+
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
 
 Procedural code based on built-in functions, no dependencies on third-party modules and libraries, minimal resource consumption
