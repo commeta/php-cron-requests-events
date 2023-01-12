@@ -94,8 +94,8 @@ define("CRON_DELAY", 1);  // interval between requests in seconds, 0 to max int,
 define("CRON_DAEMON_MODE", true);  // true\false - enable\disable daemon mode
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
-define("CRON_LOG_ROTATE_MAX_FILES", 2);
-define("CRON_LOG_LEVEL", 5);
+define("CRON_LOG_ROTATE_MAX_FILES", 5);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
@@ -656,10 +656,13 @@ if(
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			if(file_exists($job['callback'])) {
-				include $job['callback']; // or call_user_func, example: change callback to function name and
+				include $job['callback'];
 				
-				// if(isset($job['queue_address_manager'])) call_user_func($job['callback'], $job['queue_address_manager']);
-				// else call_user_func($job['callback']);
+				if(isset($job['function'])){ // use call function mode
+					if(isset($job['queue_address_manager'])) call_user_func($job['function'], $job['queue_address_manager']);
+					else call_user_func($job['function']);
+				}
+				
 			} else {
 				if(CRON_LOG_FILE){
 					file_put_contents(
