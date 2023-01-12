@@ -655,28 +655,30 @@ if(
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
-			if(file_exists($job['callback'])) {
-
-				if(isset($job['function'])){ // use call function mode
-					if(isset($job['queue_address_manager'])) call_user_func($job['function'], $job['queue_address_manager']);
-					else call_user_func($job['function']);
-				} else {
-					include $job['callback'];
-				}
+			
+			
+			if(isset($job['function'])){ // use call function mode
+				if(isset($job['queue_address_manager'])) call_user_func($job['function'], $job['queue_address_manager']);
+				else call_user_func($job['function']);
 				
-			} else {
-				if(CRON_LOG_FILE){
-					file_put_contents(
-						CRON_LOG_FILE,
-						implode(' ', [
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'ERROR:',
-							'job_process_id' => (string) $job_process_id,
-							'callback' => $job['callback'],
-							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
-						]) . "\n",
-						FILE_APPEND | LOCK_EX
-					);
+			} else { // include callback mode
+				if(file_exists($job['callback'])) {
+					include $job['callback'];
+					
+				} else {
+					if(CRON_LOG_FILE){
+						file_put_contents(
+							CRON_LOG_FILE,
+							implode(' ', [
+								'date'=> date('m/d/Y H:i:s', time()),
+								'message'=> 'ERROR:',
+								'job_process_id' => (string) $job_process_id,
+								'callback' => $job['callback'],
+								'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
+							]) . "\n",
+							FILE_APPEND | LOCK_EX
+						);
+					}
 				}
 			}
 		}
