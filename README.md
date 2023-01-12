@@ -1,9 +1,8 @@
-# php-cron-requests-events
+# php cron requests events
+
 php crontab process sheduler, based on url requests/event-loop, daemon mode, multithreading, second intervals, microseconds queue api, runtime in modApache/CGI/FPM sapi environment.
 
-
-[README_RU.md на русском](README_RU.md)
-
+[README_RU.md на русском](https://github.com/commeta/php-cron-requests-events/blob/main/README_RU.md)
 
 ![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
 
@@ -38,7 +37,7 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Friendly code for opcache.jit compiler
 
 
-### Task start example
+## Task start example
 In the context of the cron.php file, the CRON Job section
 ```
 ###########################
@@ -117,7 +116,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 
 
 
-### Launch parameters
+## Launch parameters
 - define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Path to the log file, false - disables the log
 - define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Path to the thread manager system file
 - define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat'); // Path to the multiprocess queue system file
@@ -138,8 +137,8 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 When selecting the CRON_DELAY parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
 
 
-### CRON event handler
-#### Example from file: cron/inc/callback_cron.php
+## CRON event handler
+### Example from file: cron/inc/callback_cron.php
 
 This file will be launched according to the schedule, the path to the file is specified in the field $cron_jobs[$job_process_id]['callback']
 
@@ -163,8 +162,8 @@ Array // $cron_session
 ```
 
 
-### php multicore api multithreaded queue example
-#### Example from file: cron/inc/callback_addressed_queue_example.php
+## php multicore api multithreaded queue example
+### Example from file: cron/inc/callback_addressed_queue_example.php
 
 - call queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.
 - call queue_address_manager(false); // starts the micro task handler.
@@ -173,7 +172,7 @@ Array // $cron_session
 1. Add to the general list of tasks, an event to start the creation of a queue of micro tasks - workers. The event handler will place the micro tasks in a queue, the length of which is limited only by the amount of disk space on the server.
 2. Add to the general list of tasks, an event for launching micro task handlers - handlers. The CRON job 3 event launches several processes in parallel, each of which receives micro tasks from a common queue, and immediately executes them.
 
-#### IPC data transfer between processes
+## IPC data transfer between processes
 IPC is implemented as a mutex, all participating processes access the data file in exclusive mode.
 
 A process acquires a data file using the system's advisory file lock mechanism, and all other processes queue up to wait for the lock to be released.
@@ -196,7 +195,7 @@ In the example given, there is an implementation of an index database:
 - read\write any frame by offset within the data file
 - file can be any size
 
-#### Functions
+## Functions
 ```
 // frame - variable to put on the stack (string)
 // frame_size - frame size in bytes (int)
@@ -236,7 +235,7 @@ Frame access time from 0.00001 second depending on the frame size, intensity of 
 
 
 
-#### Boot record structure
+## Boot record structure
 ```
 // Reserved index struct
 $boot= [ // 0-3 sector, frame size 4096
@@ -253,7 +252,7 @@ $boot= [ // 0-3 sector, frame size 4096
 
 
 
-#### IPC frame structure
+## IPC frame structure
 ```
 // zero data frame from completed job
 // 12 thread: AMD Ryzen 5 2600X Six-Core Processor
@@ -324,7 +323,7 @@ Array
 
 
 
-### Resource consumption
+## Resource consumption
 The task manager runs in the background using the network request mechanism.
 
 cron.php works in 4 modes:
@@ -346,7 +345,7 @@ OPCache memory consumption: 69.48KB (PHP 8.2 data, strings, bytecode, DynASM, se
 
 
 You can connect this CRON to any CMS, it will not affect performance in any way.
-##### Test stand 1:
+### Test stand 1:
 - Centos 8
 - Apache/2.4.6 mpm-itk/2.4.7-04 mod_fcgid/2.3.9
 - 1 core: Intel(R) Xeon(R) CPU E5645 @ 2.40GHz
@@ -354,7 +353,7 @@ You can connect this CRON to any CMS, it will not affect performance in any way.
 Sapi: mod Apache2
 - GNU wget 1.14
 
-##### Test bench 2:
+### Test bench 2:
 - Ubuntu 22
 - nginx/1.22.1 php fpm
 - 12 threads: AMD Ryzen 5 2600X Six-Core Processor
@@ -362,7 +361,7 @@ Sapi: mod Apache2
 Sapi: PHP-FPM
 - GNU wget 1.20.3
 
-##### Xdebug flat profile, KCacheGrind
+## Xdebug flat profile, KCacheGrind
 Before starting the control process
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
 
@@ -379,11 +378,11 @@ After starting the child process, an example of dequeuing include cron/inc/callb
 ![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
 
 
-### Vulnerability check snyk.io
+## Vulnerability check snyk.io
 [php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php-cron-requests-events-snyk.pdf)
 Security code, warnings handled.
 
-### Links:
+## Links:
 - [Nginx, Php-Fpm и что это вообще?](https://perfect-inc.com/journal/nginx-php-fpm-i-chto-eto-voobshche/)
 - [fastcgi_ignore_client_abort](https://nginx.org/ru/docs/http/ngx_http_fastcgi_module.html#fastcgi_ignore_client_abort)
 - [PHP jit in depth](https://php.watch/articles/jit-in-depth)
@@ -404,4 +403,3 @@ Security code, warnings handled.
 - [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 - [https://github.com/php/php-src](https://github.com/php/php-src)
 - [php-src/ext/opcache/jit/zend_jit.h](https://github.com/php/php-src/blob/master/ext/opcache/jit/zend_jit.h)
-
