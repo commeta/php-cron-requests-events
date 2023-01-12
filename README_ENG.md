@@ -393,7 +393,7 @@ Security code, warnings handled.
 - [Introduction to interprocess communication on Linux](https://habr.com/ru/post/122108/)
 - [Semaphore, Shared Memory and IPC Functions](http://www.nusphere.com/kb/phpmanual/ref.sem.htm)
 - [Using Shared Memory in PHP](http://codenet.ru/webmast/php/Shared-Memory.php)
-- [Page cache or how RAM and files are related] (https://habr.com/ru/company/smart_soft/blog/228937/)
+- [Page cache or how RAM and files are related](https://habr.com/ru/company/smart_soft/blog/228937/)
 - [Linux optimization for load Disk write caching](https://drupal-admin.ru/blog/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0% B0%D1%86%D0%B8%D1%8F-linux-%D0%BF%D0%BE%D0%B4-%D0%BD%D0%B0%D0%B3%D1%80%D1%83% D0%B7%D0%BA%D1%83-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0 %B8%D0%B5-%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9-%D0%B7%D0%B0%D0 %BF%D0%B8%D1%81%D0%B8-%D0%BD%D0%B0-%D0%B4%D0%B8%D1%81%D0%BA)
 - [Linux disk cache manipulation](https://habr.com/ru/company/otus/blog/706702/)
 - [Xdebug](https://xdebug.org/docs/)
