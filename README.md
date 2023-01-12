@@ -372,6 +372,7 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 
 ### Проверка уязвимостей snyk.io
 [php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php-cron-requests-events-snyk.pdf)
+Предупреждения обработаны, но системе не удается распознать.
 
 
 ### Ссылки:
