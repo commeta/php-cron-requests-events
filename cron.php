@@ -656,7 +656,7 @@ if(
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			if(file_exists($job['callback'])) {
-				include $job['callback']; // or switch case function list
+				include $job['callback']; // or call_user_func
 			} else {
 				if(CRON_LOG_FILE){
 					file_put_contents(
