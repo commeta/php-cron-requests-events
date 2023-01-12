@@ -122,8 +122,8 @@ if(!function_exists('open_cron_socket')) {
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
 
 		if(isset($_SERVER["HTTP_HOST"])) {
-			$host= strtolower($_SERVER["HTTP_HOST"]);
-			
+			$host= strtolower(filter_var($_SERVER["HTTP_HOST"], FILTER_SANITIZE_URL));
+						
 			if($job_process_id !== '') $cron_url_key.= '&job_process_id=' . $job_process_id;
 		} elseif( // sapi: CLI
 			defined('STDIN') ||
