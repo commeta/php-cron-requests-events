@@ -212,7 +212,7 @@ queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback
 // frame_cursor - address, file offset, PHP_INT_MAX - LIFO mode (int)
 // frame_replace - variable to replace (string)
 // callback - calls an anonymous function while blocking the queue file (string) :void
-// returns value from stack (string), empty frame '' in case of error or empty queue
+// returns frame from stack (string), empty frame '' in case of error or empty queue
 $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= ''); // pick up from the queue
 ```
 1. blocking operation
