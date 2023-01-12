@@ -95,7 +95,7 @@ define("CRON_DAEMON_MODE", true);  // true\false - enable\disable daemon mode
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 2);
+define("CRON_LOG_LEVEL", 5);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
@@ -310,7 +310,8 @@ if(
 				}
 			}
 			
-			$boot= unserialize(queue_address_pop(4096, 0, '', "init_boot_frame"));
+			$frame= queue_address_pop(4096, 0, '', "init_boot_frame");
+			$boot= unserialize($frame);
 			if(!is_array($boot)) return; // file read error
 				
 			$index_data= unserialize(queue_address_pop($boot['index_frame_size'], $boot['index_offset'])); 
