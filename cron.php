@@ -656,11 +656,12 @@ if(
 			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
 		} else {
 			if(file_exists($job['callback'])) {
-				include $job['callback'];
-				
+
 				if(isset($job['function'])){ // use call function mode
 					if(isset($job['queue_address_manager'])) call_user_func($job['function'], $job['queue_address_manager']);
 					else call_user_func($job['function']);
+				} else {
+					include $job['callback'];
 				}
 				
 			} else {
