@@ -1,12 +1,12 @@
 <?php
 
-if(isset($job['queue_address_manager'])){
+if(isset($job['param'])){
 	// true - call in multithreading context api cron.php, in worker mode
 	// false - call in multithreading context api cron.php, in handler mode
 	
 	
 	$start= microtime(true);
-	queue_address_manager($job['queue_address_manager']);
+	queue_address_manager($job['param']);
 	$time= microtime(true) - $start;
 	
 	if(CRON_LOG_LEVEL > 3){
