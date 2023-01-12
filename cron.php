@@ -1,6 +1,13 @@
 <?php
 /*
- * PHP CRON use request events
+ * PHP CRON use request events 
+ * Project url: https://github.com/commeta/php-cron-requests-events
+ * 
+ * can install use:
+ * PHP: file_put_content('__FILE__', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
+ * CLI: wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
+ * 
+ * 
  * Copyright 2023 commeta <dcs-spb@ya.ru>
  * 
  * This program is free software; you can redistribute it and/or modify
