@@ -95,7 +95,7 @@ define("CRON_DAEMON_MODE", true);  // true\false - enable\disable daemon mode
 
 define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
 define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 5);
+define("CRON_LOG_LEVEL", 2);
 
 define("CRON_URL_KEY", 'my_secret_key'); // change this!
 define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
@@ -314,7 +314,8 @@ if(
 			$boot= unserialize($frame);
 			if(!is_array($boot)) return; // file read error
 				
-			$index_data= unserialize(queue_address_pop($boot['index_frame_size'], $boot['index_offset'])); 
+			$frame= queue_address_pop($boot['index_frame_size'], $boot['index_offset']);
+			$index_data= unserialize($frame); 
 			if(!is_array($index_data)) {
 				return; // file read error
 			}
@@ -323,20 +324,23 @@ if(
 			// examples use adressed mode
 			if(is_array($boot) && count($boot['handlers']) === 1): // first handler process or use $job_process_id
 				// example 1, get first element
-				$value= unserialize(queue_address_pop($frame_size, $index_data[0]));
+				$frame= queue_address_pop($frame_size, $index_data[0]);
+				$value= unserialize($frame);
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 2, get last - 10 element, and get first frame in callback function
-				$value= unserialize(queue_address_pop($frame_size, $index_data[count($index_data) - 10]));
+				$frame= queue_address_pop($frame_size, $index_data[count($index_data) - 10]);
+				$value= unserialize($frame);
 				// task handler
 				//usleep(2000); // test load, micro delay 
 
 				
 				// example 3, linear read
 				for($i= 100; $i < 800; $i++){ // execution time:  0.037011861801147, 1000 cycles, address mode
-					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
+					$frame= queue_address_pop($frame_size, $index_data[$i]);
+					$value= unserialize($frame);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -344,7 +348,8 @@ if(
 				
 				// example 4, replace frames in file
 				for($i= 10; $i < 500; $i++){ // execution time:  0.076093912124634, 1000 cycles, address mode, frame_replace
-					$value= unserialize(queue_address_pop($frame_size, $index_data[$i], $frame_completed));
+					$frame= queue_address_pop($frame_size, $index_data[$i], $frame_completed);
+					$value= unserialize($frame);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
@@ -352,7 +357,8 @@ if(
 				// example 5, random access
 				shuffle($index_data);
 				for($i= 0; $i < 10; $i++){// execution time: 0.035359859466553, 1000 cycles, address mode, random access
-					$value= unserialize(queue_address_pop($frame_size, $index_data[$i]));
+					$frame= queue_address_pop($frame_size, $index_data[$i]);
+					$value= unserialize($frame);
 					// task handler
 					//usleep(2000); // test load, micro delay 
 				}
