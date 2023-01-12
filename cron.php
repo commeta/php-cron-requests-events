@@ -54,7 +54,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '04:40:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '06:10:00', // "hours:minutes:seconds"execute job on the specified time every day
 	'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -67,7 +67,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '04:40:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '06:10:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
 		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -276,7 +276,8 @@ if(
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
-				$boot= unserialize(trim(fread($queue_resource, 4096)));
+				$frame= trim(fread($queue_resource, 4096));
+				$boot= unserialize($frame);
 				
 				if(is_array($boot)){
 					$boot['handlers'][$process_id]= [// add active handler
@@ -363,7 +364,8 @@ if(
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
-				$boot= unserialize(trim(fread($queue_resource, 4096)));
+				$frame= trim(fread($queue_resource, 4096));
+				$boot= unserialize($frame);
 				
 				if(isset($boot['handlers'][$process_id])){
 					$boot['handlers'][$process_id]['count_start']++;
@@ -858,8 +860,9 @@ if(
 				$cron_resource= fopen($cron_dat_file, "r+");
 				if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 					$stat= fstat($cron_resource);
-					$cs= unserialize(fread($cron_resource, $stat['size']));
-					if(is_array($cs)) $cron_session= $cs;
+					$frame= fread($cron_resource, $stat['size']);
+					$value= unserialize($frame);
+					if(is_array($value)) $cron_session= $value;
 					
 					cron_session_init($job, $job_process_id);
 					cron_check_job($job, $job_process_id, false);
@@ -885,8 +888,10 @@ if(
 	$cron_resource= fopen(CRON_DAT_FILE, "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$stat= fstat($cron_resource);
-		$cs= unserialize(@fread($cron_resource, $stat['size']));
-		if(is_array($cs)) $cron_session= $cs;
+		
+		$frame= fread($cron_resource, $stat['size']);
+		$value= unserialize($frame);
+		if(is_array($value)) $cron_session= $value;
 		
 		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
 			mkdir(dirname(CRON_LOG_FILE), 0755, true);
