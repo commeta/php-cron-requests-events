@@ -54,10 +54,10 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '08:55:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '09:05:00', // "hours:minutes:seconds"execute job on the specified time every day
 	//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
-	'function' => "queue_address_manager",
-	'queue_address_manager' => true, // use with queue_address_manager(true), in worker mode
+	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
+	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
 ];
 
@@ -68,10 +68,10 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '08:55:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '09:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
-		'function' => "queue_address_manager",
-		'queue_address_manager' => false, // use with queue_address_manager(false), in handler mode
+		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
+		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
 	];
 }
@@ -660,8 +660,14 @@ if(
 			
 			
 			if(isset($job['function'])){ // use call function mode
-				if(isset($job['queue_address_manager'])) call_user_func($job['function'], $job['queue_address_manager']);
-				else call_user_func($job['function']);
+				switch($job['function']){
+					case 'queue_address_manager':
+						queue_address_manager($job['param']);
+						break;
+				}
+				
+				//if(isset($job['param'])) call_user_func($job['function'], $job['param']);
+				//else call_user_func($job['function']);
 				
 			} else { // include callback mode
 				if(file_exists($job['callback'])) {
