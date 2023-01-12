@@ -37,6 +37,18 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Friendly code for opcache.jit compiler
 
 
+## Install
+Download the script to any site directory:
+- PHP: 
+```
+file_put_content('__FILE__', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
+```
+- CLI: 
+```
+wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
+```
+
+
 ## Task start example
 In the context of the cron.php file, the CRON Job section
 ```
@@ -403,3 +415,5 @@ Security code, warnings handled.
 - [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 - [https://github.com/php/php-src](https://github.com/php/php-src)
 - [php-src/ext/opcache/jit/zend_jit.h](https://github.com/php/php-src/blob/master/ext/opcache/jit/zend_jit.h)
+
+
