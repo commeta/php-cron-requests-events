@@ -375,7 +375,7 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
-После запуска управляющего процесса
+После запуска управляющего процесса, CRON_DAEMON_MODE false
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
 После запуска процесса потомка, пример include callback_cron.php
