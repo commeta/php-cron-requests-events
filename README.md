@@ -131,6 +131,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 ## Launch parameters
 - define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Path to the log file, false - disables the log
 - define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Path to the thread manager system file
+- define("CRON_LOG_LEVEL", 5); // Detailed log: 2 warning, 5 debug
 - define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat'); // Path to the multiprocess queue system file
 - define("CRON_DELAY", 1); // Timeout until next run in seconds
 - define("CRON_DAEMON_MODE", true); // true\false resident mode (background service)
