@@ -128,7 +128,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ## Параметры запуска
 - define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Путь к файлу журнала, false - отключает журнал
 - define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Путь к системному файлу диспетчера потока
-- define("CRON_LOG_LEVEL", 5); // Детализация журнала 2 warning, 3 debug
+- define("CRON_LOG_LEVEL", 5); // Детализация журнала: 2 warning, 5 debug
 - define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat'); // Путь к системному файлу многопроцессной очереди
 - define("CRON_DELAY", 1); // Тайм аут до следующего запуска в секундах
 - define("CRON_DAEMON_MODE", true); // true\false резидентный режим (фоновая служба)
