@@ -375,16 +375,16 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
-После запуска управляющего процесса, CRON_DAEMON_MODE false
+После запуска управляющего процесса, CRON_DAEMON_MODE false, log on
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
-После запуска процесса потомка, пример include callback_cron.php
+После запуска процесса потомка, пример include callback_cron.php, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-После запуска процесса потомка, пример queue_address_manager(true)
+После запуска процесса потомка, пример queue_address_manager(true), log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
 
-После запуска процесса потомка, пример queue_address_manager(false)
+После запуска процесса потомка, пример queue_address_manager(false), log on
 ![example_queue_address_manager_pop](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_pop.png "example_queue_address_manager_pop.png")
 
 
