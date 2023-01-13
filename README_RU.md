@@ -381,10 +381,10 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 После запуска процесса потомка, пример include callback_cron.php
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-После запуска процесса потомка, пример наполнения очереди
+После запуска процесса потомка, пример queue_address_manager(true)
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
 
-После запуска процесса потомка, пример извлечения из очереди
+После запуска процесса потомка, пример queue_address_manager(false)
 ![example_queue_address_manager_pop](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_pop.png "example_queue_address_manager_pop.png")
 
 
