@@ -375,7 +375,7 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 До запуска управляющего процесса
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
-После запуска процесса потомка, include cron/inc/callback_cron.php
+После запуска процесса потомка, пример include callback_cron.php
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
 После запуска процесса потомка, пример наполнения очереди
