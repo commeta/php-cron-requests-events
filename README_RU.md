@@ -5,7 +5,7 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 [User manual en](https://github.com/commeta/php-cron-requests-events/wiki/User-manual)
 
 
-![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
+![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
 Процедурный код на встроенных функциях, отсутствие зависимостей от сторонних модулей и библиотек, минимальное потребление ресурсов
 
 ## Описание
@@ -373,23 +373,23 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 
 ## Плоский профиль Xdebug, KCacheGrind
 До запуска управляющего процесса
-![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
+![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
 После запуска управляющего процесса, CRON_DELAY=10
-![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
+![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
 После запуска процесса потомка, include cron/inc/callback_cron.php
-![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
+![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_start.png "multithreading_start.png")
 
 После запуска процесса потомка, пример наполнения очереди include cron/inc/callback_addressed_queue_example.php
-![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
+![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
 
 После запуска процесса потомка, пример извлечения из очереди include cron/inc/callback_addressed_queue_example.php
-![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
+![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
 
 
 ## Проверка уязвимостей snyk.io
-[php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php-cron-requests-events-snyk.pdf)
+[php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/php-cron-requests-events-snyk.pdf)
 Секьюрный код, предупреждения обработаны.
 
 ## Ссылки:
