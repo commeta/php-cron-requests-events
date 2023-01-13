@@ -4,7 +4,7 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 
 [README_RU.md на русском](https://github.com/commeta/php-cron-requests-events/blob/main/README_RU.md)
 
-![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
+![php-cron-requests-events](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/php_cron_in_php-fpm_htop_process_list.png "php-cron-requests-events")
 
 Procedural code based on built-in functions, no dependencies on third-party modules and libraries, minimal resource consumption
 
@@ -375,23 +375,23 @@ Sapi: PHP-FPM
 
 ## Xdebug flat profile, KCacheGrind
 Before starting the control process
-![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/before_start_main_process.png "before_start_main_process.png")
+![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
 After starting the control process, CRON_DELAY=10
-![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/start_main_process.png "start_main_process.png")
+![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
 After starting the child process, include cron/inc/callback_cron.php
-![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/multithreading_start.png "multithreading_start.png")
+![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_start.png "multithreading_start.png")
 
 After starting the child process, an example of filling the queue include cron/inc/callback_addressed_queue_example.php
-![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
+![example_queue_address_manager_extend_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_extend_push.png "example_queue_address_manager_extend_push.png")
 
 After starting the child process, an example of dequeuing include cron/inc/callback_addressed_queue_example.php
-![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
+![example_queue_address_manager_extend_pop_flock](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_extend_pop_flock.png "example_queue_address_manager_extend_pop_flock.png")
 
 
 ## Vulnerability check snyk.io
-[php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/php-cron-requests-events-snyk.pdf)
+[php-cron-requests-events-snyk.pdf](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/php-cron-requests-events-snyk.pdf)
 Security code, warnings handled.
 
 ## Links:
@@ -415,5 +415,3 @@ Security code, warnings handled.
 - [KCacheGrind](https://kcachegrind.github.io/html/Home.html)
 - [https://github.com/php/php-src](https://github.com/php/php-src)
 - [php-src/ext/opcache/jit/zend_jit.h](https://github.com/php/php-src/blob/master/ext/opcache/jit/zend_jit.h)
-
-
