@@ -377,16 +377,16 @@ Sapi: PHP-FPM
 Before starting the control process
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
-After starting the control process, CRON_DAEMON_MODE false
+After starting the control process, CRON_DAEMON_MODE false, log on
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
-After starting the child process, include callback_cron.php
+After starting the child process, include callback_cron.php, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-After starting the child process, an example queue_address_manager(true)
+After starting the child process, an example queue_address_manager(true), log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
 
-After starting the child process, an example queue_address_manager(false)
+After starting the child process, an example queue_address_manager(false), log on
 ![example_queue_address_manager_pop](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_pop.png "example_queue_address_manager_pop.png")
 
 
