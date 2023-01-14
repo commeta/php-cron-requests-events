@@ -46,17 +46,17 @@
 
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 
-$cron_settings= [
-	'log_file'=> $cron_root . 'cron/log/cron.log', // false switched off
-	'dat_file'=> $cron_root . 'cron/dat/cron.dat',
-	'queue_file'=> $cron_root . 'cron/dat/queue.dat',
+$cron_settings=[
+	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
+	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
-	'delay'=> 1, // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
-	'daemon_mode'=> true, // true\false - enable\disable daemon mode
-	'log_rotate_max_size'=> 10 * 1024 * 1024, // 10 in MB
-	'log_rotate_max_files'=> 5,
-	'log_level'=> 2,
-	'url_key'=> 'my_secret_key', // change this!
+	'delay'=> 1, // Timeout until next run in seconds
+	'daemon_mode'=> true, // true\false resident mode (background service)
+	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
+	'log_rotate_max_files'=> 5, // Store max 5 archived log files
+	'log_level'=> 2, // Log verbosity: 2 warning, 5 debug
+	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
 
@@ -293,6 +293,7 @@ if(
 			function init_boot_frame(& $queue_resource) // :void 
 			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
+				global $cron_settings;
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
