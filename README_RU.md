@@ -237,7 +237,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 ### Пример из файла: `example_parallel_function_launch_cron_settings.php`
 #### Сценарий выполнения:
 - Подключите `include('cron.php')` в вашем скрипте
-- Добавить в список задач `$cron_jobs[]` функцию `'function'` с заданным интервалом `'interval'=> 0`
+- Добавьте в список задач `$cron_jobs[]` функцию `'function'=> 'get_param'` с заданным интервалом `'interval'=> 0`
 - Укажите тайм-аут до запуска `$cron_settings['delay']= -1` 
 - Отключите резидентный режим `$cron_settings['daemon_mode']= false`
 - Укажите режим запуска `'multithreading'=> false`
