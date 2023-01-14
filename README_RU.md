@@ -221,11 +221,13 @@ $cron_jobs[]= [ // CRON Job
 ];
 
 ##########
-function get_param(){
-	$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
+if(!function_exists('get_param')) { 
+	function get_param(){
+		$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 
-	if(file_exists($param_dat_file)){
-		$param= unserialize(file_get_content($param_dat_file));
+		if(file_exists($param_dat_file)){
+			$param= unserialize(file_get_content($param_dat_file));
+		}
 	}
 }
 
