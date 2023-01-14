@@ -192,7 +192,8 @@ if(file_exists($cron_php_file)){
 ```
 
 ```
-// Example get param, function called in parallel process
+// Example get param, function called in parallel process cron.php
+$cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 
 ###########################
 $cron_settings=[
