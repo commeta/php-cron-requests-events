@@ -178,6 +178,28 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - Возможно передавать параметры через сессионный файл
 - В каждом подкаталоге будет запущена отдельная копия `cron.php`
 
+```
+// Example send param, before include('cron.php'):
+$cron_php_file= dirname(__FILE__).'/data/send_param_secret_key.php';
+$send_param= [true];
+
+if(file_exists($cron_php_file)){
+	file_put_content(
+		$cron_php_file, 
+		serialize($send_param), 
+	);
+}
+```
+
+```
+// Example get param, into function called in parallel process
+$cron_php_file= dirname(__FILE__).'/data/send_param_secret_key.php';
+
+if(file_exists($cron_php_file)){
+	$get_param= unserialize(file_get_content($cron_php_file));
+}
+
+```
 
 ## Обработчик событий CRON
 ### Пример из файла: `callback_cron.php`
