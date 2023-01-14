@@ -69,3 +69,5 @@ if(isset($_REQUEST["cron"])) {
 		_die();
 	}
 }
+
+?>
