@@ -55,7 +55,6 @@ if(isset($_REQUEST["cron"])) {
 						FILE_APPEND | LOCK_EX
 					);
 				
-					unlink($cron_root . 'cron/dat/' . (string) $value['process_id'] . '.dat');
 			}
 		}
 		
