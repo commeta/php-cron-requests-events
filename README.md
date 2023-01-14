@@ -177,6 +177,10 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - It is possible to pass parameters through a session file
 - Each subdirectory will run a separate copy of `cron.php`
 
+To transfer mutable data, use the api functions:
+- queue_address_push();
+- queue_address_pop();
+
 
 ## CRON event handler
 ### Example from file: `callback_cron.php`
