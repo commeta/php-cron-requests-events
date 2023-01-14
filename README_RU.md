@@ -265,9 +265,10 @@ $cron_settings=[
 
 ###########################
 $cron_jobs= [];
+$process_id= getmypid();
 
 ###########################
-$cron_jobs[]= [ // CRON Job
+$cron_jobs[$process_id]= [ // CRON Job
 	'interval'=> 0, // start interval 1 sec
 	'function'=> 'get_param',
 	'param'=> '',
