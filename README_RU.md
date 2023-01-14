@@ -183,7 +183,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 $param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 $send_param= [true];
 
-if(file_exists($cron_php_file)){
+if(file_exists($param_dat_file)){
 	file_put_content(
 		$param_dat_file, 
 		serialize($send_param), 
@@ -224,7 +224,7 @@ $cron_jobs[]= [ // CRON Job
 function get_param(){
 	$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 
-	if(file_exists($cron_php_file)){
+	if(file_exists($param_dat_file)){
 		$param= unserialize(file_get_content($param_dat_file));
 	}
 }
