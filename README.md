@@ -156,7 +156,7 @@ When selecting the CRON_DELAY parameter, you can look at the server logs, usuall
 
 ## Delay function launch
 To delay the launch of a function in the background, it is enough to add the function to the list of tasks with a specified interval or start time.
-- Set the startup mode to `multithreading=> false` and include include('cron.php') in your script.
+- Set the startup mode to `multithreading=> false` and include('cron.php') in your script.
 - The function must be defined in the cron.php file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 
