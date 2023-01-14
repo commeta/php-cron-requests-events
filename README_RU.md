@@ -180,7 +180,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 ```
 // Example send param, before include('cron.php'):
-$cron_php_file= dirname(__FILE__).'/dat/send_param_secret_key.php';
+$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 $send_param= [true];
 
 if(file_exists($cron_php_file)){
@@ -222,10 +222,10 @@ $cron_jobs[]= [ // CRON Job
 
 ##########
 function get_param(){
-	$cron_php_file= dirname(__FILE__).'/dat/send_param_secret_key.php';
+	$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 
 	if(file_exists($cron_php_file)){
-		$param= unserialize(file_get_content($cron_php_file));
+		$param= unserialize(file_get_content($param_dat_file));
 	}
 }
 
