@@ -244,10 +244,12 @@ This file will be launched according to the schedule, the path to the file is sp
 - It is possible to pass parameters through a session file
 - A separate copy of `cron.php` will be launched in a separate subdirectory
 
-
 To transfer mutable data, use the api functions:
 - `queue_address_push();` sending [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) is connected in the file where necessary call the parallel execution of the function.
 - `queue_address_pop();` delivery [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) `cron launch settings .php` and defining the data handler function in a separate process.
+
+In the example above, an array is added to the queue and a parallel process is started.
+The handler function in a parallel process takes one frame of data from the shared queue. The queue works in LIFO mode. Processing of the data added to the queue can begin immediately after the addition, if the parallel process has managed to process its data.
 
 
 ## php multicore api multithreaded queue example
