@@ -39,14 +39,23 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 
 ## Установка
 Скачайте скрипт в любой каталог сайта:
-- PHP: 
-```
-file_put_content('__FILE__', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
-```
 - CLI: 
 ```
 wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
 ```
+
+Установка зависимостей
+- PHP: 
+```
+ if(!file_exists(dirname(__FILE__).'/cron.php'))  // dependency install, before include('cron.php') connector
+ 	file_put_content(
+ 		dirname(__FILE__).'/cron.php', 
+ 		file_get_contents(
+ 			'https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'
+ 		)
+ 	);
+```
+
 
 ## Пример запуска задачи
 В контексте файла cron.php раздел CRON Job
