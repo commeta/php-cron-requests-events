@@ -164,7 +164,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 ## Delay function launch
 To delay the launch of a function in the background, it is enough to add the function to the list of tasks with a specified `interval=> 0`
 - Set the startup mode to `multithreading=> false` and include('cron.php') in your script.
-- The function must be defined in the cron.php file
+- The function must be defined in the `cron.php` file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 - It is possible to pass parameters through a session file
 
@@ -195,7 +195,7 @@ Array // $cron_session
 
 
 ## php multicore api multithreaded queue example
-### Example from file: cron/inc/callback_addressed_queue_example.php
+### Example from file: `callback_addressed_queue_example.php`
 
 - call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
 - call `queue_address_manager(false); // starts the micro task handler.`
@@ -365,7 +365,7 @@ cron.php works in 4 modes:
 - run via shell_exec wget: 2.8 KB RAM, 0.0056 seconds (non-blocking).
 - fallback launch via stream_context: 2 KB RAM, 0.0418 seconds (blocking).
 4. Separate process
-- 382KB RAM, priority 39 (nice 19), MAX_EXECUTION_TIME 600 seconds by default.
+- 382KB RAM, priority 39 (nice 19), `MAX_EXECUTION_TIME` 600 seconds by default.
 5. Separate process using multithreading
 - just like the previous point, it is necessary to take into account the server parameters: the number of processor cores, limiting the number of simultaneous requests to the server, Apache\PHP FPM configuration parameters.
 6. Resident mode: 380Kb of RAM, priority 39 (nice 19)
