@@ -18,7 +18,7 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Wide range for launching tasks: intervals from a second, there is a launch at a specified time.
 - Allows you to perform tasks that consume a lot of resources with low priority.
 - You can connect this CRON to any CMS, it will not affect performance in any way.
-- Allows to execute pending functions in the background.
+- Allows to [delay execute functions in a parallel process](#delay-function-launch).
 
 
 ## CRON scheduler
