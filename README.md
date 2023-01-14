@@ -251,6 +251,10 @@ To transfer mutable data, use the api functions:
 In the example above, an array is added to the queue and a parallel process is started.
 The handler function in a parallel process takes one frame of data from the shared queue. The queue works in LIFO mode. Processing of the data added to the queue can begin immediately after the addition, if the parallel process has managed to process its data.
 
+The example is connected at the end of the Settings section of the file `cron.php `
+``
+include('cron/inc/example_parallel_function_launch_cron_settings.php ');
+``
 
 ## php multicore api multithreaded queue example
 ### Example from file: `callback_addressed_queue_example.php`
