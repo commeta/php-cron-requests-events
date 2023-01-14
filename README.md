@@ -179,7 +179,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 
 ```
 // Example send param, before include('cron.php'):
-$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
+$param_dat_file= dirname(__FILE__).'/dat/param_dat_file.dat';
 $send_param= [true];
 
 file_put_content(
@@ -221,7 +221,7 @@ $cron_jobs[]= [ // CRON Job
 ##########
 if(isset($_REQUEST["cron"])) { 
 	function get_param(){
-		$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
+		$param_dat_file= dirname(__FILE__).'/dat/param_dat_file.dat';
 
 		if(file_exists($param_dat_file)){
 			$param= unserialize(file_get_content($param_dat_file));
