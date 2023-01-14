@@ -1,3 +1,4 @@
+<?php
 // Example get param, function called in parallel process cron.php
 // this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
