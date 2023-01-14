@@ -47,7 +47,10 @@ if(isset($_REQUEST["cron"])) {
 			} elseif($frame !==  $frame_completed) {
 					file_put_contents(
 						$cron_settings['log_file'], 
-						sprintf("%f Info: get_param while %s \n%s %d\n", microtime(true), print_r($value, true), $cron_settings['dat_file'], $process_id),
+						sprintf(
+							"%f Info: get_param while %s\n", 
+							microtime(true), 
+							print_r($value, true)),
 						FILE_APPEND | LOCK_EX
 					);
 				
