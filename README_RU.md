@@ -422,10 +422,10 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 После запуска процесса потомка, пример `include 'callback_cron.php'`, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-После запуска скрипта передачи параметров для запуска функции в параллельном процессе 
+После запуска скрипта передачи параметров для запуска функции в параллельном процессе, пример `example_parallel_function_launch_connector.php`
 ![parallel_function_launch_connector](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
 
-После запуска `cron.php` с функцией для обработки данных в параллельном процессе
+После запуска `cron.php` с функцией для обработки данных в параллельном процессе, пример `example_parallel_function_launch_cron_settings.php`
 ![parallel_function_launch_cron_settings](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
 
 После запуска процесса потомка, пример `queue_address_manager(true)`, log on
