@@ -164,13 +164,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - Enabled OPcache saves system resource overhead when running a thread, and optimizes code execution.
 - Using a multi-core queue, in some cases suitable for replacing microservices.
 
-
-## CRON event handler
-### Example from file: `callback_cron.php`
-
-This file will be launched according to the schedule, the path to the file is specified in the field `$cron_jobs[$job_process_id]['callback']`
-
-#### Variables
+## Variables
 - `$cron_session`, stores the service fields of the session of each `$cron_jobs` job separately
 - `$job_process_id`, contains the job sequence number from `$cron_jobs`
 - `$cron_settings`, contains `cron.php` settings
@@ -189,40 +183,6 @@ Array // $cron_session
     [start_counter] => 37
 )
 ```
-
-
-## php multicore api multithreaded queue example
-### Example from file: `callback_addressed_queue_example.php`
-
-- call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
-- call `queue_address_manager(false); // starts the micro task handler.`
-
-#### Execution script:
-1. Add to the general list of tasks, an event to start the creation of a queue of micro tasks - workers. The event handler will place the micro tasks in a queue, the length of which is limited only by the amount of disk space on the server.
-2. Add to the general list of tasks, an event for launching micro task handlers - handlers. The CRON job 3 event launches several processes in parallel, each of which receives micro tasks from a common queue, and immediately executes them.
-
-## IPC data transfer between processes
-IPC is implemented as a mutex, all participating processes access the data file in exclusive mode.
-
-A process acquires a data file using the system's advisory file lock mechanism, and all other processes queue up to wait for the lock to be released.
-
-Reading\writing is done only at the beginning and at the end of the file, the zero frame contains data for transfer between processes. Frames are queued forming a stack; in LIFO mode, processes empty the queue from the end, truncating the data file by 1 frame.
-
-
-Queue stack based on the Last In, First Out principle, last in, first out. A linear data structure with instantaneous access, reading and writing occurs in exclusive mode. The child process waits for the parallel child to release the queue file to receive its micro job.
-
-
-Page Cache Linux Kernel takes part in the interaction, reading\writing the first and last sectors of the file, by default it will always be cached by the operating system.
-Thus, data transfer between processes will be with minimal delays, at the Shared Memory level.
-
-
-In the reverse case, when filling the queue requires more resources than emptying it, it is possible to call back the workers filling the queue in multiprocessor mode.
-
-In the example given, there is an implementation of an index database:
-- all frames are located in the file with an offset
-- it is possible to store the index in the data frame
-- read\write any frame by offset within the data file
-- file can be any size
 
 ## Functions
 ```
@@ -263,92 +223,10 @@ In LIFO mode, the main work with the file takes place in the last sectors, thank
 Frame access time from 0.00001 second depending on the frame size, intensity of parallel requests, file size, loading time of file system sectors, etc.
 
 
+## CRON event handler
+### Example from file: `callback_cron.php`
 
-## Boot record structure
-```
-// Reserved index struct
-$boot= [ // 0-3 sector, frame size 4096
-	'workers'=> [], // array process_id values
-	'handlers'=> [], // array process_id values
-	'system_variables'=> [],
-	'reserved'=>[],
-	'index_offset' => 4097, // data index offset
-	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-	'data_offset' => 1024 * 16 + 4098 + $frame_size, // data offset
-	'data_frame_size' => $frame_size, // data frame size
-];
-```
-
-
-
-## IPC frame structure
-```
-// zero data frame from completed job
-// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
-// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
-// 4 process, concurency
-Array
-(
-    [workers] => Array
-        (
-            [678399] => Array
-                (
-                    [process_id] => 678399
-                    [last_update] => 1673479681.9307
-                )
-
-        )
-
-    [handlers] => Array
-        (
-            [678401] => Array
-                (
-                    [process_id] => 678401 // system process id, Apache\PHP FPM child process
-                    [last_update] => 1673479691.9354 // time start
-                    [count_start] => 250 // count processed queue element
-                    [last_start] => 1673479692.2561 // time last IPC operation
-                )
-
-            [678399] => Array
-                (
-                    [process_id] => 678399
-                    [last_update] => 1673479691.9372
-                    [count_start] => 253
-                    [last_start] => 1673479692.2541
-                )
-
-            [678400] => Array
-                (
-                    [process_id] => 678400
-                    [last_update] => 1673479691.9374
-                    [count_start] => 244
-                    [last_start] => 1673479692.2542
-                )
-
-            [678402] => Array
-                (
-                    [process_id] => 678402
-                    [last_update] => 1673479691.9399
-                    [count_start] => 257
-                    [last_start] => 1673479692.2562
-                )
-
-        )
-
-    [system_variables] => Array
-        (
-        )
-
-    [reserved] => Array
-        (
-        )
-
-    [index_offset] => 4097
-    [index_frame_size] => 16384
-    [data_offset] => 20577
-    [data_frame_size] => 95
-)
-```
+This file will be launched according to the schedule, the path to the file is specified in the field `$cron_jobs[$job_process_id]['callback']`
 
 
 ## Parallel function launch
@@ -489,6 +367,124 @@ if(isset($_REQUEST["cron"])) {
 }
 ```
 
+
+## php multicore api multithreaded queue example
+### Example from file: `callback_addressed_queue_example.php`
+
+- call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
+- call `queue_address_manager(false); // starts the micro task handler.`
+
+#### Execution script:
+1. Add to the general list of tasks, an event to start the creation of a queue of micro tasks - workers. The event handler will place the micro tasks in a queue, the length of which is limited only by the amount of disk space on the server.
+2. Add to the general list of tasks, an event for launching micro task handlers - handlers. The CRON job 3 event launches several processes in parallel, each of which receives micro tasks from a common queue, and immediately executes them.
+
+## IPC data transfer between processes
+IPC is implemented as a mutex, all participating processes access the data file in exclusive mode.
+
+A process acquires a data file using the system's advisory file lock mechanism, and all other processes queue up to wait for the lock to be released.
+
+Reading\writing is done only at the beginning and at the end of the file, the zero frame contains data for transfer between processes. Frames are queued forming a stack; in LIFO mode, processes empty the queue from the end, truncating the data file by 1 frame.
+
+
+Queue stack based on the Last In, First Out principle, last in, first out. A linear data structure with instantaneous access, reading and writing occurs in exclusive mode. The child process waits for the parallel child to release the queue file to receive its micro job.
+
+
+Page Cache Linux Kernel takes part in the interaction, reading\writing the first and last sectors of the file, by default it will always be cached by the operating system.
+Thus, data transfer between processes will be with minimal delays, at the Shared Memory level.
+
+
+In the reverse case, when filling the queue requires more resources than emptying it, it is possible to call back the workers filling the queue in multiprocessor mode.
+
+In the example given, there is an implementation of an index database:
+- all frames are located in the file with an offset
+- it is possible to store the index in the data frame
+- read\write any frame by offset within the data file
+- file can be any size
+
+
+## Boot record structure
+```
+// Reserved index struct
+$boot= [ // 0-3 sector, frame size 4096
+	'workers'=> [], // array process_id values
+	'handlers'=> [], // array process_id values
+	'system_variables'=> [],
+	'reserved'=>[],
+	'index_offset' => 4097, // data index offset
+	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
+	'data_offset' => 1024 * 16 + 4098 + $frame_size, // data offset
+	'data_frame_size' => $frame_size, // data frame size
+];
+```
+
+## IPC frame structure
+```
+// zero data frame from completed job
+// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
+// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
+// 4 process, concurency
+Array
+(
+    [workers] => Array
+        (
+            [678399] => Array
+                (
+                    [process_id] => 678399
+                    [last_update] => 1673479681.9307
+                )
+
+        )
+
+    [handlers] => Array
+        (
+            [678401] => Array
+                (
+                    [process_id] => 678401 // system process id, Apache\PHP FPM child process
+                    [last_update] => 1673479691.9354 // time start
+                    [count_start] => 250 // count processed queue element
+                    [last_start] => 1673479692.2561 // time last IPC operation
+                )
+
+            [678399] => Array
+                (
+                    [process_id] => 678399
+                    [last_update] => 1673479691.9372
+                    [count_start] => 253
+                    [last_start] => 1673479692.2541
+                )
+
+            [678400] => Array
+                (
+                    [process_id] => 678400
+                    [last_update] => 1673479691.9374
+                    [count_start] => 244
+                    [last_start] => 1673479692.2542
+                )
+
+            [678402] => Array
+                (
+                    [process_id] => 678402
+                    [last_update] => 1673479691.9399
+                    [count_start] => 257
+                    [last_start] => 1673479692.2562
+                )
+
+        )
+
+    [system_variables] => Array
+        (
+        )
+
+    [reserved] => Array
+        (
+        )
+
+    [index_offset] => 4097
+    [index_frame_size] => 16384
+    [data_offset] => 20577
+    [data_frame_size] => 95
+)
+```
 
 ## Resource consumption
 The task manager runs in the background using the network request mechanism.
