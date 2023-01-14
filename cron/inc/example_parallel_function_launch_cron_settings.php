@@ -46,14 +46,16 @@ if(isset($_REQUEST["cron"])) {
 			if($frame === '') { // end queue
 				break 1;
 			} else {
-					file_put_contents(
-						dirname(__FILE__) . '/cron/log/cron.log', 
-						sprintf(
-							"%f Info: get_param while %s\n", 
-							microtime(true), 
-							print_r($value, true)),
-						FILE_APPEND | LOCK_EX
-					);
+				if(!is_dir(dirname(__FILE__) . '/cron/log/cron.log')) mkdir(dirname(__FILE__) . '/cron/log/cron.log', 0755, true);
+
+				file_put_contents(
+					dirname(__FILE__) . '/cron/log/cron.log', 
+					sprintf(
+						"%f Info: get_param while %s\n", 
+						microtime(true), 
+						print_r($value, true)),
+					FILE_APPEND | LOCK_EX
+				);
 				
 			}
 		}
