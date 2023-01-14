@@ -36,18 +36,24 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Minimum PHP code size: 27.8 Kb (16.6 Kb without spaces and comments)
 - Friendly code for opcache.jit compiler
 
-
 ## Install
 Download the script to any site directory:
-- PHP: 
-```
-file_put_content('__FILE__', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
-```
 - CLI: 
 ```
 wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
 ```
 
+dependency install
+- PHP: 
+```
+ if(!file_exists(dirname(__FILE__).'/cron.php'))  // before include('cron.php') connector
+ 	file_put_content(
+ 		dirname(__FILE__).'/cron.php', 
+ 		file_get_contents(
+ 			'https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'
+ 		)
+ 	);
+```
 
 ## Task start example
 In the context of the cron.php file, the CRON Job section
