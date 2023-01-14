@@ -4,10 +4,11 @@
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $process_id= getmypid();
 
-###########################
+###########################$cron_settings['delete_dat_file']
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/' . (string) $process_id . '.dat', // Path to the thread manager system file
+	'delete_dat_file_on_exit'=> true,
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> -1, // Timeout until next run in seconds
@@ -64,7 +65,6 @@ if(isset($_REQUEST["cron"])) {
 			unset($cron_resource);
 		}
 		
-		unlink($cron_settings['dat_file']);
 		_die();
 	}
 }
