@@ -63,6 +63,7 @@ wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cr
 $cron_settings= [
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Путь к файлу журнала, false - отключает журнал
 	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Путь к системному файлу диспетчера потока
+	'delete_dat_file_on_exit'=> false, // Используется в задачах с указанным временем и\или датой, контроллируемый режим
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Путь к системному файлу многопроцессной очереди
 	'site_root'=> '',
 	'delay'=> 1, // Тайм аут до следующего запуска в секундах
