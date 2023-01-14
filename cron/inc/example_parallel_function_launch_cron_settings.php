@@ -1,6 +1,6 @@
-<?php
 
 // Example get param, function called in parallel process cron.php
+// this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $process_id= getmypid();
 
@@ -48,7 +48,7 @@ if(isset($_REQUEST["cron"])) {
 			} elseif($frame !==  $frame_completed) {
 					file_put_contents(
 						$cron_settings['log_file'], 
-						sprintf("%f Info: get_param while\n", microtime(true)),
+						sprintf("%f Info: get_param while %s\n", microtime(true), print_r($value, true)),
 						FILE_APPEND | LOCK_EX
 					);
 				
@@ -66,5 +66,3 @@ if(isset($_REQUEST["cron"])) {
 		_die();
 	}
 }
-
-?>
