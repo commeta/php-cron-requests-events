@@ -171,20 +171,6 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - It is possible to pass parameters through a session file
 - Each subdirectory will run a separate copy of `cron.php`
 
-```
-$cron_php_file= dirname(__FILE__).'/cron.php';
-if(file_exists($cron_php_file)){ // example: inserting a function call parameter into a file
-	file_put_content(
-		$cron_php_file, 
-		str_replace(
-			"'param' => false",
-			"'param' => '" . serialize([true]) . "'", 
-			file_get_contents($cron_php_file)
-		)
-	);
-}
-```
-
 ## CRON event handler
 ### Example from file: `callback_cron.php`
 
