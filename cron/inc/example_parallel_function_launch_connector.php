@@ -61,7 +61,10 @@ function send_param_and_parallel_launch($params, $queue_file){
 
 
 ###########################
-$params= ['process_id'=> getmypid()];
+$params= [
+	'process_id'=> getmypid(),
+];
+
 send_param_and_parallel_launch(
 	serialize($params), 
 	dirname(__FILE__) . DIRECTORY_SEPARATOR .  'cron/dat/queue.dat'
