@@ -149,7 +149,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the `$cron_settings['delay']` parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
 
-You can start the control process in resident mode by setting the `'daemon_mode'=> true`, in which case it is possible to check jobs continuously in a loop, with a pause between iterations. In this case, a long-running task will block the main thread, I recommend running tasks in multithreading true mode.
+You can start the control process in resident mode by setting the `'daemon_mode'=> true`, in which case it is possible to check jobs continuously in a loop, with a pause between iterations. In this case, a long-running task will block the main thread, I recommend running tasks in `'multithreading'=> true` mode.
 
 Exiting the resident mode is done by changing the `'daemon_mode'=> false` parameter. Reboot occurs automatically when parameters are changed.
 
@@ -162,8 +162,8 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 
 
 ## Delay function launch
-To delay the launch of a function in the background, it is enough to add the function to the list of tasks with a specified `interval=> 0`
-- Set the startup mode to `multithreading=> false` and include('cron.php') in your script.
+To delay the launch of a function in the background, it is enough to add the function to the list of tasks with a specified `'interval'=> 0`
+- Set the startup mode to `'multithreading'=> false` and `include('cron.php')` in your script.
 - The function must be defined in the `cron.php` file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 - It is possible to pass parameters through a session file
@@ -372,7 +372,7 @@ cron.php works in 4 modes:
 6. Resident mode: 380Kb of RAM, priority 39 (nice 19)
 - if `'daemon_mode'=> true`, the control process will be constantly running.
 - with disabled logs in the main thread during idle time, there will be no load
-- tasks blocking the control process, run in multithreading mode = true
+- tasks blocking the control process, run in `'multithreading' => true` mode
 
 OPCache memory consumption: 69.48KB (PHP 8.2 data, strings, bytecode, DynASM, service). Jit buffer: ~100.0KB (+ ~100KB queued process)
 
