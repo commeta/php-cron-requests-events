@@ -176,7 +176,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 
 ```
 $cron_php_file= dirname(__FILE__).'/cron.php';
-if(file_exists($cron_php_file)){ // inserting a function call parameter into a file
+if(file_exists($cron_php_file)){ // example: inserting a function call parameter into a file
 	file_put_content(
 		$cron_php_file, 
 		str_replace(
