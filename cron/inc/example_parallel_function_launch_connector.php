@@ -2,9 +2,6 @@
 // Example send param, before include('cron.php'):
 
 ###########################
-function send_param_and_parallel_launch($params){
-	global $cron_settings;
-	
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
@@ -49,8 +46,10 @@ function send_param_and_parallel_launch($params){
 		fclose($queue_resource);
 		return $return_cursor;
 	}
-	
-	
+
+
+function send_param_and_parallel_launch($params){
+	global $cron_settings;
 	
 	$frame_size= 4096; // 1 cache page
 	$cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
