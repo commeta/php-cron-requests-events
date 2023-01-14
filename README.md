@@ -277,6 +277,7 @@ $cron_jobs[$process_id]= [ // CRON Job
 if(isset($_REQUEST["cron"])) { 
 	function get_param($process_id){
 		global $cron_settings, $cron_resource;
+		$frame_completed= serialize([true]);
 		$frame_size= 4096;
 	
 		while(true){ // example: loop from the end
