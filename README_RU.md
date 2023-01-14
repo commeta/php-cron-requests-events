@@ -239,7 +239,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 #### Сценарий выполнения:
 - Подключите `include('cron.php')` в вашем скрипте
 - Добавьте в список задач `$cron_jobs[]` функцию `'function'=> 'get_param'` с заданным интервалом `'interval'=> 0`
-- Укажите тайм-аут до запуска `$cron_settings['delay']= -1` 
+- Укажите тайм-аут до запуска `$cron_settings['delay']= -1` немедленно
 - Отключите резидентный режим `$cron_settings['daemon_mode']= false`
 - Укажите режим запуска `'multithreading'=> false`
 - Функция должна быть определена в файле `cron.php`
@@ -251,6 +251,10 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 Для передачи изменяемых данных воспользуйтесь функциями api: 
 - `queue_address_push();` пример отправки [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
 - `queue_address_pop();` пример доставки [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
+
+
+В приведенном примере осуществляется добавление массива в очередь и запуск параллельного процесса.
+Функция обработчик в параллельном процессе забирает по одному кадру данных из общей очереди. Очередь работает в LIFO режиме. Обработка добавленных в очередь данных может начаться немедленно после добавления, если параллельный процесс успел обработать свои данные.
 
 
 ## Пример многопоточной очереди php multicore api
