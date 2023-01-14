@@ -171,7 +171,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ## Отложенный запуск функций
 #### Сценарий выполнения:
 - Добавить в список задач `$cron_jobs[]` функцию `'function'` с заданным интервалом `'interval'=> 0`
-- Укажите тайм-аут до запуска `$cron_settings['delay']= 0` и отключите резидентный режим `$cron_settings['daemon_mode']= false`
+- Укажите тайм-аут до запуска `$cron_settings['delay']= -1` и отключите резидентный режим `$cron_settings['daemon_mode']= false`
 - Укажите режим запуска `'multithreading'=> false` и подключите `include('cron.php')` в вашем скрипте
 - Функция должна быть определена в файле `cron.php`
 - Передача параметров осуществляется через параметры задачи `$cron_jobs[]['param']`
