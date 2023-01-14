@@ -183,13 +183,16 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ```
 // Example send param, before include('cron.php'):
 $param_dat_file= dirname(__FILE__).'/dat/param_dat_file.dat';
-$send_param= [true];
+if(file_exists($param_dat_file)) $params= unserialize(file_get_content($param_dat_file));
+else $params= [];
+$process_id= getmypid(); 
+
+$params[$process_id]= [true];
 
 file_put_content(
 	$param_dat_file, 
-	serialize($send_param), 
+	serialize($params), 
 );
-
 ```
 
 ```
