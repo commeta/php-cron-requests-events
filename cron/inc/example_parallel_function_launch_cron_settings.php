@@ -1,4 +1,3 @@
-
 // Example get param, function called in parallel process cron.php
 // this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
@@ -7,7 +6,7 @@ $process_id= getmypid();
 ###########################
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
-	'dat_file'=> $cron_root . 'cron/dat/' . $process_id . '.dat', // Path to the thread manager system file
+	'dat_file'=> $cron_root . 'cron/dat/' . (string) $process_id . '.dat', // Path to the thread manager system file
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> -1, // Timeout until next run in seconds
@@ -31,10 +30,10 @@ $cron_jobs[$process_id]= [ // CRON Job
 
 ##########
 if(isset($_REQUEST["cron"])) {
-	if(!file_exists($cron_settings['dat_file'])) touch($cron_settings['dat_file']);
+	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
 	function get_param($process_id){
-		global $cron_settings, $cron_resource;
+		global $cron_settings, $cron_resource, $cron_root;
 
 		$frame_completed= serialize([true]);
 		$frame_size= 4096;
@@ -48,11 +47,11 @@ if(isset($_REQUEST["cron"])) {
 			} elseif($frame !==  $frame_completed) {
 					file_put_contents(
 						$cron_settings['log_file'], 
-						sprintf("%f Info: get_param while %s\n", microtime(true), print_r($value, true)),
+						sprintf("%f Info: get_param while %s \n%s %d\n", microtime(true), print_r($value, true), $cron_settings['dat_file'], $process_id),
 						FILE_APPEND | LOCK_EX
 					);
 				
-					usleep(2000); // test load, micro delay 0.002 sec
+					unlink($cron_root . 'cron/dat/' . (string) $value['process_id'] . '.dat');
 			}
 		}
 		
