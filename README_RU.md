@@ -247,7 +247,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 Для передачи изменяемых данных воспользуйтесь функциями api: 
 - `queue_address_push();` пример отправки [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php)
-- `queue_address_pop();` [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php)
+- `queue_address_pop();` пример доставки [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php)
 
 
 ## Пример многопоточной очереди php multicore api
