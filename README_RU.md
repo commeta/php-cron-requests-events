@@ -233,6 +233,8 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 
 ## Паралельный запуск функций
+### Пример из файла: `example_parallel_function_launch_connector.php`
+### Пример из файла: `example_parallel_function_launch_cron_settings.php`
 #### Сценарий выполнения:
 - Подключите `include('cron.php')` в вашем скрипте
 - Добавить в список задач `$cron_jobs[]` функцию `'function'` с заданным интервалом `'interval'=> 0`
