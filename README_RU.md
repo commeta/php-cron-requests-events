@@ -191,7 +191,8 @@ $params[$process_id]= [true];
 
 file_put_content(
 	$param_dat_file, 
-	serialize($params), 
+	serialize($params),
+	LOCK_EX
 );
 ```
 
