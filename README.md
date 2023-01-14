@@ -23,13 +23,13 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 
 ## CRON scheduler
 - The trigger for running tasks is a request via URI
-- Connected in the root index.php with one line include('cron.php');
-- Alternative connection mode: add line in .htaccess file: php_value auto_append_file "cron.php"
-- Another alternative connection mode: add the line in the php.ini file: auto_append_file="cron.php"
-- System connection mode: add php /path/cron.php command to system cron
-- Creates cron/dat and cron/log subdirectories in the startup directory
-- Creates cron/dat/cron.dat on first run and stores variables between runs
-- In cron/log/cron.log stores the log, there is a log rotation
+- Connected in the root `index.php` with one line `include('cron.php');`
+- Alternative connection mode: add line in `.htaccess` file: `php_value auto_append_file "cron.php"`
+- Another alternative connection mode: add the line in the `php.ini` file: `auto_append_file="cron.php"`
+- System connection mode: add `php /path/cron.php` command to system cron
+- Creates `cron/dat` and `cron/log` subdirectories in the startup directory
+- Creates `cron/dat/cron.dat` on first run and stores variables between runs
+- In `cron/log/cron.log` stores the log, there is a log rotation
 - Runs in a separate process with low priority 19
 - Prevents a process from starting if the previous one has not completed
 - There is a waiting mode until the previous process finishes work - queue
@@ -140,12 +140,12 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ];
 ##########
 ```
-- interval - Delay before starting
-- time - Sets the time to start in 24th format 07:20:00, if the date is not specified, it executes every day
-- date - Sets the start date in the format 31-12-2022
-- callback - PHP script, will be executed after the interval
-- function - Performs the specified function, if param is specified, then passes it in the parameters
-- multithreading - Running in the background true\false
+- `'interval'` - Delay before starting
+- `'time'` - Sets the time to start in 24th format '07:20:00', if the date is not specified, it executes every day
+- `'date'` - Sets the start date in the format '31-12-2022'
+- `'callback'` - PHP script, will be executed after the interval
+- `'function'` - Performs the specified function, if param is specified, then passes it in the parameters
+- `'multithreading'` - Running in the background true\false
 
 If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the `$cron_settings['delay']` parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
 
@@ -177,6 +177,7 @@ This file will be launched according to the schedule, the path to the file is sp
 #### Variables
 - `$cron_session`, stores the service fields of the session of each `$cron_jobs` job separately
 - `$job_process_id`, contains the job sequence number from `$cron_jobs`
+- `$cron_settings`, contains `cron.php` settings
 
 The variables will retain their values between scheduled task runs, but until the fields in `$cron_jobs[$job_process_id]` are changed.
 ```
@@ -215,7 +216,7 @@ Reading\writing is done only at the beginning and at the end of the file, the ze
 Queue stack based on the Last In, First Out principle, last in, first out. A linear data structure with instantaneous access, reading and writing occurs in exclusive mode. The child process waits for the parallel child to release the queue file to receive its micro job.
 
 
-Page Cache Linux Kernel takes part in the interaction, reading \ writing the first and last sectors of the file, by default it will always be cached by the operating system.
+Page Cache Linux Kernel takes part in the interaction, reading\writing the first and last sectors of the file, by default it will always be cached by the operating system.
 Thus, data transfer between processes will be with minimal delays, at the Shared Memory level.
 
 
@@ -261,7 +262,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 Both functions use low-level operations, the opcache code optimizer and the jit compiler reduce overhead. Data is read and written in frames, the frame size is selected according to the amount of transmitted data + service fields.
 
-In LIFO mode, the main work with the file takes place in the last sectors, thanks to which the data is easily buffered and cached by several layers of the Zend Engine and the operating system kernel. With linear reading / writing, the exchange between processes will go through the page cache, in linux, the mechanism for forward caching of files is enabled by default.
+In LIFO mode, the main work with the file takes place in the last sectors, thanks to which the data is easily buffered and cached by several layers of the Zend Engine and the operating system kernel. With linear reading/writing, the exchange between processes will go through the page cache, in linux, the mechanism for forward caching of files is enabled by default.
 
 Frame access time from 0.00001 second depending on the frame size, intensity of parallel requests, file size, loading time of file system sectors, etc.
 
