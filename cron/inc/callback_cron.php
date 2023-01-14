@@ -1,9 +1,10 @@
 <?php
+
 // Write log
-if(CRON_LOG_LEVEL > 2){
-	if(CRON_LOG_FILE){
+if($cron_settings['log_level'] > 2){
+	if($cron_settings['log_file']){
 		@file_put_contents(
-			CRON_LOG_FILE, 
+			$cron_settings['log_file'], 
 			sprintf("%d INFO: start %d %d %d \n", time(), getmypid(), $job_process_id, $cron_session['start_counter']),
 			FILE_APPEND | LOCK_EX
 		);
