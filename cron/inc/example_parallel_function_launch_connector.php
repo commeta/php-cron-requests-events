@@ -58,8 +58,6 @@ function send_param_and_parallel_launch($params, $queue_file){
 
 	queue_address_push($params, $frame_size);
 	include('cron.php');
-
-	unlink(dirname($queue_file) . '/' . (string) getmypid() .  '.dat' );
 }
 
 
