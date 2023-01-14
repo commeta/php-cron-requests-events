@@ -192,11 +192,40 @@ if(file_exists($cron_php_file)){
 ```
 
 ```
-// Example get param, into function called in parallel process
-$cron_php_file= dirname(__FILE__).'/data/send_param_secret_key.php';
+// Example get param, function called in parallel process
 
-if(file_exists($cron_php_file)){
-	$get_param= unserialize(file_get_content($cron_php_file));
+###########################
+$cron_settings=[
+	'log_file'=> false, // Path to log file, false - disables logging
+	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
+	'site_root'=> '',
+	'delay'=> -1, // Timeout until next run in seconds
+	'daemon_mode'=> false, // true\false resident mode (background service)
+	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
+	'log_rotate_max_files'=> 5, // Store max 5 archived log files
+	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug
+	'url_key'=> 'my_secret_key', // Launch key in URI
+];
+
+###########################
+$cron_jobs= [];
+
+###########################
+$cron_jobs[]= [ // CRON Job
+	'interval'=> 0, // start interval 1 sec
+	'function'=> 'get_param',
+	'param'=> '',
+	'multithreading' => false
+];
+
+##########
+function get_param(){
+	$cron_php_file= dirname(__FILE__).'/data/send_param_secret_key.php';
+
+	if(file_exists($cron_php_file)){
+		$param= unserialize(file_get_content($cron_php_file));
+	}
 }
 
 ```
