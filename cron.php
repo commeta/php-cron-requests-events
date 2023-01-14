@@ -55,7 +55,7 @@ $cron_settings=[
 	'daemon_mode'=> true, // true\false resident mode (background service)
 	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
 	'log_rotate_max_files'=> 5, // Store max 5 archived log files
-	'log_level'=> 2, // Log verbosity: 2 warning, 5 debug
+	'log_level'=> 2, // Log verbosity: 2 warning, 5 debug info
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
@@ -410,14 +410,12 @@ if(
 					usleep(2000); // test load, micro delay 0.002 sec
 					
 					
-					if($cron_settings['log_level'] > 3){
-						if($cron_settings['log_file']){
-							@file_put_contents(
-								$cron_settings['log_file'], 
-								sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
-								FILE_APPEND | LOCK_EX
-							);
-						}
+					if($cron_settings['log_file'] && $cron_settings['log_level'] > 3){
+						file_put_contents(
+							$cron_settings['log_file'], 
+							sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
+							FILE_APPEND | LOCK_EX
+						);
 					}
 					
 				}
@@ -829,7 +827,7 @@ if(
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
-			if($cron_settings['log_file']){
+			if($cron_settings['log_file'] && $cron_settings['log_level'] > 3){
 				file_put_contents(
 					$cron_settings['log_file'],
 					implode(' ', [
