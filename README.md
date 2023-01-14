@@ -88,9 +88,13 @@ When selecting the `$cron_settings['delay']` parameter, you can look at the serv
 In the context of the `cron.php` file, the CRON Job section
 ```
 ###########################
+# EXAMPLES
+$cron_jobs= [];
+
+###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
 ##########
@@ -99,16 +103,16 @@ $cron_jobs[]= [ // CRON Job 1, example
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
- 
- 
+
+
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '09:05:00', // "hours:minutes:seconds"execute job on the specified time every day
-	//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
+	//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -121,8 +125,8 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '09:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -134,8 +138,8 @@ for( // CRON job 3, multicore example, four cores,
 
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
-	'date' => '01-01-2023', // "day-month-year" execute job on the specified date
-	'callback' => CRON_SITE_ROOT . "cron/inc/callback_cron.php",
+	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
@@ -170,6 +174,8 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 - It is possible to pass parameters through a session file
 - Each subdirectory will run a separate copy of `cron.php`
+
+
 
 ## CRON event handler
 ### Example from file: `callback_cron.php`
