@@ -84,9 +84,8 @@ $host="localhost"; // To run through the CLI console, enter your domain name and
 When selecting the `$cron_settings['delay']` parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
 
 
-
 ## Task start example
-In the context of the cron.php file, the CRON Job section
+In the context of the `cron.php` file, the CRON Job section
 ```
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
@@ -167,18 +166,19 @@ To delay the launch of a function in the background, it is enough to add the fun
 - Set the startup mode to `multithreading=> false` and include('cron.php') in your script.
 - The function must be defined in the cron.php file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
+- It is possible to pass parameters through a session file
 
 
 ## CRON event handler
-### Example from file: cron/inc/callback_cron.php
+### Example from file: `callback_cron.php`
 
-This file will be launched according to the schedule, the path to the file is specified in the field $cron_jobs[$job_process_id]['callback']
+This file will be launched according to the schedule, the path to the file is specified in the field `$cron_jobs[$job_process_id]['callback']`
 
 #### Variables
-- $cron_session, stores the service fields of the session of each $cron_jobs job separately
-- $job_process_id, contains the job sequence number from $cron_jobs
+- `$cron_session`, stores the service fields of the session of each `$cron_jobs` job separately
+- `$job_process_id`, contains the job sequence number from `$cron_jobs`
 
-The variables will retain their values between scheduled task runs, but until the fields in $cron_jobs[$job_process_id] are changed.
+The variables will retain their values between scheduled task runs, but until the fields in `$cron_jobs[$job_process_id]` are changed.
 ```
 Array // $cron_session
 (
@@ -400,13 +400,13 @@ Before starting the control process
 After starting the control process, `'daemon_mode'=> false`, log on
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
-After starting the child process, include callback_cron.php, log on
+After starting the child process, `include callback_cron.php`, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-After starting the child process, an example queue_address_manager(true), log on
+After starting the child process, an example `queue_address_manager(true)`, log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
 
-After starting the child process, an example queue_address_manager(false), log on
+After starting the child process, an example `queue_address_manager(false)`, log on
 ![example_queue_address_manager_pop](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_pop.png "example_queue_address_manager_pop.png")
 
 
