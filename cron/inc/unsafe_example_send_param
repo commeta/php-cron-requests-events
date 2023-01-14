@@ -6,7 +6,7 @@ if(file_exists($cron_php_file)){ // example: inserting a function call parameter
 	file_put_content(
 		$cron_php_file, 
 		str_replace(
-			"'param' => false",
+			"'param' => 'my_secret_param_uniq_key'",
 			"'param' => '" . serialize([true]) . "'", 
 			file_get_contents($cron_php_file)
 		)
