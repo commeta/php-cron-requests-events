@@ -283,7 +283,7 @@ if(isset($_REQUEST["cron"])) {
 				
 			if($frame === '') { // end queue
 				break 1;
-			} elseif($frame !==  $frame_completed) {
+			} else{
 				usleep(2000); // test load, micro delay 0.002 sec
 			}
 		}
