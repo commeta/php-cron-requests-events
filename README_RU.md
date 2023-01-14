@@ -221,7 +221,7 @@ $cron_jobs[]= [ // CRON Job
 ];
 
 ##########
-if(!function_exists('get_param')) { 
+if(isset($_REQUEST["cron"])) { 
 	function get_param(){
 		$param_dat_file= dirname(__FILE__).'/dat/send_param_secret_key.dat';
 
