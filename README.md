@@ -415,6 +415,12 @@ After starting the control process, `'daemon_mode'=> false`, log on
 After starting the child process, `include callback_cron.php`, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
+After running the parameter passing script to run the function in a parallel process, example `example_parallel_function_launch_connector.php`
+![parallel_function_launch_connector](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
+
+After running `cron.php` with a function to process data in a parallel process, example `example_parallel_function_launch_cron_settings.php`
+![parallel_function_launch_cron_settings](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
+
 After starting the child process, an example `queue_address_manager(true)`, log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
 
