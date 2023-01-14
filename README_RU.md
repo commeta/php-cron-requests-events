@@ -185,7 +185,7 @@ $send_param= [true];
 
 if(file_exists($cron_php_file)){
 	file_put_content(
-		$cron_php_file, 
+		$param_dat_file, 
 		serialize($send_param), 
 	);
 }
