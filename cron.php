@@ -971,7 +971,7 @@ if(
 		touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 		
 		if($cron_settings['log_file']) {
-			mkdir(dirname($cron_settings['log_file']), 0755, true);
+			@mkdir(dirname($cron_settings['log_file']), 0755, true);
 			touch($cron_settings['log_file']);
 		}
 		
