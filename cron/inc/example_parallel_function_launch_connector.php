@@ -1,6 +1,6 @@
 <?php
 // Example send param, before include('cron.php'):
-// works in the same subdirectory with the program
+// works in the same subdirectory with the cron.php
 
 ###########################
 	// frame - pushed frame (string)
