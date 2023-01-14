@@ -269,94 +269,6 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 Время доступа к кадрам от 0.00001 секунды в зависимости от размера кадра, интенсивности параллельных запросов, размера файла, времени загрузки секторов файловой системы и т.д. 
 
 
-
-## Структура загрузочной записи
-```
-// Reserved index struct
-$boot= [ // 0-3 sector, frame size 4096
-	'workers'=> [], // array process_id values
-	'handlers'=> [], // array process_id values
-	'system_variables'=> [],
-	'reserved'=>[],
-	'index_offset' => 4097, // data index offset
-	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
-	'data_offset' => 1024 * 16 + 4098 + $frame_size, // data offset
-	'data_frame_size' => $frame_size, // data frame size
-];
-```
-
-
-
-## Структура IPC кадра
-```
-// zero data frame from completed job
-// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
-// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
-// 4 process, concurency
-Array
-(
-    [workers] => Array
-        (
-            [678399] => Array
-                (
-                    [process_id] => 678399
-                    [last_update] => 1673479681.9307
-                )
-
-        )
-
-    [handlers] => Array
-        (
-            [678401] => Array
-                (
-                    [process_id] => 678401 // system process id, Apache\PHP FPM child process
-                    [last_update] => 1673479691.9354 // time start
-                    [count_start] => 250 // count processed queue element
-                    [last_start] => 1673479692.2561 // time last IPC operation
-                )
-
-            [678399] => Array
-                (
-                    [process_id] => 678399
-                    [last_update] => 1673479691.9372
-                    [count_start] => 253
-                    [last_start] => 1673479692.2541
-                )
-
-            [678400] => Array
-                (
-                    [process_id] => 678400
-                    [last_update] => 1673479691.9374
-                    [count_start] => 244
-                    [last_start] => 1673479692.2542
-                )
-
-            [678402] => Array
-                (
-                    [process_id] => 678402
-                    [last_update] => 1673479691.9399
-                    [count_start] => 257
-                    [last_start] => 1673479692.2562
-                )
-
-        )
-
-    [system_variables] => Array
-        (
-        )
-
-    [reserved] => Array
-        (
-        )
-
-    [index_offset] => 4097
-    [index_frame_size] => 16384
-    [data_offset] => 20577
-    [data_frame_size] => 95
-)
-```
-
-
 ## Паралельный запуск функций
 #### Сценарий выполнения:
 - Подключите `include('cron.php')` в вашем скрипте
@@ -496,6 +408,92 @@ if(isset($_REQUEST["cron"])) {
 
 ```
 
+
+## Структура загрузочной записи
+```
+// Reserved index struct
+$boot= [ // 0-3 sector, frame size 4096
+	'workers'=> [], // array process_id values
+	'handlers'=> [], // array process_id values
+	'system_variables'=> [],
+	'reserved'=>[],
+	'index_offset' => 4097, // data index offset
+	'index_frame_size' => 1024 * 16, // data index frame size 16Kb
+	'data_offset' => 1024 * 16 + 4098 + $frame_size, // data offset
+	'data_frame_size' => $frame_size, // data frame size
+];
+```
+
+
+
+## Структура IPC кадра
+```
+// zero data frame from completed job
+// 12 thread: AMD Ryzen 5 2600X Six-Core Processor
+// PHP 8.2.0 with Zend OPcache Jit enable, PHP-FPM
+// 4 process, concurency
+Array
+(
+    [workers] => Array
+        (
+            [678399] => Array
+                (
+                    [process_id] => 678399
+                    [last_update] => 1673479681.9307
+                )
+
+        )
+
+    [handlers] => Array
+        (
+            [678401] => Array
+                (
+                    [process_id] => 678401 // system process id, Apache\PHP FPM child process
+                    [last_update] => 1673479691.9354 // time start
+                    [count_start] => 250 // count processed queue element
+                    [last_start] => 1673479692.2561 // time last IPC operation
+                )
+
+            [678399] => Array
+                (
+                    [process_id] => 678399
+                    [last_update] => 1673479691.9372
+                    [count_start] => 253
+                    [last_start] => 1673479692.2541
+                )
+
+            [678400] => Array
+                (
+                    [process_id] => 678400
+                    [last_update] => 1673479691.9374
+                    [count_start] => 244
+                    [last_start] => 1673479692.2542
+                )
+
+            [678402] => Array
+                (
+                    [process_id] => 678402
+                    [last_update] => 1673479691.9399
+                    [count_start] => 257
+                    [last_start] => 1673479692.2562
+                )
+
+        )
+
+    [system_variables] => Array
+        (
+        )
+
+    [reserved] => Array
+        (
+        )
+
+    [index_offset] => 4097
+    [index_frame_size] => 16384
+    [data_offset] => 20577
+    [data_frame_size] => 95
+)
+```
 
 ## Потребление ресурсов
 Управляющий задачами процесс запускается в фоновом режиме с использованием механизма сетевых запросов. 
