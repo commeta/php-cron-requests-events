@@ -243,9 +243,6 @@ queue_address_push(serialize($params), $frame_size, 0);
 ```
 
 
-
-
-
 ```
 // Example get param, function called in parallel process cron.php
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
@@ -287,9 +284,9 @@ if(isset($_REQUEST["cron"])) {
 			if($frame === '') { // end queue
 				break 1;
 			} elseif($frame !==  $frame_completed) {
-					usleep(2000); // test load, micro delay 0.002 sec
-				}
+				usleep(2000); // test load, micro delay 0.002 sec
 			}
+		}
 
 	}
 }
