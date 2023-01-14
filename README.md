@@ -81,7 +81,7 @@ usleep(2000); // In examples of a multi-process queue, it simulates a load, data
 $host="localhost"; // To run through the CLI console, enter your domain name and the path to the root directory of the site $document_root
 ```
 
-When selecting the CRON_DELAY parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
+When selecting the `$cron_settings['delay']` parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
 
 
 
@@ -148,11 +148,11 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - function - Performs the specified function, if param is specified, then passes it in the parameters
 - multithreading - Running in the background true\false
 
-If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the CRON_DELAY parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
+If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the `$cron_settings['delay']` parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
 
-You can start the control process in resident mode by setting the CRON_DAEMON_MODE value to true, in which case it is possible to check jobs continuously in a loop, with a pause between iterations. In this case, a long-running task will block the main thread, I recommend running tasks in multithreading true mode.
+You can start the control process in resident mode by setting the `'daemon_mode'=> true`, in which case it is possible to check jobs continuously in a loop, with a pause between iterations. In this case, a long-running task will block the main thread, I recommend running tasks in multithreading true mode.
 
-Exiting the resident mode is done by changing the CRON_DAEMON_MODE parameter to false. Reboot occurs automatically when parameters are changed.
+Exiting the resident mode is done by changing the `'daemon_mode'=> false` parameter. Reboot occurs automatically when parameters are changed.
 
 It is possible to run a task on multiple cores, a queue handler implementation would be required. If there are few cores on the server, then you can load with small tasks in which most of the time is spent, for example, on downloading - IO bound. It is desirable to limit the simultaneously running CPU bound tasks by the number of cores on the server, in which case the CPU bound load will consume the remaining core time.
 
@@ -197,8 +197,8 @@ Array // $cron_session
 ## php multicore api multithreaded queue example
 ### Example from file: cron/inc/callback_addressed_queue_example.php
 
-- call queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.
-- call queue_address_manager(false); // starts the micro task handler.
+- call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
+- call `queue_address_manager(false); // starts the micro task handler.`
 
 #### Execution script:
 1. Add to the general list of tasks, an event to start the creation of a queue of micro tasks - workers. The event handler will place the micro tasks in a queue, the length of which is limited only by the amount of disk space on the server.
@@ -369,7 +369,7 @@ cron.php works in 4 modes:
 5. Separate process using multithreading
 - just like the previous point, it is necessary to take into account the server parameters: the number of processor cores, limiting the number of simultaneous requests to the server, Apache\PHP FPM configuration parameters.
 6. Resident mode: 380Kb of RAM, priority 39 (nice 19)
-- if CRON_DAEMON_MODE is set to true, the control process will be constantly running.
+- if `'daemon_mode'=> true`, the control process will be constantly running.
 - with disabled logs in the main thread during idle time, there will be no load
 - tasks blocking the control process, run in multithreading mode = true
 
@@ -397,7 +397,7 @@ Sapi: PHP-FPM
 Before starting the control process
 ![before_start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/before_start_main_process.png "before_start_main_process.png")
 
-After starting the control process, CRON_DAEMON_MODE false, log on
+After starting the control process, `'daemon_mode'=> false`, log on
 ![start_main_process](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/start_main_process.png "start_main_process.png")
 
 After starting the child process, include callback_cron.php, log on
