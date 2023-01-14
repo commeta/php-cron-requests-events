@@ -40,21 +40,34 @@
  
 // declare(strict_types = 1); // strict typing PHP > 7.0
 
- 
- ////////////////////////////////////////////////////////////////////////
-// CRON Jobs
-define("CRON_ROOT", dirname(__FILE__) . DIRECTORY_SEPARATOR);
+////////////////////////////////////////////////////////////////////////
+###########################
+# Settings
 
-$cron_jobs= [];
+$cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+
+$cron_settings= [
+	'log_file'=> $cron_root . 'cron/log/cron.log', // false switched off
+	'dat_file'=> $cron_root . 'cron/dat/cron.dat',
+	'queue_file'=> $cron_root . 'cron/dat/queue.dat',
+	'site_root'=> '',
+	'delay'=> 1, // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
+	'daemon_mode'=> true, // true\false - enable\disable daemon mode
+	'log_rotate_max_size'=> 10 * 1024 * 1024, // 10 in MB
+	'log_rotate_max_files'=> 5,
+	'log_level'=> 2,
+	'url_key'=> 'my_secret_key', // change this!
+];
+
 
 ###########################
 # EXAMPLES
-
+$cron_jobs= [];
 
 ###########################
 $cron_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
-	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
 ##########
@@ -63,7 +76,7 @@ $cron_jobs[]= [ // CRON Job 1, example
 ###########################
 $cron_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
-	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
@@ -71,8 +84,8 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '09:05:00', // "hours:minutes:seconds"execute job on the specified time every day
-	//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
+	//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -85,8 +98,8 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '09:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		//'callback' => CRON_ROOT . "cron/inc/callback_addressed_queue_example.php",
+		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -99,25 +112,11 @@ for( // CRON job 3, multicore example, four cores,
 ###########################
 $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
-	'callback' => CRON_ROOT . "cron/inc/callback_cron.php",
+	'callback' => $cron_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
-
-////////////////////////////////////////////////////////////////////////
-// Variables
-define("CRON_LOG_FILE", CRON_ROOT . 'cron/log/cron.log'); // false switched off
-define("CRON_DAT_FILE", CRON_ROOT . 'cron/dat/cron.dat');
-
-define("CRON_DELAY", 1);  // interval between requests in seconds, 0 to max int, increases the accuracy of the job timer hit
-define("CRON_DAEMON_MODE", true);  // true\false - enable\disable daemon mode
-
-define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // 10 in MB
-define("CRON_LOG_ROTATE_MAX_FILES", 5);
-define("CRON_LOG_LEVEL", 2);
-
-define("CRON_URL_KEY", 'my_secret_key'); // change this!
-define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat');
+ 
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -212,26 +211,28 @@ if(!function_exists('open_cron_socket')) {
 // main
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] === CRON_URL_KEY
+	$_REQUEST["cron"] === $cron_settings['url_key']
 ){
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api 
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
+		global $cron_settings;
+		
 		$frame_size= 95;
 		$process_id= getmypid();
 		$frame_completed= serialize([true]);
 
 
-		if(!file_exists(CRON_QUEUE_FILE)) touch(CRON_QUEUE_FILE);
+		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
 
 		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_address_push(serialize($value)); // add micro job in queue from worker process
 
-			unlink(CRON_QUEUE_FILE); // reset DB file
-			touch(CRON_QUEUE_FILE);
+			unlink($cron_settings['queue_file']); // reset DB file
+			touch($cron_settings['queue_file']);
 
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
@@ -313,15 +314,11 @@ if(
 					fwrite($queue_resource,$frame, 4096);
 					fflush($queue_resource);
 				} else { // frame error
-					if(CRON_LOG_LEVEL > 3){
-						if(CRON_LOG_FILE){
-							@file_put_contents(
-								CRON_LOG_FILE, 
-								sprintf("%f ERROR: init boot frame\n", microtime(true)),
-								FILE_APPEND | LOCK_EX
-							);
-						}
-					}
+					file_put_contents(
+						$cron_settings['log_file'], 
+						sprintf("%f ERROR: init boot frame\n", microtime(true)),
+						FILE_APPEND | LOCK_EX
+					);
 					
 					_die();				
 					
@@ -398,12 +395,12 @@ if(
 				}
 			}
 
-			// execution time: 0.051764011383057 end - start, 1000 cycles
+			// execution time: 0.051764011383057 end - start, 1000 cycles (without usleep)
 			while(true){ // example: loop from the end
 				$frame= queue_address_pop($frame_size,  PHP_INT_MAX, '', "count_frames");
 				$value= unserialize($frame);
 				
-				if($frame === '') {
+				if($frame === '') { // end queue
 					break 1;
 				} elseif($frame !==  $frame_completed) {
 					// $content= file_get_contents($value['url']);
@@ -412,10 +409,10 @@ if(
 					usleep(2000); // test load, micro delay 0.002 sec
 					
 					
-					if(CRON_LOG_LEVEL > 3){
-						if(CRON_LOG_FILE){
+					if($cron_settings['log_level'] > 3){
+						if($cron_settings['log_file']){
 							@file_put_contents(
-								CRON_LOG_FILE, 
+								$cron_settings['log_file'], 
 								sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
 								FILE_APPEND | LOCK_EX
 							);
@@ -435,7 +432,9 @@ if(
 	// return frame cursor offset (int), 0 if error or boot frame
 	function queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
 	{ // push data frame in stack
-		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
+		global $cron_settings;
+		
+		$queue_resource= fopen($cron_settings['queue_file'], "r+");
 		$return_cursor= 0;
 
 		if($frame_size !== 0){
@@ -479,7 +478,9 @@ if(
 	// return value from stack frame, empty string '' if error or lifo queue end (string)
 	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= '') // :string 
 	{ // pop data frame from stack
-		$queue_resource= fopen(CRON_QUEUE_FILE, "r+");
+		global $cron_settings;
+		
+		$queue_resource= fopen($cron_settings['queue_file'], "r+");
 		$frame= '';
 		
 		if(flock($queue_resource, LOCK_EX)) {
@@ -536,7 +537,6 @@ if(
 		return $frame;
 	}
 	
-	
 	function write_cron_session() // :void 
 	{
 		global  $cron_resource, $cron_session;
@@ -549,18 +549,17 @@ if(
 
 	function _die($return= '') // :void 
 	{
-		global $cron_resource, $cron_dat_file;
+		global $cron_resource, $cron_dat_file, $cron_settings;
 		
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			write_cron_session();
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
-			unset($cron_resource);
 		}
 		
 		if($return === 'restart'){ // restart cron
-			if(isset($cron_dat_file)) touch($cron_dat_file, time() - CRON_DELAY);
-			open_cron_socket(CRON_URL_KEY);
+			if(isset($cron_dat_file)) touch($cron_dat_file, time() - $cron_settings['delay']);
+			open_cron_socket($cron_settings['url_key']);
 		}
 		
 		exit();
@@ -591,6 +590,8 @@ if(
 
 	function init_background_cron() // :void 
 	{
+		global $cron_settings;
+		
 		ignore_user_abort(true);
 		fcgi_finish_request();
 
@@ -598,7 +599,7 @@ if(
 			proc_nice(19);
 		}
 
-		if(CRON_DAEMON_MODE){
+		if($cron_settings['daemon_mode']){
 			set_time_limit(0);
 			ini_set('MAX_EXECUTION_TIME', "0");
 		} else {
@@ -615,23 +616,23 @@ if(
 
 	function cron_log_rotate() // :void 
 	{ // LOG Rotate
-		global $cron_session;
+		global $cron_session, $cron_settings;
 
 		if(!isset($cron_session['log_rotate_last_update'])) {
 			$cron_session['log_rotate_last_update']= 0;
 		}
 
-		if(CRON_DAEMON_MODE && $cron_session['log_rotate_last_update'] > time() - 600){
+		if($cron_settings['daemon_mode'] && $cron_session['log_rotate_last_update'] > time() - 600){
 			return;
 		}
 		
 		$cron_session['log_rotate_last_update']= time();
 
-		if(CRON_LOG_FILE && @filesize(CRON_LOG_FILE) > CRON_LOG_ROTATE_MAX_SIZE / CRON_LOG_ROTATE_MAX_FILES) {
-			@rename(CRON_LOG_FILE, CRON_LOG_FILE . "." . (string) time());
+		if($cron_settings['log_file'] && @filesize($cron_settings['log_file']) > $cron_settings['log_rotate_max_size'] / $cron_settings['log_rotate_max_files']) {
+			@rename($cron_settings['log_file'], $cron_settings['log_file'] . "." . (string) time());
 			
 			file_put_contents(
-				CRON_LOG_FILE, 
+				$cron_settings['log_file'], 
 				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
 				FILE_APPEND | LOCK_EX
 			);
@@ -640,9 +641,9 @@ if(
 			$log_old_file = '';
 			$log_files_size = 0;
 						
-			foreach(glob(CRON_LOG_FILE . '*') as $file_log_rotate){
+			foreach(glob($cron_settings['log_file'] . '*') as $file_log_rotate){
 				$log_files_size+= @filesize($file_log_rotate);
-				if ($file_log_rotate === CRON_LOG_FILE) {
+				if ($file_log_rotate === $cron_settings['log_file']) {
 					continue;
 				}
 					
@@ -653,11 +654,11 @@ if(
 				}
 			}
 
-			if ($log_files_size >  CRON_LOG_ROTATE_MAX_SIZE) {
+			if ($log_files_size >  $cron_settings['log_rotate_max_size']) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
 					file_put_contents(
-						CRON_LOG_FILE, 
+						$cron_settings['log_file'], 
 						date('m/d/Y H:i:s', time()) . " INFO: log removal\n",
 						FILE_APPEND | LOCK_EX
 					);
@@ -669,10 +670,10 @@ if(
 	
 	function callback_connector($job, $job_process_id, $mode) // :void 
 	{
-		global $cron_session;
+		global $cron_session, $cron_settings;
 		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
-			open_cron_socket(CRON_URL_KEY, (string) $job_process_id); 
+			open_cron_socket($cron_settings['url_key'], (string) $job_process_id); 
 		} else {
 			
 			if(isset($job['function'])){ // use call function mode
@@ -683,10 +684,10 @@ if(
 			if(file_exists($job['callback'])) {
 				include $job['callback'];
 					
-			} else {
-				if(CRON_LOG_FILE){
+			} elseif(!isset($job['function'])) {
+				if($cron_settings['log_file']){
 					file_put_contents(
-						CRON_LOG_FILE,
+						$cron_settings['log_file'],
 						implode(' ', [
 							'date'=> date('m/d/Y H:i:s', time()),
 							'message'=> 'ERROR:',
@@ -802,7 +803,7 @@ if(
 
 	function memory_profiler() // :void 
 	{
-		global $cron_jobs;
+		global $cron_jobs, $cron_settings;
 		static  $profiler= [];
 		$time= time();
 		
@@ -827,9 +828,9 @@ if(
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
-			if(CRON_LOG_FILE){
+			if($cron_settings['log_file']){
 				file_put_contents(
-					CRON_LOG_FILE,
+					$cron_settings['log_file'],
 					implode(' ', [
 						'date'=> date('m/d/Y H:i:s', $time),
 						'message'=> 'INFO:',
@@ -881,7 +882,7 @@ if(
 			if($job['multithreading']){
 				// Dispatcher init
 				$job_process_id= intval($_GET["job_process_id"]);
-				$cron_dat_file= dirname(CRON_DAT_FILE) . DIRECTORY_SEPARATOR . (string) $job_process_id . '.dat';
+				$cron_dat_file= dirname($cron_settings['dat_file']) . DIRECTORY_SEPARATOR . (string) $job_process_id . '.dat';
 				if(!file_exists($cron_dat_file)) touch($cron_dat_file);
 				
 				$cron_resource= fopen($cron_dat_file, "r+");
@@ -907,37 +908,37 @@ if(
 	
 	////////////////////////////////////////////////////////////////////////
 	// Dispatcher init
-	$cron_dat_file= CRON_DAT_FILE;
+	$cron_dat_file= $cron_settings['dat_file'];
 	
-	if(filemtime(CRON_DAT_FILE) + CRON_DELAY > time()) _die();
+	if(filemtime($cron_settings['dat_file']) + $cron_settings['delay'] > time()) _die();
 	
-	$cron_resource= fopen(CRON_DAT_FILE, "r+");
+	$cron_resource= fopen($cron_settings['dat_file'], "r+");
 	if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
 		$stat= fstat($cron_resource);
 		$cs= unserialize(@fread($cron_resource, $stat['size']));
 		if(is_array($cs)) $cron_session= $cs;
 		
-		if(CRON_LOG_FILE && !is_dir(dirname(CRON_LOG_FILE))) {
-			mkdir(dirname(CRON_LOG_FILE), 0755, true);
+		if($cron_settings['log_file'] && !is_dir(dirname($cron_settings['log_file']))) {
+			mkdir(dirname($cron_settings['log_file']), 0755, true);
 		}
 		
 		//###########################################
 		// check jobs
 		singlethreading_dispatcher();
 
-		while(CRON_DAEMON_MODE){
+		while($cron_settings['daemon_mode']){
 			singlethreading_dispatcher();
 			memory_profiler();
 				
-			if(CRON_LOG_FILE){
+			if($cron_settings['log_file']){
 				cron_log_rotate();
 			}
 				
-			sleep(CRON_DELAY); // delay in infinite loop
+			sleep($cron_settings['delay']); // delay in infinite loop
 		}
 		
 		//###########################################
-		if(CRON_LOG_FILE) cron_log_rotate();
+		if($cron_settings['log_file']) cron_log_rotate();
 		write_cron_session();
 		flock($cron_resource, LOCK_UN);
 	}
@@ -947,9 +948,9 @@ if(
 } else {
 	////////////////////////////////////////////////////////////////////////
 	// check time out to start in background 
-	if(file_exists(CRON_DAT_FILE)){
-		if(CRON_DAEMON_MODE){
-			$cron_resource= fopen(CRON_DAT_FILE, "r");
+	if(file_exists($cron_settings['dat_file'])){
+		if($cron_settings['daemon_mode']){
+			$cron_resource= fopen($cron_settings['dat_file'], "r");
 			$cron_started= true;
 			
 			if(flock($cron_resource, LOCK_EX | LOCK_NB)) {
@@ -959,25 +960,26 @@ if(
 			
 			fclose($cron_resource);
 			
-			if(!$cron_started) open_cron_socket(CRON_URL_KEY);
+			if(!$cron_started) open_cron_socket($cron_settings['url_key']);
 		} else {
-			if(filemtime(CRON_DAT_FILE) + CRON_DELAY < time()){
-				open_cron_socket(CRON_URL_KEY);
+			if(filemtime($cron_settings['dat_file']) + $cron_settings['delay'] < time()){
+				open_cron_socket($cron_settings['url_key']);
 			}
 		}
 	} else {
-		@mkdir(dirname(CRON_DAT_FILE), 0755, true);
-		file_put_contents(CRON_DAT_FILE, serialize([]));
-		touch(CRON_DAT_FILE, time() - CRON_DELAY);
+		@mkdir(dirname($cron_settings['dat_file']), 0755, true);
+		file_put_contents($cron_settings['dat_file'], serialize([]));
+		touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 		
-		if(CRON_LOG_FILE) {
-			mkdir(dirname(CRON_LOG_FILE), 0755, true);
-			touch(CRON_LOG_FILE);
+		if($cron_settings['log_file']) {
+			mkdir(dirname($cron_settings['log_file']), 0755, true);
+			touch($cron_settings['log_file']);
 		}
 		
-		open_cron_socket(CRON_URL_KEY);
+		open_cron_socket($cron_settings['url_key']);
 	}
 }
 
 unset($cron_jobs);
+unset($cron_settings);
 ?>
