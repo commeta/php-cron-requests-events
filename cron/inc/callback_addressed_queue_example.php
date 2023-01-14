@@ -9,10 +9,10 @@ if(isset($job['param'])){
 	queue_address_manager($job['param']);
 	$time= microtime(true) - $start;
 	
-	if(CRON_LOG_LEVEL > 3){
-		if(CRON_LOG_FILE){
+	if($cron_settings['log_level'] > 3){
+		if($cron_settings['log_file']){
 			@file_put_contents(
-				CRON_LOG_FILE, 
+				$cron_settings['log_file'], 
 				sprintf("%f INFO: queue_manager %f %d %d\n", microtime(true), $time, getmypid(), $job_process_id),
 				FILE_APPEND | LOCK_EX
 			);
