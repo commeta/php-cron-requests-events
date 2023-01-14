@@ -49,6 +49,7 @@ $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'delete_dat_file_on_exit'=> false,
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
@@ -58,7 +59,6 @@ $cron_settings=[
 	'log_level'=> 2, // Log verbosity: 2 warning, 5 debug info
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
-
 
 ###########################
 # EXAMPLES
@@ -116,7 +116,6 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'multithreading' => true
 ];
 ##########
- 
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -555,10 +554,17 @@ if(
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
 		}
-		
+				
 		if($return === 'restart'){ // restart cron
 			if(isset($cron_dat_file)) touch($cron_dat_file, time() - $cron_settings['delay']);
 			open_cron_socket($cron_settings['url_key']);
+		}
+		
+		if(
+			$cron_settings['delete_dat_file_on_exit'] &&
+			basename($cron_settings['dat_file']) !== 'cron.dat'
+		) {
+			unlink($cron_settings['dat_file']);
 		}
 		
 		exit();
@@ -966,12 +972,14 @@ if(
 			}
 		}
 	} else {
-		@mkdir(dirname($cron_settings['dat_file']), 0755, true);
-		file_put_contents($cron_settings['dat_file'], serialize([]));
-		touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+		if(basename($cron_settings['dat_file']) === 'cron.dat') {
+			if(!is_dir(dirname($cron_settings['dat_file']))) mkdir(dirname($cron_settings['dat_file']), 0755, true);
+			file_put_contents($cron_settings['dat_file'], serialize([]));
+			touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+		}
 		
 		if($cron_settings['log_file']) {
-			@mkdir(dirname($cron_settings['log_file']), 0755, true);
+			if(!is_dir(dirname($cron_settings['log_file'])))  mkdir(dirname($cron_settings['log_file']), 0755, true);
 			touch($cron_settings['log_file']);
 		}
 		
@@ -981,4 +989,5 @@ if(
 
 unset($cron_jobs);
 unset($cron_settings);
+
 ?>
