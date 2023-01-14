@@ -53,7 +53,6 @@ if(!function_exists('queue_address_push')){
 ###########################
 $frame_size= 4096;
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
-$cron_settings= [];
 $cron_settings= ['queue_file'=> $cron_root . 'cron/dat/queue.dat'];
 if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
 
