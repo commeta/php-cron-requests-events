@@ -246,11 +246,12 @@ include('cron.php');
 ```
 // Example get param, function called in parallel process cron.php
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$process_id= getmypid();
 
 ###########################
 $cron_settings=[
 	'log_file'=> false, // Path to log file, false - disables logging
-	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'dat_file'=> $cron_root . 'cron/dat/' . $process_id . '.dat', // Path to the thread manager system file
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> -1, // Timeout until next run in seconds
@@ -263,19 +264,19 @@ $cron_settings=[
 
 ###########################
 $cron_jobs= [];
-$process_id= getmypid();
 
 ###########################
 $cron_jobs[$process_id]= [ // CRON Job
 	'interval'=> 0, // start interval 1 sec
 	'function'=> 'get_param',
-	'param'=> '',
+	'param'=> $process_id,
 	'multithreading' => false
 ];
 
 ##########
 if(isset($_REQUEST["cron"])) { 
-	function get_param(){
+	function get_param($process_id){
+		global $cron_settings;
 		$frame_size= 4096;
 	
 		while(true){ // example: loop from the end
@@ -286,9 +287,10 @@ if(isset($_REQUEST["cron"])) {
 				break 1;
 			} elseif($frame !==  $frame_completed) {
 					usleep(2000); // test load, micro delay 0.002 sec
-				}
 			}
-
+		}
+		
+		unlink($cron_settings['dat_file']);
 	}
 }
 
