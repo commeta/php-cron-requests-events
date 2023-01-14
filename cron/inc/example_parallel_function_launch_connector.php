@@ -57,6 +57,9 @@ function send_param_and_parallel_launch($params, $queue_file){
 	if(!file_exists($queue_file)) touch($queue_file);
 
 	queue_address_push($params, $frame_size);
+	include('cron.php');
+
+	unlink(dirname($queue_file) . '/' . (string) getmypid() .  '.dat' );
 }
 
 
@@ -70,5 +73,4 @@ send_param_and_parallel_launch(
 	dirname(__FILE__) . DIRECTORY_SEPARATOR .  'cron/dat/queue.dat'
 );
 
-include('cron.php');
 ?>
