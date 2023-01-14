@@ -18,7 +18,7 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Wide range for launching tasks: intervals from a second, there is a launch at a specified time.
 - Allows you to perform tasks that consume a lot of resources with low priority.
 - You can connect this CRON to any CMS, it will not affect performance in any way.
-- Allows to [delay execute functions in a parallel process](#delay-function-launch).
+- Allows to [execute functions in a parallel process](#parallel-function-launch).
 
 
 ## CRON scheduler
@@ -165,11 +165,13 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - Using a multi-core queue, in some cases suitable for replacing microservices.
 
 
-## Delay function launch
+## Parallel function launch
 #### Execution script:
-- Add the `'function'` to the task list `$cron_jobs[]` with the given interval `'interval'=> 0`
-- Specify a timeout before starting `$cron_settings['delay']= -1` and disable resident mode `$cron_settings['daemon_mode']= false`
-- Set startup mode `'multithreading'=> false` and include `include('cron.php')` in your script
+- Include `include('cron.php')` in your script
+- Add the `'function'` function to the task list `$cron_jobs[]` with the given interval `'interval'=> 0`
+- Specify a timeout before running `$cron_settings['delay']= -1`
+- Disable resident mode `$cron_settings['daemon_mode']= false`
+- Specify startup mode `'multithreading'=> false`
 - Function must be defined in `cron.php` file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 - It is possible to pass parameters through a session file
