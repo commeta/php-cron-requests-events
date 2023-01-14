@@ -6,7 +6,7 @@ $process_id= getmypid();
 
 ###########################$cron_settings['delete_dat_file']
 $cron_settings=[
-	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
+	'log_file'=> false, // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/' . (string) $process_id . '.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> true,
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
@@ -37,8 +37,7 @@ if(isset($_REQUEST["cron"])) {
 	function get_param($process_id){
 		global $cron_settings, $cron_resource, $cron_root;
 
-		$frame_completed= serialize([true]);
-		$frame_size= 4096;
+		$frame_size= 64;
 	
 		while(true){ // example: loop from the end
 			$frame= queue_address_pop($frame_size);
@@ -46,9 +45,9 @@ if(isset($_REQUEST["cron"])) {
 				
 			if($frame === '') { // end queue
 				break 1;
-			} elseif($frame !==  $frame_completed) {
+			} else {
 					file_put_contents(
-						$cron_settings['log_file'], 
+						dirname(__FILE__) . '/cron/log/cron.log', 
 						sprintf(
 							"%f Info: get_param while %s\n", 
 							microtime(true), 
