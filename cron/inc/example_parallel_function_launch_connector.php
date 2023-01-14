@@ -49,10 +49,10 @@
 	}
 
 
-function send_param_and_parallel_launch($params, $queue_file){
+function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
 	global $cron_settings;
 	
-	$frame_size= 4096; // 1 cache page
+	$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
 	$cron_settings= ['queue_file'=> $queue_file];
 	if(!file_exists($queue_file)) touch($queue_file);
 
@@ -66,9 +66,6 @@ $params= [
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(
-	serialize($params), 
-	dirname(__FILE__) . DIRECTORY_SEPARATOR .  'cron/dat/queue.dat'
-);
+send_param_and_parallel_launch(serialize($params), dirname(__FILE__), 64);
 
 ?>
