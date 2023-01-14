@@ -276,7 +276,7 @@ $cron_jobs[$process_id]= [ // CRON Job
 ##########
 if(isset($_REQUEST["cron"])) { 
 	function get_param($process_id){
-		global $cron_settings;
+		global $cron_settings, $cron_resource;
 		$frame_size= 4096;
 	
 		while(true){ // example: loop from the end
@@ -290,10 +290,16 @@ if(isset($_REQUEST["cron"])) {
 			}
 		}
 		
+		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
+			flock($cron_resource, LOCK_UN);
+			fclose($cron_resource);
+			unset($cron_resource)
+		}
+		
 		unlink($cron_settings['dat_file']);
+		_die();
 	}
 }
-
 ```
 
 
