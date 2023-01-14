@@ -134,23 +134,29 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 
 
 ## Launch parameters
-- define("CRON_LOG_FILE", CRON_ROOT . "cron/log/cron.log"); // Path to the log file, false - disables the log
-- define("CRON_DAT_FILE", CRON_ROOT . "cron/dat/cron.dat"); // Path to the thread manager system file
-- define("CRON_LOG_LEVEL", 5); // Detailed log: 2 warning, 5 debug
-- define("CRON_QUEUE_FILE", CRON_ROOT . 'cron/dat/queue.dat'); // Path to the multiprocess queue system file
-- define("CRON_DELAY", 1); // Timeout until next run in seconds
-- define("CRON_DAEMON_MODE", true); // true\false resident mode (background service)
-- define("CRON_LOG_ROTATE_MAX_SIZE", 10 * 1024 * 1024); // Maximum log size in MB
-- define("CRON_LOG_ROTATE_MAX_FILES", 5); // Store a maximum of 5 archived log files
-- define("CRON_URL_KEY", 'my_secret_key'); // Start key in URI
-- $paths= "/usr/bin:/usr/local/bin"; // If the PATH environment variable is empty, use system paths, executable search directories: wget, curl
-- $profiler['time'] > $time - 15 // 15 sec. cron.php modification time check interval, if newer then restart
-- $profiler['callback_time'] > $time - 60 // 60 sec. modification time interval check include callback files, if newer then restart
-- $cron_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
-- ini_set('MAX_EXECUTION_TIME', 600); // Maximum execution time, 0 in resident mode
-- 'timeout' => 0.04 // Blocking time, timeout for emergency start via fopen. Server response time * 10 depending on Linux Kernel Load Average\OPcache\FLOPS
-- usleep(2000); // In examples of a multi-process queue, it simulates a load, data processing is assumed at this point, unlimited in time
-- $host="localhost"; // To run through the CLI console, enter your domain name and the path to the root directory of the site $document_root
+```
+$cron_settings=[
+	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
+	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
+	'site_root'=> '',
+	'delay'=> 1, // Timeout until next run in seconds
+	'daemon_mode'=> true, // true\false resident mode (background service)
+	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
+	'log_rotate_max_files'=> 5, // Store max 5 archived log files
+	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug
+	'url_key'=> 'my_secret_key', // Launch key in URI
+];
+
+$paths="/usr/bin:/usr/local/bin"; // If the PATH environment variable is empty, use system paths, executable search directories: wget, curl
+$profiler['time'] > $time - 15 // 15 sec. cron.php modification time check interval, if newer then restart
+$profiler['callback_time'] > $time - 60 // 60 sec. modification time interval check include callback files, if newer then restart
+$cron_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
+ini_set('MAX_EXECUTION_TIME', 600); // Maximum execution time, 0 in resident mode
+'timeout' => 0.04 // Block time, timeout for emergency start via fopen. Server response time * 10 depending on Linux Kernel Load Average\OPcache\FLOPS
+usleep(2000); // In examples of a multi-process queue, it simulates a load, data processing is assumed at this point, unlimited in time
+$host="localhost"; // To run through the CLI console, enter your domain name and the path to the root directory of the site $document_root
+```
 
 When selecting the CRON_DELAY parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
 
