@@ -4,11 +4,18 @@
  * Project url: https://github.com/commeta/php-cron-requests-events
  * 
  * can install use:
- * CLI: wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
+ * CLI: 
+ * wget "https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php"
  * 
  * dependency install, before include('cron.php') connector
- * PHP:  if(!file_exists(dirname(__FILE__).'/cron.php')) file_put_content(dirname(__FILE__).'/cron.php', file_get_contents('https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'));
- * 
+ * PHP:  
+ * if(!file_exists(dirname(__FILE__).'/cron.php')) 
+ * 	file_put_content(
+ * 		dirname(__FILE__).'/cron.php', 
+ * 		file_get_contents(
+ * 			'https://raw.githubusercontent.com/commeta/php-cron-requests-events/main/cron.php'
+ * 		)
+ * 	);
  * 
  * 
  * Copyright 2023 commeta <dcs-spb@ya.ru>
