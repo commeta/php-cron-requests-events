@@ -164,7 +164,8 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 ## Delay function launch
 #### Execution script:
 - Add the `'function'` function to the task list `$cron_jobs[]` with the given interval `'interval'=> 0`
-- Specify the startup mode `'multithreading'=> false` and include `include('cron.php')` in your script.
+- Specify a timeout before starting `$cron_settings['delay']= 0` and disable resident mode `$cron_settings['daemon_mode']= false`
+- Set startup mode `'multithreading'=> false` and include `include('cron.php')` in your script
 - Function must be defined in `cron.php` file
 - Parameters are passed through task parameters `$cron_jobs[]['param']`
 - It is possible to pass parameters through a session file
