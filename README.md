@@ -178,13 +178,14 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - Each subdirectory will run a separate copy of `cron.php`
 
 To transfer mutable data, use the api functions:
-- queue_address_push();
-- queue_address_pop();
+- `queue_address_push();`
+- `queue_address_pop();`
 
 ```
 // Example send param, before include('cron.php'):
 
 ###########################
+if(!function_exists('queue_address_push')){
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
@@ -229,14 +230,15 @@ To transfer mutable data, use the api functions:
 		fclose($queue_resource);
 		return $return_cursor;
 	}
-
+}
 ###########################
 $frame_size= 4096;
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
-$cron_settings['queue_file']= $cron_root . 'cron/dat/queue.dat'
+$cron_settings= ['queue_file'=> $cron_root . 'cron/dat/queue.dat'];
 
 $params= [];
 queue_address_push(serialize($params), $frame_size);
+include('cron.php');
 ```
 
 
@@ -280,10 +282,10 @@ if(isset($_REQUEST["cron"])) {
 				
 			if($frame === '') { // end queue
 				break 1;
-			} else{
-				usleep(2000); // test load, micro delay 0.002 sec
+			} elseif($frame !==  $frame_completed) {
+					usleep(2000); // test load, micro delay 0.002 sec
+				}
 			}
-		}
 
 	}
 }
