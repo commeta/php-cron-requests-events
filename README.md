@@ -61,6 +61,7 @@ dependency install
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+	'delete_dat_file_on_exit'=> false, // Needed if uses specified time in jobs
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
