@@ -34,11 +34,10 @@ $cron_jobs= [
 
 ###########################
 if(isset($_REQUEST["cron"])):
-	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+	touch($cron_settings['dat_file'], time() - $cron_settings['delay'] - 1);
 
 	function get_param($process_id){
 		global $cron_settings, $cron_resource, $cron_root;
-
 		$frame_size= 64;
 	
 		while(true){ // example: loop from the end
@@ -47,7 +46,7 @@ if(isset($_REQUEST["cron"])):
 				
 			if($frame === '') { // end queue
 				break 1;
-			} else {
+			} else { // Example handler
 				if(!is_dir($cron_root . 'cron/log')) mkdir($cron_root . 'cron/log', 0755, true);
 
 				file_put_contents(
@@ -97,11 +96,15 @@ if(!function_exists('queue_address_push')) {
 			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
 			
 			$stat= fstat($queue_resource);
-			if($frame_cursor !== PHP_INT_MAX){
-				$return_cursor= $frame_cursor;
-				$frame_length= mb_strlen($frame);
+			
+			$frame_length= mb_strlen($frame);
+
+			if($frame_length < $frame_size){
 				for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
-				
+			}
+
+			if($frame_cursor !== PHP_INT_MAX){
+				$return_cursor= $frame_cursor;				
 				fseek($queue_resource, $frame_cursor);
 				fwrite($queue_resource, $frame, $frame_size);
 				fflush($queue_resource);
@@ -189,17 +192,16 @@ if(!function_exists('queue_address_pop')) {
 
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){
-		global $cron_settings;
-		$cron_root_dir= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-		
-		$queue_file=  $cron_root_dir .  'cron/dat/queue.dat';
-		$cron_settings= ['queue_file'=> $queue_file];
-		
-		if(!is_dir(dirname($queue_file))) mkdir(dirname($queue_file), 0755, true);
-		if(!file_exists($queue_file)) touch($queue_file);
-
+		global $cron_settings, $cron_root_dir;
 		queue_address_push($params, $frame_size);
-		include($cron_root_dir . 'cron.php');
+		
+		if(function_exists('open_cron_socket')) {
+			open_cron_socket($cron_settings['url_key']);
+		} else {
+			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
+			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
+			include($cron_root_dir . 'cron.php');
+		}
 	}
 }
 ?>
