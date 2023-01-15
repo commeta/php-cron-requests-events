@@ -234,27 +234,17 @@ This file will be launched according to the schedule, the path to the file is sp
 ### Example from file: `example_parallel_function_launch_connector.php`
 ### Example from file: `example_parallel_function_launch_cron_settings.php`
 #### Execution script:
-- Add `include('cron.php')` in your script
-- Add `'function'=> 'get_param'` to the task list `$cron_jobs[]` with the given `'interval'=> 0`
-- Specify a timeout before running `$cron_settings['delay']= -1`
-- Disable resident mode `$cron_settings['daemon_mode']= false`
-- Specify startup mode `'multithreading'=> false`
-- Function must be defined in `cron.php` file
-- Parameters are passed through task parameters `$cron_jobs[]['param']`
-- It is possible to pass parameters through a session file
-- A separate copy of `cron.php` will be launched in a separate subdirectory
+- Connect `include('cron/inc/example_parallel_function_launch_connector.php ');` in your script
+- Comment out the string `include('cron/inc/example_parallel_function_launch_connector.php ');` in the file `cron.php `
+- It is possible to install multiple copies in different subdirectories
 
-To transfer mutable data, use the api functions:
+Api functions are used to transmit the modified data:
 - `queue_address_push();` sending [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) is connected in the file where necessary call the parallel execution of the function.
 - `queue_address_pop();` delivery [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) `cron launch settings .php` and defining the data handler function in a separate process.
 
 In the example above, an array is added to the queue and a parallel process is started.
 The handler function in a parallel process takes one frame of data from the shared queue. The queue works in LIFO mode. Processing of the data added to the queue can begin immediately after the addition, if the parallel process has managed to process its data.
 
-The example is connected at the end of the Settings section of the file `cron.php `
-```
-include('cron/inc/example_parallel_function_launch_cron_settings.php ');
-```
 
 ## php multicore api multithreaded queue example
 ### Example from file: `callback_addressed_queue_example.php`
