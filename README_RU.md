@@ -77,7 +77,7 @@ $host= "localhost"; // Для запуска через консоль CLI, вп
 
 
 ## Пример запуска задачи
-В контексте файла `cron_settings.conf.php` раздел CRON Job
+В контексте файла `cron/inc/cron_settings.conf.php` раздел CRON Job
 ```
 ###########################
 # EXAMPLES
@@ -222,13 +222,13 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 
 ## Паралельный запуск функций
-### Пример из файла: `example_parallel_function_launch_connector.php`
-### Пример из файла: `example_parallel_function_launch_cron_settings.php`
+### Пример из файла: `parallel_function_launch_connector.php`
+### Пример из файла: `cron_launch.conf.php`
 #### Сценарий выполнения:
-- Расскоментируйте строку `include('cron_launch.conf.php');` в файле `cron.php`
+- Расскоментируйте строку `include('cron/inc/cron_launch.conf.php');` в файле `cron.php`
 - Подготовьте массив для передачи и запустите в любом месте вашего скрипта
 ```
-include('cron/inc/example_parallel_function_launch_connector.php');
+include('cron/inc/parallel_function_launch_connector.php');
 
 $cron_root_dir= dirname(__FILE__);
 $frame_size= 64;
@@ -243,8 +243,8 @@ send_param_and_parallel_launch(serialize($params), $cron_root_dir, $frame_size);
 
 
 Для передачи изменяемых данных используются функции api: 
-- `queue_address_push();` пример отправки [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
-- `queue_address_pop();` пример доставки [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
+- `queue_address_push();` пример отправки [parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
+- `queue_address_pop();` пример доставки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
 
 
 В приведенном примере осуществляется добавление массива в очередь и запуск параллельного процесса.
