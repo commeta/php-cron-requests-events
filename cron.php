@@ -137,118 +137,6 @@ if(
 ){
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api 
-
-	// frame - pushed frame (string)
-	// frame_size - set frame size (int)
-	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
-	// return frame cursor offset (int), 0 if error or boot frame
-	function queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
-	{ // push data frame in stack
-		global $cron_settings;
-		
-		$queue_resource= fopen($cron_settings['queue_file'], "r+");
-		$return_cursor= 0;
-
-		if($frame_size !== 0){
-			if($frame_size < mb_strlen($frame)){ // fill
-				return $return_cursor;
-			}
-		} else {
-			return $return_cursor;
-		}
-
-		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
-			
-			$stat= fstat($queue_resource);
-			if($frame_cursor !== PHP_INT_MAX){
-				$return_cursor= $frame_cursor;
-				$frame_length= mb_strlen($frame);
-				for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
-				
-				fseek($queue_resource, $frame_cursor);
-				fwrite($queue_resource, $frame, $frame_size);
-				fflush($queue_resource);
-			} else {
-				$return_cursor= $stat['size'];
-				fseek($queue_resource, $stat['size']);
-				fwrite($queue_resource, $frame, $frame_size);
-				fflush($queue_resource);
-			}
-			
-			flock($queue_resource, LOCK_UN);
-		}
-		
-		fclose($queue_resource);
-		return $return_cursor;
-	}
-
-
-	// frame_size - set frame size (int)
-	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
-	// frame_replace - empty('') is off, replace frame (string)
-	// return value from stack frame, empty string '' if error or lifo queue end (string)
-	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= '') // :string 
-	{ // pop data frame from stack
-		global $cron_settings;
-		
-		$queue_resource= fopen($cron_settings['queue_file'], "r+");
-		$frame= '';
-		
-		if(flock($queue_resource, LOCK_EX)) {
-			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor, $frame_replace); // callback anonymous
-			
-			$stat= fstat($queue_resource);
-
-			if($stat['size'] < 1){ // queue file is empty
-				flock($queue_resource, LOCK_UN);
-				fclose($queue_resource);
-				return $frame;
-			}
-
-			if($frame_cursor !== PHP_INT_MAX){
-				$cursor= $frame_cursor;
-			} else {
-				if($stat['size'] - $frame_size > 0) $cursor= $stat['size'] - $frame_size;
-				else $cursor= 0;
-			}
-
-			fseek($queue_resource, $cursor); // get data frame
-			$v= trim(fread($queue_resource, $frame_size));
-			if(mb_strlen($v) > 0) $frame= $v;
-			
-			if($frame_cursor !== PHP_INT_MAX){
-				if($frame_replace !== ''){ // replace frame
-					$length_frame_replace= mb_strlen($frame_replace);
-					
-					if($length_frame_replace <= $frame_size){
-						if($length_frame_replace < $frame_size){
-							for($i= $length_frame_replace; $i <= $frame_size; $i++) $frame_replace.= chr(0);
-						}
-						
-						fseek($queue_resource, $cursor); 
-						fwrite($queue_resource, $frame_replace, $frame_size);
-						fflush($queue_resource);
-					} else {
-						return '';
-					}
-				}
-				
-			} elseif(mb_strlen($v) > 0) { // LIFO mode	
-				if($stat['size'] - $frame_size >= 0) $trunc= $stat['size'] - $frame_size;
-				else $trunc= 0; // truncate file
-
-				ftruncate($queue_resource, $trunc);
-				fflush($queue_resource);
-			}
-			
-			flock($queue_resource, LOCK_UN);
-		}
-		
-		fclose($queue_resource);
-		return $frame;
-	}
-	
 	function write_cron_session() // :void 
 	{
 		global  $cron_resource, $cron_session;
@@ -421,8 +309,7 @@ if(
 			
 		}
 	}
-	
-		
+			
 	function cron_session_init($job, $job_process_id) // :void 
 	{
 		global $cron_session;
