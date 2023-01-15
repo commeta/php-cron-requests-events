@@ -189,8 +189,9 @@ if(!function_exists('queue_address_pop')) {
 }
 
 if(!function_exists('send_param_and_parallel_launch')) { 
-	function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
+	function send_param_and_parallel_launch($params, $frame_size){
 		global $cron_settings;
+		$cron_root_dir= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
 		
 		$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
 		$cron_settings= ['queue_file'=> $queue_file];
