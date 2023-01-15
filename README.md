@@ -241,6 +241,10 @@ Api functions are used to transmit the modified data:
 - `queue_address_push();` sending [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) is connected in the file where necessary call the parallel execution of the function.
 - `queue_address_pop();` delivery [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) and defining the data handler function in a separate process.
 
+
+Handler function `get_param()` defined in the file `cron_launch.conf.php ` will be started immediately, in a parallel process.
+
+
 In the example above, an array is added to the queue and a parallel process is started.
 The handler function in a parallel process takes one frame of data from the shared queue. The queue works in LIFO mode. Processing of the data added to the queue can begin immediately after the addition, if the parallel process has managed to process its data.
 
