@@ -68,6 +68,6 @@ $params= [
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), dirname(__FILE__), 64);
+send_param_and_parallel_launch(serialize($params), dirname(dirname(dirname(__FILE__))), 64);
 
 ?>
