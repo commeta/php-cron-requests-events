@@ -224,6 +224,7 @@ This file will be launched according to the schedule, the path to the file is sp
 - Uncomment the line `include('cron/inc/cron_launch.conf.php');` in `cron.php`
 - Comment the line `include('cron/inc/cron_settings.conf.php');` in `cron.php`
 - Prepare array for transfer and run anywhere in your script
+- It is possible to install multiple copies in different subdirectories
 ```
 include('cron/inc/cron_launch.conf.php');
 
@@ -235,7 +236,6 @@ $params= [
 
 send_param_and_parallel_launch(serialize($params), $frame_size);
 ```
-- It is possible to install multiple copies in different subdirectories
 
 Api functions are used to transmit the modified data:
 - `queue_address_push();` sending [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) is connected in the file where necessary call the parallel execution of the function.
