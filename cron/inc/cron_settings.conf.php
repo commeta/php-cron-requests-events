@@ -1,15 +1,15 @@
 <?php
-$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-$cron_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR .'dat' . DIRECTORY_SEPARATOR;
-$cron_inc= dirname(__FILE__) . DIRECTORY_SEPARATOR;
-$cron_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
+$cron_requests_events_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+$cron_requests_events_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR .'dat' . DIRECTORY_SEPARATOR;
+$cron_requests_events_inc= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$cron_requests_events_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 
 
-$cron_settings=[
-	'log_file'=> $cron_log . 'cron.log', // Path to log file, false - disables logging
-	'dat_file'=> $cron_dat . 'cron.dat', // Path to the thread manager system file
+$cron_requests_events_settings=[
+	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, false - disables logging
+	'dat_file'=> $cron_requests_events_dat . 'cron.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
-	'queue_file'=> $cron_dat . 'queue.dat', // Path to the multiprocess queue system file
+	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
 	'daemon_mode'=> true, // true\false resident mode (background service)
@@ -21,30 +21,30 @@ $cron_settings=[
 
 ###########################
 # EXAMPLES
-$cron_jobs= [];
+$cron_requests_events_jobs= [];
 
 ###########################
-$cron_jobs[]= [ // CRON Job 1, example
+$cron_requests_events_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
-	'callback' => $cron_inc . "callback_cron.php",
+	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
 ##########
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 2, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
-	'callback' => $cron_inc . "callback_cron.php",
+	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
 ##########
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 3, multicore example
+$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 	'time' => '21:05:00', // "hours:minutes:seconds" execute job on the specified time every day
-	//'callback' => $cron_inc . "callback_addressed_queue_example.php",
+	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -56,9 +56,9 @@ for( // CRON job 3, multicore example, four cores,
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$cron_jobs[]= [ // CRON Job 3, multicore example
+	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 		'time' => '21:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		//'callback' => $cron_inc . "callback_addressed_queue_example.php",
+		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -69,9 +69,9 @@ for( // CRON job 3, multicore example, four cores,
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 4, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
-	'callback' => $cron_inc . "callback_cron.php",
+	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
 ##########
@@ -81,7 +81,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 ##########
 if(
 	isset($_REQUEST["cron"]) &&
-	$_REQUEST["cron"] === $cron_settings['url_key']
+	$_REQUEST["cron"] === $cron_requests_events_settings['url_key']
 ){
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api
@@ -92,7 +92,7 @@ if(
 	
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
-		global $cron_settings;
+		global $cron_requests_events_settings;
 		
 		// Init
 		$frame_size= 95;
@@ -101,15 +101,15 @@ if(
 		launch();
 
 
-		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
+		if(!file_exists($cron_requests_events_settings['queue_file'])) touch($cron_requests_events_settings['queue_file']);
 
 		if($mode){
 			// example: multicore queue worker
 			// use:
 			// queue_address_push(serialize($value)); // add micro job in queue from worker process
 
-			unlink($cron_settings['queue_file']); // reset DB file
-			touch($cron_settings['queue_file']);
+			unlink($cron_requests_events_settings['queue_file']); // reset DB file
+			touch($cron_requests_events_settings['queue_file']);
 
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
@@ -170,7 +170,7 @@ if(
 			function init_boot_frame(& $queue_resource) // :void 
 			{ // Inter-process communication IPC
 				// low level, cacheable fast operations, read\write 0-3 sectors of file, 1 cache page
-				global $cron_settings;
+				global $cron_requests_events_settings;
 				$process_id= getmypid(); 
 				
 				fseek($queue_resource, 0); // get 0-3 sectors, boot frame
@@ -193,7 +193,7 @@ if(
 					fflush($queue_resource);
 				} else { // frame error
 					file_put_contents(
-						$cron_settings['log_file'], 
+						$cron_requests_events_settings['log_file'], 
 						sprintf("%f ERROR: init boot frame\n", microtime(true)),
 						FILE_APPEND | LOCK_EX
 					);
@@ -287,9 +287,9 @@ if(
 					usleep(2000); // test load, micro delay 0.002 sec
 					
 					
-					if($cron_settings['log_file'] && $cron_settings['log_level'] > 3){
+					if($cron_requests_events_settings['log_file'] && $cron_requests_events_settings['log_level'] > 3){
 						file_put_contents(
-							$cron_settings['log_file'], 
+							$cron_requests_events_settings['log_file'], 
 							sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
 							FILE_APPEND | LOCK_EX
 						);
