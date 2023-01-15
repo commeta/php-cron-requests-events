@@ -38,7 +38,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '08:04:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '08:35:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -52,7 +52,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '08:04:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '08:35:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -82,7 +82,7 @@ if(
 	// Functions: system api 
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
-		include('cron/inc/cron_launch.conf.php');
+		include('cron_launch.conf.php');
 		unset($cron_settings);
 		
 		global $cron_settings;
