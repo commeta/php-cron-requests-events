@@ -191,7 +191,11 @@ if(!function_exists('queue_address_pop')) {
 
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){
-		global $cron_settings, $cron_root_dir;
+		global $cron_settings, $cron_root;
+		
+		$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+		$cron_settings['queue_file']= $cron_root . 'cron/dat/queue.dat';
+
 		queue_address_push($params, $frame_size);
 		
 		if(function_exists('open_cron_socket')) {
@@ -199,7 +203,8 @@ if(!function_exists('send_param_and_parallel_launch')) {
 		} else {
 			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
 			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
-			include($cron_root_dir . 'cron.php');
+			
+			include($cron_root . 'cron.php');
 		}
 	}
 }
