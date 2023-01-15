@@ -34,7 +34,7 @@ $cron_jobs= [
 
 ###########################
 if(isset($_REQUEST["cron"])):
-	//touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
 	function get_param($process_id){
 		global $cron_settings, $cron_resource, $cron_root;
