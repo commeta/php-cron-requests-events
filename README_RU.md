@@ -225,6 +225,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 ### Пример из файла: `cron_launch.conf.php`
 #### Сценарий выполнения:
 - Расскоментируйте строку `include('cron/inc/cron_launch.conf.php');` в файле `cron.php`
+- Закомментируйте строку `include('cron/inc/cron_settings.conf.php');` в файле `cron.php`
 - Подготовьте массив для передачи и запустите в любом месте вашего скрипта
 ```
 include('cron/inc/cron_launch.conf.php');
