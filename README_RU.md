@@ -227,6 +227,8 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 - Расскоментируйте строку `include('cron/inc/cron_launch.conf.php');` в файле `cron.php`
 - Закомментируйте строку `include('cron/inc/cron_settings.conf.php');` в файле `cron.php`
 - Подготовьте массив для передачи и запустите в любом месте вашего скрипта
+- Возможна установка нескольких копий, в разных подкаталогах
+
 ```
 include('cron/inc/cron_launch.conf.php');
 
@@ -238,7 +240,6 @@ $params= [
 
 send_param_and_parallel_launch(serialize($params), $frame_size);
 ```
-- Возможна установка нескольких копий, в разных подкаталогах
 
 
 Для передачи изменяемых данных используются функции api: 
