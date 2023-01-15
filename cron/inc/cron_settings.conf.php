@@ -43,7 +43,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '20:03:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '21:05:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -57,7 +57,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '20:03:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '21:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -86,18 +86,20 @@ if(
 	////////////////////////////////////////////////////////////////////////
 	// Functions: system api
 	
-	function launch(){
+	function launch(){ // load functions
 		include('cron_launch.conf.php');
 	}
 	
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
-		launch();
 		global $cron_settings;
 		
+		// Init
 		$frame_size= 95;
 		$process_id= getmypid();
 		$frame_completed= serialize([true]);
+		launch();
+
 
 		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
 
