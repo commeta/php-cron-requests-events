@@ -46,11 +46,11 @@ wget "https://github.com/commeta/php-cron-requests-events/archive/refs/heads/mai
 
 ## Launch parameters
 ```
-$cron_settings=[
-	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
-	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
+$cron_requests_events_settings=[
+	'log_file'=> $cron_requests_events_root . 'cron/log/cron.log', // Path to log file, false - disables logging
+	'dat_file'=> $cron_requests_events_root . 'cron/dat/cron.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> false, // Needed if uses specified time in jobs
-	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
+	'queue_file'=> $cron_requests_events_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
 	'daemon_mode'=> true, // true\false resident mode (background service)
@@ -63,14 +63,14 @@ $cron_settings=[
 $paths="/usr/bin:/usr/local/bin"; // If the PATH environment variable is empty, use system paths, executable search directories: wget, curl
 $profiler['time'] > $time - 15 // 15 sec. cron.php modification time check interval, if newer then restart
 $profiler['callback_time'] > $time - 60 // 60 sec. modification time interval check include callback files, if newer then restart
-$cron_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
+$cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
 ini_set('MAX_EXECUTION_TIME', 600); // Maximum execution time, 0 in resident mode
 'timeout' => 0.04 // Block time, timeout for emergency start via fopen. Server response time * 10 depending on Linux Kernel Load Average\OPcache\FLOPS
 usleep(2000); // In examples of a multi-process queue, it simulates a load, data processing is assumed at this point, unlimited in time
 $host="localhost"; // To run through the CLI console, enter your domain name and the path to the root directory of the site $document_root
 ```
 
-When selecting the `$cron_settings['delay']` parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
+When selecting the `$cron_requests_events_settings['delay']` parameter, you can look at the server logs, usually the host is polled every minute by a mass of bots.
 
 
 ## Task start example
@@ -78,30 +78,30 @@ In the context of the `cron/inc/cron_settings.conf.php` file, the CRON Job secti
 ```
 ###########################
 # EXAMPLES
-$cron_jobs= [];
+$cron_requests_events_jobs= [];
 
 ###########################
-$cron_jobs[]= [ // CRON Job 1, example
+$cron_requests_events_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
-	'callback' => $cron_root . "cron/inc/callback_cron.php",
+	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => false
 ];
 ##########
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 2, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
-	'callback' => $cron_root . "cron/inc/callback_cron.php",
+	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 3, multicore example
+$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
-	//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
+	//'callback' => $cron_requests_events_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
 	'multithreading' => true
@@ -113,9 +113,9 @@ for( // CRON job 3, multicore example, four cores,
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$cron_jobs[]= [ // CRON Job 3, multicore example
+	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
-		//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
+		//'callback' => $cron_requests_events_root . "cron/inc/callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
 		'multithreading' => true
@@ -126,9 +126,9 @@ for( // CRON job 3, multicore example, four cores,
 
 
 ###########################
-$cron_jobs[]= [ // CRON Job 4, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
-	'callback' => $cron_root . "cron/inc/callback_cron.php",
+	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
 ];
 ##########
@@ -140,7 +140,7 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 - `'function'` - Performs the specified function, if param is specified, then passes it in the parameters
 - `'multithreading'` - Running in the background true\false
 
-If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the `$cron_settings['delay']` parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
+If the date or time parameters are specified, then the interval argument will be ignored, the accuracy is regulated by the `$cron_requests_events_settings['delay']` parameter, depends on the activity of requests to the host, if there were no requests to the server at the time of the event, it will start the task at the first start.
 
 You can start the control process in resident mode by setting the `'daemon_mode'=> true`, in which case it is possible to check jobs continuously in a loop, with a pause between iterations. In this case, a long-running task will block the main thread, I recommend running tasks in `'multithreading'=> true` mode.
 
@@ -154,13 +154,13 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - Using a multi-core queue, in some cases suitable for replacing microservices.
 
 ## Variables
-- `$cron_session`, stores the service fields of the session of each `$cron_jobs` job separately
-- `$job_process_id`, contains the job sequence number from `$cron_jobs`
-- `$cron_settings`, contains `cron.php` settings
+- `$cron_requests_events_session`, stores the service fields of the session of each `$cron_requests_events_jobs` job separately
+- `$job_process_id`, contains the job sequence number from `$cron_requests_events_jobs`
+- `$cron_requests_events_settings`, contains `cron.php` settings
 
-The variables will retain their values between scheduled task runs, but until the fields in `$cron_jobs[$job_process_id]` are changed.
+The variables will retain their values between scheduled task runs, but until the fields in `$cron_requests_events_jobs[$job_process_id]` are changed.
 ```
-Array // $cron_session
+Array // $cron_requests_events_session
 (
     [1] => Array
         (
@@ -215,7 +215,7 @@ Frame access time from 0.00001 second depending on the frame size, intensity of 
 ## CRON event handler
 ### Example from file: `callback_cron.php`
 
-This file will be launched according to the schedule, the path to the file is specified in the field `$cron_jobs[$job_process_id]['callback']`
+This file will be launched according to the schedule, the path to the file is specified in the field `$cron_requests_events_jobs[$job_process_id]['callback']`
 
 
 ## Parallel function launch
