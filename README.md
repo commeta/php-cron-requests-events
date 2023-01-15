@@ -60,7 +60,6 @@ $cron_requests_events_settings=[
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
-$paths="/usr/bin:/usr/local/bin"; // If the PATH environment variable is empty, use system paths, executable search directories: wget, curl
 $profiler['time'] > $time - 15 // 15 sec. cron.php modification time check interval, if newer then restart
 $profiler['callback_time'] > $time - 60 // 60 sec. modification time interval check include callback files, if newer then restart
 $cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
