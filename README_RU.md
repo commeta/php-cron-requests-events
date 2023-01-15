@@ -48,7 +48,7 @@ wget "https://github.com/commeta/php-cron-requests-events/archive/refs/heads/mai
 
 ## Параметры запуска
 ```
-$cron_requests_events_requests_events_settings= [
+$cron_requests_events_settings= [
 	'log_file'=> $cron_requests_events_root . 'cron/log/cron.log', // Путь к файлу журнала, false - отключает журнал
 	'dat_file'=> $cron_requests_events_root . 'cron/dat/cron.dat', // Путь к системному файлу диспетчера потока
 	'delete_dat_file_on_exit'=> false, // Используется в задачах с указанным временем и\или датой, контроллируемый режим
@@ -66,14 +66,14 @@ $cron_requests_events_requests_events_settings= [
 $paths= "/usr/bin:/usr/local/bin"; // Если переменная окружения PATH пуста, используем системные пути, каталоги поиска исполняемых файлов: wget, curl
 $profiler['time'] > $time - 15 // 15 сек. интервал проверки времени модификации cron.php, если новее то перезапуск
 $profiler['callback_time'] > $time - 60 // 60 сек. интервал проверки времени модификации include callback файлов, если новее то перезапуск
-$cron_requests_events_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
+$cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
 ini_set('MAX_EXECUTION_TIME', 600); // Максимальное время выполнения, 0 в резидентном режиме
 'timeout' => 0.04 // Время блокировки, тайм аут для экстренного запуска через fopen. Время ответа сервера * 10 в зависимости от Linux Kernel Load Average\OPcache\FLOPS
 usleep(2000); // В примерах многопроцессной очереди имитирует нагрузку, в данной точке предполагается обработка данных, неограниченно по времени
 $host= "localhost"; // Для запуска через консоль CLI, впишите имя вашего домена и путь к корневой директории сайта $document_root
 ```
 
-При подборе параметра `$cron_requests_events_requests_events_settings['delay']` можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
+При подборе параметра `$cron_requests_events_settings['delay']` можно посмотреть в логи сервера, обычно хост ежеминутно опрашивается массой ботов.
 
 
 ## Пример запуска задачи
@@ -81,10 +81,10 @@ $host= "localhost"; // Для запуска через консоль CLI, вп
 ```
 ###########################
 # EXAMPLES
-$cron_requests_events_requests_events_jobs= [];
+$cron_requests_events_jobs= [];
 
 ###########################
-$cron_requests_events_requests_events_jobs[]= [ // CRON Job 1, example
+$cron_requests_events_jobs[]= [ // CRON Job 1, example
 	'interval' => 0, // start interval 1 sec
 	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => false
@@ -93,7 +93,7 @@ $cron_requests_events_requests_events_jobs[]= [ // CRON Job 1, example
 
 
 ###########################
-$cron_requests_events_requests_events_jobs[]= [ // CRON Job 2, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 	'interval' => 10, // start interval 10 sec
 	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
@@ -102,7 +102,7 @@ $cron_requests_events_requests_events_jobs[]= [ // CRON Job 2, multithreading ex
 
 
 ###########################
-$cron_requests_events_requests_events_jobs[]= [ // CRON Job 3, multicore example
+$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
 	//'callback' => $cron_requests_events_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
@@ -116,7 +116,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i< 4; // Max processor cores
 	$i++	
 ) {
-	$cron_requests_events_requests_events_jobs[]= [ // CRON Job 3, multicore example
+	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
 		'time' => '04:24:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_root . "cron/inc/callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
@@ -129,7 +129,7 @@ for( // CRON job 3, multicore example, four cores,
 
 
 ###########################
-$cron_requests_events_requests_events_jobs[]= [ // CRON Job 4, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => $cron_requests_events_root . "cron/inc/callback_cron.php",
 	'multithreading' => true
@@ -143,7 +143,7 @@ $cron_requests_events_requests_events_jobs[]= [ // CRON Job 4, multithreading ex
 - `'function'` - Выполняет указанную функцию, если указан param то передает его в параметрах
 - `'multithreading'` - Запуск в фоновом режиме true\false
 
-Если указаны параметры `date` или `time` то аргумент `interval` будет проигнорирован, точность регулируется параметром `$cron_requests_events_requests_events_settings['delay']`, зависит от активности запросов к хосту, если в момент наступления времени события, запросов к серверу не было - запустит задачу при первом запуске.
+Если указаны параметры `date` или `time` то аргумент `interval` будет проигнорирован, точность регулируется параметром `$cron_requests_events_settings['delay']`, зависит от активности запросов к хосту, если в момент наступления времени события, запросов к серверу не было - запустит задачу при первом запуске.
 
 Можно запустить управляющий процесс в резидентном режиме, установив значение `'daemon_mode'=> true`, в этом случае возможна проверка заданий непрерывно в цикле, с паузой между итерациями. В данном случае длительная задача будет блокировать основной поток, рекомендую запускать задачи в режиме `'multithreading'=> true`.
 
@@ -157,14 +157,14 @@ $cron_requests_events_requests_events_jobs[]= [ // CRON Job 4, multithreading ex
 - Использование многоядерной очереди, в некоторых случаях подходит для замены микросервисов.
 
 ## Переменные
-- `$cron_requests_events_requests_events_session`, хранит служебные поля сессии каждого задания `$cron_requests_events_jobs` в отдельности
+- `$cron_requests_events_session`, хранит служебные поля сессии каждого задания `$cron_requests_events_jobs` в отдельности
 - `$job_process_id`, содержит порядковый номер задания из `$cron_requests_events_jobs`
-- `$cron_requests_events_requests_events_settings`, содержит параметры `cron.php`
+- `$cron_requests_events_settings`, содержит параметры `cron.php`
 
 
-Переменные сохраниют свои значения между запусками задач по расписанию, но до тех пор пока поля в `$cron_requests_events_requests_events_jobs[$job_process_id]` не будут изменены.
+Переменные сохраниют свои значения между запусками задач по расписанию, но до тех пор пока поля в `$cron_requests_events_jobs[$job_process_id]` не будут изменены.
 ```
-Array // $cron_requests_events_requests_events_session
+Array // $cron_requests_events_session
 (
     [1] => Array
         (
