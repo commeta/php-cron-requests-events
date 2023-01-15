@@ -235,7 +235,7 @@ This file will be launched according to the schedule, the path to the file is sp
 ### Example from file: `example_parallel_function_launch_cron_settings.php`
 #### Execution script:
 - Connect `include('cron/inc/example_parallel_function_launch_connector.php ');` in your script
-- Comment out the string `include('cron/inc/example_parallel_function_launch_cron_settings.php ');` in the file `cron.php `
+- Uncomment the string `include('cron/inc/example_parallel_function_launch_cron_settings.php ');` in the file `cron.php `
 - It is possible to install multiple copies in different subdirectories
 
 Api functions are used to transmit the modified data:
