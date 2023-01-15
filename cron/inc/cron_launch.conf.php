@@ -4,14 +4,19 @@
 // Example get param, function called in parallel process cron.php
 // this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $process_id= getmypid();
+
+// System dirs
 $cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+$cron_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'dat' . DIRECTORY_SEPARATOR;
+$cron_inc= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$cron_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 
 ###########################
 $cron_settings=[
 	'log_file'=> false, // Path to log file, false - disables logging
-	'dat_file'=> $cron_root . 'cron/dat/' . (string) $process_id . '.dat', // Path to the thread manager system file
+	'dat_file'=> $cron_dat . (string) $process_id . '.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> true,
-	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
+	'queue_file'=> $cron_dat . 'queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> -1, // Timeout until next run in seconds
 	'daemon_mode'=> false, // true\false resident mode (background service)
@@ -34,10 +39,10 @@ $cron_jobs= [
 
 ###########################
 if(isset($_REQUEST["cron"])):
-	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+	if(!function_exists('launch')) touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
 	function get_param($process_id){
-		global $cron_settings, $cron_resource, $cron_root;
+		global $cron_settings, $cron_resource, $cron_log;
 		$frame_size= 64;
 	
 		while(true){ // example: loop from the end
@@ -47,10 +52,10 @@ if(isset($_REQUEST["cron"])):
 			if($frame === '') { // end queue
 				break 1;
 			} else { // Example handler
-				if(!is_dir($cron_root . 'cron/log')) mkdir($cron_root . 'cron/log', 0755, true);
+				if(!is_dir($cron_log)) mkdir($cron_log, 0755, true);
 
 				file_put_contents(
-					$cron_root . 'cron/log/cron.log', 
+					$cron_log . 'cron.log', 
 					sprintf(
 						"%f Info: get_param while %s\n", 
 						microtime(true), 
@@ -191,10 +196,13 @@ if(!function_exists('queue_address_pop')) {
 
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){
-		global $cron_settings, $cron_root;
+		global $cron_settings, $cron_root, $cron_dat;
 		
 		$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-		$cron_settings['queue_file']= $cron_root . 'cron/dat/queue.dat';
+		$cron_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR .'dat' . DIRECTORY_SEPARATOR;
+
+		$cron_settings['queue_file']= $cron_dat . 'queue.dat';
+		$cron_settings['url_key']= 'my_secret_key';
 
 		queue_address_push($params, $frame_size);
 		
@@ -204,7 +212,7 @@ if(!function_exists('send_param_and_parallel_launch')) {
 			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
 			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
 			
-			include($cron_root . 'cron.php');
+			include_once($cron_root . 'cron.php');
 		}
 	}
 }
