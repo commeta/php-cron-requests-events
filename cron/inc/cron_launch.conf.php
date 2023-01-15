@@ -34,7 +34,7 @@ $cron_jobs= [
 
 ###########################
 if(isset($_REQUEST["cron"])):
-	touch($cron_settings['dat_file'], time() - $cron_settings['delay'] - 1);
+	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
 	function get_param($process_id){
 		global $cron_settings, $cron_resource, $cron_root;
@@ -96,9 +96,8 @@ if(!function_exists('queue_address_push')) {
 			if($callback !== '') @call_user_func($callback, $queue_resource, $frame_size, $frame_cursor); // callback anonymous
 			
 			$stat= fstat($queue_resource);
-			
 			$frame_length= mb_strlen($frame);
-
+			
 			if($frame_length < $frame_size){
 				for($i= $frame_length; $i <= $frame_size; $i++) $frame.= chr(0);
 			}
