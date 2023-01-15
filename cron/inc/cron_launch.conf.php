@@ -40,11 +40,11 @@ $cron_jobs= [
 ###########################
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){
-		global $cron_settings, $cron_root, $cron_dat;
+		global $cron_settings, $cron_root;
 		static $variables= [];
 		
-		if(!$variables) $variables= [$cron_settings, $cron_root, $cron_dat];
-		else list($cron_settings, $cron_root, $cron_dat)= $variables;
+		if(!$variables) $variables= [$cron_settings, $cron_root];
+		else list($cron_settings, $cron_root)= $variables;
 		
 		if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
 		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
@@ -54,7 +54,6 @@ if(!function_exists('send_param_and_parallel_launch')) {
 		if(function_exists('open_cron_socket')) {
 			open_cron_socket($cron_settings['url_key']);
 		} else {
-			
 			include($cron_root . 'cron.php');
 		}
 	}
