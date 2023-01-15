@@ -408,7 +408,7 @@ if(
 
 	function memory_profiler() // :void 
 	{
-		global $cron_requests_events_jobs, $cron_requests_events_settings;
+		global $cron_requests_events_jobs, $cron_requests_events_settings, $cron_requests_events_inc;
 		static  $profiler= [];
 		$time= time();
 		
@@ -431,10 +431,10 @@ if(
 		}
 		
 		if(!isset($profiler['filemtime_cron_settings.conf.php'])){
-			$profiler['filemtime_cron_settings.conf.php']= filemtime('filemtime_cron_settings.conf.php');
+			$profiler['filemtime_cron_settings.conf.php']= filemtime($cron_requests_events_inc . 'cron_settings.conf.php');
 		}
 		
-		if($profiler['filemtime_cron_settings.conf.php'] !== filemtime('filemtime_cron_settings.conf.php')){ // write in cron_settings file event, restart
+		if($profiler['filemtime_cron_settings.conf.php'] !== filemtime($cron_requests_events_inc . 'cron_settings.conf.php')){ // write in cron_settings file event, restart
 			_die('restart');
 		}
 		
