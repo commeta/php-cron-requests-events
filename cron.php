@@ -33,10 +33,10 @@
 # Settings
 
 // Example settings
-include_once('cron/inc/cron_settings.conf.php');
+include('cron/inc/cron_settings.conf.php');
 
 // Example parallel function launch settings
-// include_once('cron/inc/cron_launch.conf.php');
+// include('cron/inc/cron_launch.conf.php');
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -430,6 +430,15 @@ if(
 			_die('restart');
 		}
 		
+		if(!isset($profiler['filemtime_cron_settings.conf.php'])){
+			$profiler['filemtime_cron_settings.conf.php']= filemtime('filemtime_cron_settings.conf.php');
+		}
+		
+		if($profiler['filemtime_cron_settings.conf.php'] !== filemtime('filemtime_cron_settings.conf.php')){ // write in cron_settings file event, restart
+			_die('restart');
+		}
+		
+		
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
@@ -468,13 +477,6 @@ if(
 			}
 		}
 		
-		if(!isset($profiler['filemtime_cron/inc/cron_settings.conf.php'])){
-			$profiler['filemtime_cron/inc/cron_settings.conf.php']= filemtime('cron/inc/cron_settings.conf.php');
-		}
-		
-		if($profiler['filemtime_cron/inc/cron_settings.conf.php'] !== filemtime('cron/inc/cron_settings.conf.php')){ // write in cron_settings file event, restart
-			_die('restart');
-		}
 		
 	}
 
