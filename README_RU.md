@@ -244,7 +244,7 @@ $params= [
 	'process_id'=> getmypid(),
 ];
 include('cron/inc/example_parallel_function_launch_connector.php');
-'''
+```
 - Возможна установка нескольких копий, в разных подкаталогах
 
 
