@@ -79,11 +79,19 @@ if(!function_exists('open_cron_socket')) {
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_requests_events_url_key;
 			
-		if(is_callable("shell_exec") && defined("PHP_BINDIR") && is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php') ){
+		if(
+			is_callable("shell_exec") && 
+			defined("PHP_BINDIR") && 
+			is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php') 
+		){
 			if($protocol ===  'https') {
-				shell_exec(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
+				shell_exec(
+					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
+					'", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
 			} else {
-				shell_exec(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &');
+				shell_exec(
+					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
+					'", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &');
 			}
 		} else {
 			@fclose( 
