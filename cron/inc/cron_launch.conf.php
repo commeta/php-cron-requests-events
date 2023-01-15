@@ -46,13 +46,14 @@ if(!function_exists('send_param_and_parallel_launch')) {
 		if(!$variables) $variables= [$cron_settings, $cron_root, $cron_dat];
 		else list($cron_settings, $cron_root, $cron_dat)= $variables;
 		
+		if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
+		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
+		
 		queue_address_push($params, $frame_size);
 		
 		if(function_exists('open_cron_socket')) {
 			open_cron_socket($cron_settings['url_key']);
 		} else {
-			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
-			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
 			
 			include($cron_root . 'cron.php');
 		}
