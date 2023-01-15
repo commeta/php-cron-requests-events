@@ -4,15 +4,14 @@ if(isset($job['param'])){
 	// true - call in multithreading context api cron.php, in worker mode
 	// false - call in multithreading context api cron.php, in handler mode
 	
-	
 	$start= microtime(true);
 	queue_address_manager($job['param']);
 	$time= microtime(true) - $start;
 	
-	if($cron_settings['log_level'] > 3){
-		if($cron_settings['log_file']){
-			@file_put_contents(
-				$cron_settings['log_file'], 
+	if($cron_requests_events_settings['log_level'] > 3){
+		if($cron_requests_events_settings['log_file']){
+			file_put_contents(
+				$cron_requests_events_settings['log_file'], 
 				sprintf("%f INFO: queue_manager %f %d %d\n", microtime(true), $time, getmypid(), $job_process_id),
 				FILE_APPEND | LOCK_EX
 			);
