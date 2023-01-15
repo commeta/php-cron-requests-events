@@ -34,11 +34,11 @@
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 
 
- // Example settings
+// Example settings
 include('cron/inc/cron_settings.conf.php');
 
 // Example parallel function launch settings
-// include('cron/inc/cron_launch.conf.php');
+//include('cron/inc/cron_launch.conf.php');
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -581,6 +581,15 @@ if(
 				}
 			}
 		}
+		
+		if(!isset($profiler['filemtime_cron/inc/cron_settings.conf.php'])){
+			$profiler['filemtime_cron/inc/cron_settings.conf.php']= filemtime('cron/inc/cron_settings.conf.php');
+		}
+		
+		if($profiler['filemtime_cron/inc/cron_settings.conf.php'] !== filemtime('cron/inc/cron_settings.conf.php')){ // write in cron_settings file event, restart
+			_die('restart');
+		}
+		
 	}
 
 
