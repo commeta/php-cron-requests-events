@@ -40,10 +40,6 @@ $cron_jobs= [
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){ 
 		global $cron_settings, $cron_root;
-		static $variables= [];
-		
-		if(!$variables) $variables= [$cron_settings, $cron_root];
-		else list($cron_settings, $cron_root)= $variables;
 		
 		if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
 		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
