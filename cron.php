@@ -49,14 +49,14 @@ $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/cron.dat', // Path to the thread manager system file
-	'delete_dat_file_on_exit'=> false, // Needed if uses specified time in jobs
+	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
 	'queue_file'=> $cron_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
 	'daemon_mode'=> true, // true\false resident mode (background service)
 	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
 	'log_rotate_max_files'=> 5, // Store max 5 archived log files
-	'log_level'=> 2, // Log verbosity: 2 warning, 5 debug info
+	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug info
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
@@ -84,7 +84,7 @@ $cron_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '04:24:00', // "hours:minutes:seconds"execute job on the specified time every day
+	'time' => '04:24:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_root . "cron/inc/callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -116,6 +116,9 @@ $cron_jobs[]= [ // CRON Job 4, multithreading example
 	'multithreading' => true
 ];
 ##########
+ 
+// Example parallel function launch settings
+// include('cron/inc/example_parallel_function_launch_cron_settings.php');
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
@@ -979,7 +982,7 @@ if(
 		}
 		
 		if($cron_settings['log_file']) {
-			if(!is_dir(dirname($cron_settings['log_file'])))  mkdir(dirname($cron_settings['log_file']), 0755, true);
+			if(!is_dir(dirname($cron_settings['log_file']))) mkdir(dirname($cron_settings['log_file']), 0755, true);
 			touch($cron_settings['log_file']);
 		}
 		
