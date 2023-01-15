@@ -1,4 +1,5 @@
 <?php
+$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
 
 $cron_settings=[
 	'log_file'=> $cron_root . 'cron/log/cron.log', // Path to log file, false - disables logging
