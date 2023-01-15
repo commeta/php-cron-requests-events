@@ -2,6 +2,7 @@
 // Example send param, before include('cron.php'):
 
 ###########################
+if(!function_exists('queue_address_push')) { 
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
@@ -46,26 +47,24 @@
 		fclose($queue_resource);
 		return $return_cursor;
 	}
-
-
-function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
-	global $cron_settings;
-	
-	$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
-	$cron_settings= ['queue_file'=> $queue_file];
-	
-	if(!is_dir(dirname($queue_file))) mkdir(dirname($queue_file), 0755, true);
-	if(!file_exists($queue_file)) touch($queue_file);
-
-	queue_address_push($params, $frame_size);
-	include($cron_root_dir . '/cron.php');
 }
 
+if(!function_exists('send_param_and_parallel_launch')) { 
+	function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
+		global $cron_settings;
+		
+		$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
+		$cron_settings= ['queue_file'=> $queue_file];
+		
+		if(!is_dir(dirname($queue_file))) mkdir(dirname($queue_file), 0755, true);
+		if(!file_exists($queue_file)) touch($queue_file);
+
+		queue_address_push($params, $frame_size);
+		include($cron_root_dir . '/cron.php');
+	}
+}
 
 ###########################
-$params= [
-	'process_id'=> getmypid(),
-];
 
 send_param_and_parallel_launch(serialize($params), dirname(dirname(dirname(__FILE__))), 64);
 
