@@ -47,16 +47,16 @@ wget "https://github.com/commeta/php-cron-requests-events/archive/refs/heads/mai
 ## Launch parameters
 ```
 $cron_requests_events_settings=[
-	'log_file'=> $cron_requests_events_root . 'cron/log/cron.log', // Path to log file, false - disables logging
-	'dat_file'=> $cron_requests_events_root . 'cron/dat/cron.dat', // Path to the thread manager system file
-	'delete_dat_file_on_exit'=> false, // Needed if uses specified time in jobs
-	'queue_file'=> $cron_requests_events_root . 'cron/dat/queue.dat', // Path to the multiprocess queue system file
+	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, false - disables logging
+	'dat_file'=> $cron_requests_events_dat . 'cron.dat', // Path to the thread manager system file
+	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
+	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
 	'daemon_mode'=> true, // true\false resident mode (background service)
 	'log_rotate_max_size'=> 10 * 1024 * 1024, // Maximum log size log 10 in MB
 	'log_rotate_max_files'=> 5, // Store max 5 archived log files
-	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug
+	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug info
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
