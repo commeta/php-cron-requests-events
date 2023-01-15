@@ -241,10 +241,12 @@ $params= [
 send_param_and_parallel_launch(serialize($params), $frame_size);
 ```
 
-
 Для передачи изменяемых данных используются функции api: 
-- `queue_address_push();` пример отправки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc//cron_launch.conf.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
+- `queue_address_push();` пример отправки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
 - `queue_address_pop();` пример доставки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
+
+
+Функция обработчик `get_param()` определенная в файле `cron_launch.conf.php` будет запущена немедленно, в параллельном процессе.
 
 
 В приведенном примере осуществляется добавление массива в очередь и запуск параллельного процесса.
