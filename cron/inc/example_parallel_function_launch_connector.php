@@ -54,6 +54,8 @@ function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
 	
 	$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
 	$cron_settings= ['queue_file'=> $queue_file];
+	
+	if(!is_dir(dirname($queue_file))) mkdir(dirname($queue_file), 0755, true);
 	if(!file_exists($queue_file)) touch($queue_file);
 
 	queue_address_push($params, $frame_size);
