@@ -1,21 +1,21 @@
 <?php
 ##########
-// this code replace examples $cron_settings and $cron_jobs variables
+// this code replace examples $cron_requests_events_settings and $cron_requests_events_jobs variables
 
 $process_id= getmypid();
 
 // System dirs
-$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-$cron_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'dat' . DIRECTORY_SEPARATOR;
-$cron_inc= dirname(__FILE__) . DIRECTORY_SEPARATOR;
-$cron_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
+$cron_requests_events_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+$cron_requests_events_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'dat' . DIRECTORY_SEPARATOR;
+$cron_requests_events_inc= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$cron_requests_events_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 
 ###########################
-$cron_settings=[
+$cron_requests_events_settings=[
 	'log_file'=> false, // Path to log file, false - disables logging
-	'dat_file'=> $cron_dat . (string) $process_id . '.dat', // Path to the thread manager system file
+	'dat_file'=> $cron_requests_events_dat . (string) $process_id . '.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> true,
-	'queue_file'=> $cron_dat . 'queue.dat', // Path to the multiprocess queue system file
+	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> -1, // Timeout until next run in seconds
 	'daemon_mode'=> false, // true\false resident mode (background service)
@@ -26,7 +26,7 @@ $cron_settings=[
 ];
 
 ###########################
-$cron_jobs= [
+$cron_requests_events_jobs= [
 	$process_id=>  [ // CRON Job
 		'interval'=> 0,
 		'function'=> 'get_param',
@@ -39,27 +39,27 @@ $cron_jobs= [
 ###########################
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){ 
-		global $cron_settings, $cron_root;
+		global $cron_requests_events_settings, $cron_requests_events_root;
 		
-		if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
-		if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
+		if(!is_dir(dirname($cron_requests_events_settings['queue_file']))) mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
+		if(!file_exists($cron_requests_events_settings['queue_file'])) touch($cron_requests_events_settings['queue_file']);
 		
 		queue_address_push($params, $frame_size);
 		
 		if(function_exists('open_cron_socket')) {
-			open_cron_socket($cron_settings['url_key']);
+			open_cron_socket($cron_requests_events_settings['url_key']);
 		} else {
-			include($cron_root . 'cron.php');
+			include($cron_requests_events_root . 'cron.php');
 		}
 	}
 }
 
 
 if(isset($_REQUEST["cron"])):
-	if(!function_exists('launch')) touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
+	if(!function_exists('launch')) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
 
 	function get_param($process_id){ // Example get param, function called in parallel process cron.php
-		global $cron_settings, $cron_resource, $cron_log;
+		global $cron_requests_events_settings, $cron_requests_events_resource, $cron_requests_events_log;
 		$frame_size= 64;
 	
 		while(true){ // example: loop from the end
@@ -69,10 +69,10 @@ if(isset($_REQUEST["cron"])):
 			if($frame === '') { // end queue
 				break 1;
 			} else { // Example handler
-				if(!is_dir($cron_log)) mkdir($cron_log, 0755, true);
+				if(!is_dir($cron_requests_events_log)) mkdir($cron_requests_events_log, 0755, true);
 
 				file_put_contents(
-					$cron_log . 'cron.log', 
+					$cron_requests_events_log . 'cron.log', 
 					sprintf(
 						"%f Info: get_param while %s\n", 
 						microtime(true), 
@@ -83,9 +83,9 @@ if(isset($_REQUEST["cron"])):
 			}
 		}
 		
-		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
-			flock($cron_resource, LOCK_UN);
-			fclose($cron_resource);
+		if(isset($cron_requests_events_resource) && is_resource($cron_requests_events_resource)){// check global resource
+			flock($cron_requests_events_resource, LOCK_UN);
+			fclose($cron_requests_events_resource);
 		}
 		
 		_die();
@@ -101,9 +101,9 @@ if(!function_exists('queue_address_push')) {
 	// return frame cursor offset (int), 0 if error or boot frame
 	function queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= '') // :int 
 	{ // push data frame in stack
-		global $cron_settings;
+		global $cron_requests_events_settings;
 		
-		$queue_resource= fopen($cron_settings['queue_file'], "r+");
+		$queue_resource= fopen($cron_requests_events_settings['queue_file'], "r+");
 		$return_cursor= 0;
 
 		if($frame_size !== 0){
@@ -151,9 +151,9 @@ if(!function_exists('queue_address_pop')) {
 	// return value from stack frame, empty string '' if error or lifo queue end (string)
 	function queue_address_pop($frame_size= 0, $frame_cursor= PHP_INT_MAX, $frame_replace= '', $callback= '') // :string 
 	{ // pop data frame from stack
-		global $cron_settings;
+		global $cron_requests_events_settings;
 		
-		$queue_resource= fopen($cron_settings['queue_file'], "r+");
+		$queue_resource= fopen($cron_requests_events_settings['queue_file'], "r+");
 		$frame= '';
 		
 		if(flock($queue_resource, LOCK_EX)) {
