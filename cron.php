@@ -595,7 +595,4 @@ if(
 	}
 }
 
-unset($cron_jobs);
-unset($cron_settings);
-
 ?>
