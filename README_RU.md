@@ -238,12 +238,17 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 ### Пример из файла: `example_parallel_function_launch_cron_settings.php`
 #### Сценарий выполнения:
 - Расскоментируйте строку `include('cron/inc/example_parallel_function_launch_cron_settings.php');` в файле `cron.php`
-- Подготовьте массив для передачи и подключите файл примера в любом месте вашего скрипта
+- Подготовьте массив для передачи и запустите в любом месте вашего скрипта
 ```
+include('cron/inc/example_parallel_function_launch_connector.php');
+
+$cron_root_dir= dirname(__FILE__);
+
 $params= [
 	'process_id'=> getmypid(),
 ];
-include('cron/inc/example_parallel_function_launch_connector.php');
+
+send_param_and_parallel_launch(serialize($params), $cron_root_dir, 64);
 ```
 - Возможна установка нескольких копий, в разных подкаталогах
 
