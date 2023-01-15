@@ -196,7 +196,7 @@ Array // $cron_session
 // frame_cursor - адрес, смещение в файле, PHP_INT_MAX - LIFO режим (int)
 // callback - вызывает анонимную функцию во время блокировки файла очереди (string) :void
 // возвращает позицию курсора фрейма (int), 0 в случае ошибки или нулевого фрейма
-queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
+$frame_cursor= queue_address_push($frame, $frame_size= 0, $frame_cursor= PHP_INT_MAX, $callback= ''); // поместить в очередь
 ```
 1. блокирующая операция
 2. ожидает освобождения файла очереди
@@ -243,12 +243,13 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 include('cron/inc/example_parallel_function_launch_connector.php');
 
 $cron_root_dir= dirname(__FILE__);
+$frame_size= 64;
 
 $params= [
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), $cron_root_dir, 64);
+send_param_and_parallel_launch(serialize($params), $cron_root_dir, $frame_size);
 ```
 - Возможна установка нескольких копий, в разных подкаталогах
 
