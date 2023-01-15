@@ -193,14 +193,14 @@ if(!function_exists('send_param_and_parallel_launch')) {
 		global $cron_settings;
 		$cron_root_dir= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
 		
-		$queue_file=  $cron_root_dir .  '/cron/dat/queue.dat';
+		$queue_file=  $cron_root_dir .  'cron/dat/queue.dat';
 		$cron_settings= ['queue_file'=> $queue_file];
 		
 		if(!is_dir(dirname($queue_file))) mkdir(dirname($queue_file), 0755, true);
 		if(!file_exists($queue_file)) touch($queue_file);
 
 		queue_address_push($params, $frame_size);
-		include($cron_root_dir . '/cron.php');
+		include($cron_root_dir . 'cron.php');
 	}
 }
 ?>
