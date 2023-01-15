@@ -59,7 +59,7 @@ function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
 	if(!file_exists($queue_file)) touch($queue_file);
 
 	queue_address_push($params, $frame_size);
-	include('cron.php');
+	include($cron_root_dir . '/cron.php');
 }
 
 
