@@ -66,6 +66,5 @@ if(!function_exists('send_param_and_parallel_launch')) {
 
 ###########################
 
-send_param_and_parallel_launch(serialize($params), dirname(dirname(dirname(__FILE__))), 64);
 
 ?>
