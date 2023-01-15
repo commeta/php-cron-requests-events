@@ -227,14 +227,13 @@ This file will be launched according to the schedule, the path to the file is sp
 ```
 include('cron/inc/cron_launch.conf.php');
 
-$cron_root_dir= dirname(__FILE__);
 $frame_size= 64;
 
 $params= [
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), $cron_root_dir, $frame_size);
+send_param_and_parallel_launch(serialize($params), $frame_size);
 ```
 - It is possible to install multiple copies in different subdirectories
 
