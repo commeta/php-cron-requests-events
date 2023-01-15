@@ -222,13 +222,12 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 
 ## Паралельный запуск функций
-### Пример из файла: `parallel_function_launch_connector.php`
 ### Пример из файла: `cron_launch.conf.php`
 #### Сценарий выполнения:
 - Расскоментируйте строку `include('cron/inc/cron_launch.conf.php');` в файле `cron.php`
 - Подготовьте массив для передачи и запустите в любом месте вашего скрипта
 ```
-include('cron/inc/parallel_function_launch_connector.php');
+include('cron/inc/cron_launch.conf.php');
 
 $cron_root_dir= dirname(__FILE__);
 $frame_size= 64;
@@ -243,7 +242,7 @@ send_param_and_parallel_launch(serialize($params), $cron_root_dir, $frame_size);
 
 
 Для передачи изменяемых данных используются функции api: 
-- `queue_address_push();` пример отправки [parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
+- `queue_address_push();` пример отправки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
 - `queue_address_pop();` пример доставки [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
 
 
@@ -422,11 +421,11 @@ OPCache memory consumption: 69.48KB (PHP 8.2 данные, строки, бай�
 После запуска процесса потомка, пример `include 'callback_cron.php'`, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-После запуска скрипта передачи параметров для запуска функции в параллельном процессе, пример `parallel_function_launch_connector.php`
-![parallel_function_launch_connector](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
+После запуска скрипта передачи параметров для запуска функции в параллельном процессе, пример `cron_launch.conf.php`
+![cron_launch.conf.php](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
 
-После запуска `cron.php` с функцией для обработки данных в параллельном процессе, пример `cron/inc/cron_launch.conf.php`
-![cron/inc/cron_launch.conf.php](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
+После запуска `cron.php` с функцией для обработки данных в параллельном процессе, пример `cron_launch.conf.php`
+![cron_launch.conf.php](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
 
 После запуска процесса потомка, пример `queue_address_manager(true)`, log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
