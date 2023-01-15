@@ -242,7 +242,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 - Возможна установка нескольких копий, в разных подкаталогах
 
 
-Для передачи изменяемых данных воспользуйтесь функциями api: 
+Для передачи изменяемых данных используются функции api: 
 - `queue_address_push();` пример отправки [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
 - `queue_address_pop();` пример доставки [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
 
