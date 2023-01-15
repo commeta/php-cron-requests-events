@@ -1,8 +1,7 @@
 <?php
 ##########
+// this code replace examples $cron_settings and $cron_jobs variables
 
-// Example get param, function called in parallel process cron.php
-// this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $process_id= getmypid();
 
 // System dirs
@@ -29,7 +28,7 @@ $cron_settings=[
 ###########################
 $cron_jobs= [
 	$process_id=>  [ // CRON Job
-		'interval'=> 0, // start interval 1 sec
+		'interval'=> 0,
 		'function'=> 'get_param',
 		'param'=> $process_id,
 		'multithreading' => false
@@ -39,7 +38,7 @@ $cron_jobs= [
 
 ###########################
 if(!function_exists('send_param_and_parallel_launch')) { 
-	function send_param_and_parallel_launch($params, $frame_size){
+	function send_param_and_parallel_launch($params, $frame_size){ 
 		global $cron_settings, $cron_root;
 		static $variables= [];
 		
@@ -63,7 +62,7 @@ if(!function_exists('send_param_and_parallel_launch')) {
 if(isset($_REQUEST["cron"])):
 	if(!function_exists('launch')) touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
-	function get_param($process_id){
+	function get_param($process_id){ // Example get param, function called in parallel process cron.php
 		global $cron_settings, $cron_resource, $cron_log;
 		$frame_size= 64;
 	
