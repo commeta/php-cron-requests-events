@@ -65,7 +65,6 @@ if(isset($_REQUEST["cron"])):
 		if(isset($cron_resource) && is_resource($cron_resource)){// check global resource
 			flock($cron_resource, LOCK_UN);
 			fclose($cron_resource);
-			unset($cron_resource);
 		}
 		
 		_die();
