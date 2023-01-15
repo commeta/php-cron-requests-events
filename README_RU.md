@@ -237,11 +237,10 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 ### Пример из файла: `example_parallel_function_launch_connector.php`
 ### Пример из файла: `example_parallel_function_launch_cron_settings.php`
 #### Сценарий выполнения:
-- Подключите `include('cron.php')` в вашем скрипте
-- Добавьте в список задач `$cron_jobs[]` функцию `'function'=> 'get_param'` с заданным интервалом `'interval'=> 0`
-- Укажите тайм-аут до запуска `$cron_settings['delay']= -1` немедленно
+- Задача `$cron_jobs[]` функция `'function'=> 'get_param'` интервал `'interval'=> 0`
+- Тайм-аут до запуска `$cron_settings['delay']= -1` немедленно
 - Отключите резидентный режим `$cron_settings['daemon_mode']= false`
-- Укажите режим запуска `'multithreading'=> false`
+- Режим запуска `'multithreading'=> false`
 - Функция должна быть определена в файле `cron.php`
 - Передача параметров осуществляется через параметры задачи `$cron_jobs[]['param']`
 - Возможно передавать параметры через сессионный файл
@@ -250,15 +249,12 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 
 Для передачи изменяемых данных воспользуйтесь функциями api: 
 - `queue_address_push();` пример отправки [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) подключается в файле где необходимо вызвать параллельное исполнение функции.
-
 Подключение примера осуществляется в любом месте вашего скрипта
 ```
 include('cron/inc/example_parallel_function_launch_connector.php');
 ```
 
-
 - `queue_address_pop();` пример доставки [example_parallel_function_launch_cron_settings.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_cron_settings.php) настройки параметров запуска `cron.php` и определение функции обработчика данных в отдельном процессе.
-
 Подключение примера осуществляется в конце раздела Settings файла `cron.php`
 ```
 include('cron/inc/example_parallel_function_launch_cron_settings.php');
