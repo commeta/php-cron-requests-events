@@ -1,7 +1,6 @@
 <?php
 // Example get param, function called in parallel process cron.php
 // this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
-$cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $process_id= getmypid();
 
 ###########################$cron_settings['delete_dat_file']
@@ -46,10 +45,10 @@ if(isset($_REQUEST["cron"])) {
 			if($frame === '') { // end queue
 				break 1;
 			} else {
-				if(!is_dir(dirname(__FILE__) . '/cron/log/cron.log')) mkdir(dirname(__FILE__) . '/cron/log/cron.log', 0755, true);
+				if(!is_dir($cron_root . 'cron/log')) mkdir($cron_root . 'cron/log', 0755, true);
 
 				file_put_contents(
-					dirname(__FILE__) . '/cron/log/cron.log', 
+					$cron_root . 'cron/log/cron.log', 
 					sprintf(
 						"%f Info: get_param while %s\n", 
 						microtime(true), 
