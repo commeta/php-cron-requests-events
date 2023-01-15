@@ -97,7 +97,8 @@ if(!function_exists('open_cron_socket')) {
 			is_callable("shell_exec") &&
 			strtolower(PHP_OS) === 'linux' && 
 			$wget === '' && 
-			$curl === ''
+			$curl === '' &&
+			$php === ''
 		){
 			if(!getenv('PATH')) $paths= PHP_BINDIR . ":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin";
 			else $paths= getenv('PATH');
