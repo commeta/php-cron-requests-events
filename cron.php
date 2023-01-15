@@ -33,10 +33,10 @@
 # Settings
 
 // Example settings
-include('cron/inc/cron_settings.conf.php');
+// include('cron/inc/cron_settings.conf.php');
 
 // Example parallel function launch settings
-//include('cron/inc/cron_launch.conf.php');
+include('cron/inc/cron_launch.conf.php');
 
 ////////////////////////////////////////////////////////////////////////
 // Functions
