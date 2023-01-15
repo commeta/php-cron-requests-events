@@ -224,7 +224,7 @@ This file will be launched according to the schedule, the path to the file is sp
 - Uncomment the line `include('cron/inc/cron_launch.conf.php');` in `cron.php`
 - Comment the line `include('cron/inc/cron_settings.conf.php');` in `cron.php`
 - Prepare array for transfer and run anywhere in your script
-- It is possible to install multiple copies in different subdirectories
+
 ```
 include('cron/inc/cron_launch.conf.php');
 
