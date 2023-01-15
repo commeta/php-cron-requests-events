@@ -59,7 +59,7 @@ if(!function_exists('open_cron_socket')) {
 		}
 
 		$document_root= preg_match('/\/$/',$_SERVER["DOCUMENT_ROOT"]) ? $_SERVER["DOCUMENT_ROOT"] : $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR;
-
+		
 		if(isset($_SERVER["HTTP_HOST"])) {
 			$host= strtolower($_SERVER["HTTP_HOST"]);
 						
@@ -75,12 +75,31 @@ if(!function_exists('open_cron_socket')) {
 			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR; // site root path
 			
 			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_requests_events_url_key . "\n";
-			echo 'or change $host= "localhost" your domain' . "\n";
+			echo 'or change $host= "localhost" to your domain' . "\n";
 		}
 		
 		$cron_requests_events_url= $protocol . '://' . $host . '/' . 
 			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_requests_events_url_key;
+			
+		if(is_callable("shell_exec") && defined("PHP_BINDIR") && is_executable(PHP_BINDIR.'/php') ){
+			if($protocol ===  'https') {
+				shell_exec(
+					PHP_BINDIR.'/php'. 
+					' -r \'file_get_contents("' . 
+					$cron_requests_events_url . 
+					'", false, stream_context_create(["ssl"=>["verify_peer"=>false, "verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &'
+				);
+			} else {
+				shell_exec(
+					PHP_BINDIR.'/php'. 
+					' -r \'file_get_contents("' . 
+					$cron_requests_events_url . 
+					'", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &'
+				);
+			}
+			return;
+		}
 			
 		if(
 			is_callable("shell_exec") &&
@@ -97,32 +116,32 @@ if(!function_exists('open_cron_socket')) {
 			}
 		}
 		
-		if(
-			is_callable("shell_exec") &&
-			$wget !== ''
-		){
+		
+		if(is_callable("shell_exec") &&	$wget !== ''){
 			if($protocol ===  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_requests_events_url . '" > /dev/null &');
 			else shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_requests_events_url . '" > /dev/null &');
-		} elseif(
-			is_callable("shell_exec") &&
-			$curl !== ''
-		){
+			return;
+		}
+		
+		if(is_callable("shell_exec") &&	$curl !== ''){
 			if($protocol ===  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_requests_events_url . '" > /dev/null &');
 			else shell_exec($curl . ' -I --connect-timeout 1 "' . $cron_requests_events_url . '" > /dev/null &');
-		} else {
-			@fclose( 
-				@fopen(
-					$cron_requests_events_url, 
-					'r', 
-					false, 
-					stream_context_create([ // block mode
-						'http'=>[ // script responce time 0.004 * 10 (Linux Kernel Load Average\OPcache\FLOPS) = 0.04 timeout start process
-							'timeout' => 0.04 // it will be necessary to increase for high loaded systems
-						]
-					])
-				)
-			);
+			return;
 		}
+		
+		@fclose( 
+			@fopen(
+				$cron_requests_events_url, 
+				'r', 
+				false, 
+				stream_context_create([ // block mode
+					'http'=>[ // script responce time 0.004 * 10 (Linux Kernel Load Average\OPcache\FLOPS) = 0.04 timeout start process
+						'timeout' => 0.04 // it will be necessary to increase for high loaded systems
+					]
+				])
+			)
+		);
+
 	}
 }
 
@@ -228,13 +247,19 @@ if(
 			$cron_requests_events_session['log_rotate_last_update']= 0;
 		}
 
-		if($cron_requests_events_settings['daemon_mode'] && $cron_requests_events_session['log_rotate_last_update'] > time() - 600){
+		if(
+			$cron_requests_events_settings['daemon_mode'] && 
+			$cron_requests_events_session['log_rotate_last_update'] > time() - 600
+		){
 			return;
 		}
 		
 		$cron_requests_events_session['log_rotate_last_update']= time();
 
-		if($cron_requests_events_settings['log_file'] && @filesize($cron_requests_events_settings['log_file']) > $cron_requests_events_settings['log_rotate_max_size'] / $cron_requests_events_settings['log_rotate_max_files']) {
+		if(
+			$cron_requests_events_settings['log_file'] && 
+			@filesize($cron_requests_events_settings['log_file']) > $cron_requests_events_settings['log_rotate_max_size'] / $cron_requests_events_settings['log_rotate_max_files']
+		) {
 			@rename($cron_requests_events_settings['log_file'], $cron_requests_events_settings['log_file'] . "." . (string) time());
 			
 			file_put_contents(
@@ -534,7 +559,10 @@ if(
 		$cs= unserialize(@fread($cron_requests_events_resource, $stat['size']));
 		if(is_array($cs)) $cron_requests_events_session= $cs;
 		
-		if($cron_requests_events_settings['log_file'] && !is_dir(dirname($cron_requests_events_settings['log_file']))) {
+		if(
+			$cron_requests_events_settings['log_file'] && 
+			!is_dir(dirname($cron_requests_events_settings['log_file']))
+		) {
 			mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
 		}
 		
