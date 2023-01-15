@@ -1,9 +1,12 @@
 <?php
+##########
+
 // Example get param, function called in parallel process cron.php
 // this code replace examples $cron_settings and $cron_jobs variables, add function get_param();
 $process_id= getmypid();
+$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
 
-###########################$cron_settings['delete_dat_file']
+###########################
 $cron_settings=[
 	'log_file'=> false, // Path to log file, false - disables logging
 	'dat_file'=> $cron_root . 'cron/dat/' . (string) $process_id . '.dat', // Path to the thread manager system file
@@ -29,9 +32,8 @@ $cron_jobs= [
 ];
 
 
-
-##########
-if(isset($_REQUEST["cron"])) {
+###########################
+if(isset($_REQUEST["cron"])):
 	touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
 	function get_param($process_id){
@@ -68,10 +70,11 @@ if(isset($_REQUEST["cron"])) {
 		
 		_die();
 	}
-}
+endif;
 
 
 ###########################
+if(!function_exists('queue_address_push')) { 
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
@@ -116,8 +119,9 @@ if(isset($_REQUEST["cron"])) {
 		fclose($queue_resource);
 		return $return_cursor;
 	}
+}
 
-
+if(!function_exists('queue_address_pop')) { 
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
 	// frame_replace - empty('') is off, replace frame (string)
@@ -182,8 +186,9 @@ if(isset($_REQUEST["cron"])) {
 		fclose($queue_resource);
 		return $frame;
 	}
+}
 
-
+if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $cron_root_dir, $frame_size){
 		global $cron_settings;
 		
@@ -196,5 +201,5 @@ if(isset($_REQUEST["cron"])) {
 		queue_address_push($params, $frame_size);
 		include($cron_root_dir . '/cron.php');
 	}
-
+}
 ?>
