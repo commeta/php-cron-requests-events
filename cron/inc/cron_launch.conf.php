@@ -38,6 +38,28 @@ $cron_jobs= [
 
 
 ###########################
+if(!function_exists('send_param_and_parallel_launch')) { 
+	function send_param_and_parallel_launch($params, $frame_size){
+		global $cron_settings, $cron_root, $cron_dat;
+		static $variables= [];
+		
+		if(!$variables) $variables= [$cron_settings, $cron_root, $cron_dat];
+		else list($cron_settings, $cron_root, $cron_dat)= $variables;
+		
+		queue_address_push($params, $frame_size);
+		
+		if(function_exists('open_cron_socket')) {
+			open_cron_socket($cron_settings['url_key']);
+		} else {
+			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
+			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
+			
+			include($cron_root . 'cron.php');
+		}
+	}
+}
+
+
 if(isset($_REQUEST["cron"])):
 	if(!function_exists('launch')) touch($cron_settings['dat_file'], time() - $cron_settings['delay']);
 
@@ -194,26 +216,4 @@ if(!function_exists('queue_address_pop')) {
 	}
 }
 
-if(!function_exists('send_param_and_parallel_launch')) { 
-	function send_param_and_parallel_launch($params, $frame_size){
-		global $cron_settings, $cron_root, $cron_dat;
-		
-		$cron_root= dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-		$cron_dat= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR .'dat' . DIRECTORY_SEPARATOR;
-
-		$cron_settings['queue_file']= $cron_dat . 'queue.dat';
-		$cron_settings['url_key']= 'my_secret_key';
-
-		queue_address_push($params, $frame_size);
-		
-		if(function_exists('open_cron_socket')) {
-			open_cron_socket($cron_settings['url_key']);
-		} else {
-			if(!is_dir(dirname($cron_settings['queue_file']))) mkdir(dirname($cron_settings['queue_file']), 0755, true);
-			if(!file_exists($cron_settings['queue_file'])) touch($cron_settings['queue_file']);
-			
-			include_once($cron_root . 'cron.php');
-		}
-	}
-}
 ?>
