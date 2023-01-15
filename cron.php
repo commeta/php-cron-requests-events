@@ -33,7 +33,6 @@
 # Settings
 $cron_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 
-
 // Example settings
 include('cron/inc/cron_settings.conf.php');
 
