@@ -96,7 +96,7 @@ if(!function_exists('open_cron_socket')) {
 		} else {
 			@fclose( 
 				@fopen(
-					$cron_url, 
+					$cron_requests_events_url, 
 					'r', 
 					false, 
 					stream_context_create([ // block mode
