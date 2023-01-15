@@ -234,9 +234,16 @@ This file will be launched according to the schedule, the path to the file is sp
 ### Example from file: `example_parallel_function_launch_connector.php`
 ### Example from file: `example_parallel_function_launch_cron_settings.php`
 #### Execution script:
-- Connect `include('cron/inc/example_parallel_function_launch_connector.php ');` in your script
-- Uncomment the string `include('cron/inc/example_parallel_function_launch_cron_settings.php ');` in the file `cron.php `
+- Uncomment the line `include('cron/inc/example_parallel_function_launch_cron_settings.php');` in `cron.php`
+- Prepare an array for transfer and include the example file anywhere in your script
+```
+$params= [
+	'process_id'=> getmypid(),
+];
+include('cron/inc/example_parallel_function_launch_connector.php');
+```
 - It is possible to install multiple copies in different subdirectories
+
 
 Api functions are used to transmit the modified data:
 - `queue_address_push();` sending [example_parallel_function_launch_connector.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/example_parallel_function_launch_connector.php) is connected in the file where necessary call the parallel execution of the function.
