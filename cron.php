@@ -44,10 +44,6 @@ include('cron/inc/cron_settings.conf.php');
 if(!function_exists('open_cron_socket')) { 
 	function open_cron_socket($cron_requests_events_url_key, $job_process_id= '') // :void 
 	{ // Start job in parallel process
-		static $wget= '';
-		static $curl= '';
-		static $php= '';
-		
 		if(
 			isset($_SERVER['HTTPS']) &&
 			($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1) ||
@@ -85,52 +81,9 @@ if(!function_exists('open_cron_socket')) {
 			
 		if(is_callable("shell_exec") && defined("PHP_BINDIR") && is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php') ){
 			if($protocol ===  'https') {
-				shell_exec(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["ssl"=>["verify_peer"=>false, "verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
+				shell_exec(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
 			} else {
 				shell_exec(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &');
-			}
-			
-			return;
-		}
-			
-		if(
-			is_callable("shell_exec") &&
-			strtolower(PHP_OS) === 'linux' && 
-			$wget === '' && 
-			$curl === '' &&
-			$php === ''
-		){
-			if(!getenv('PATH')) $paths= PHP_BINDIR . ":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin";
-			else $paths= getenv('PATH');
-			
-			foreach(explode(':', $paths) as $path){
-				if(is_executable($path.'/wget')) $wget= $path.'/wget';
-				if(is_executable($path.'/curl')) $curl= $path.'/curl';
-				if(is_executable($path.'/php')) $php= $path.'/php';
-			}
-		}
-		
-		
-		if(
-			is_callable("shell_exec") &&
-			$wget !== ''
-		){
-			if($protocol ===  'https') shell_exec($wget . ' -T 1 --no-check-certificate --delete-after -q "' . $cron_url . '" > /dev/null &');
-			else shell_exec($wget . ' -T 1 --delete-after -q "' . $cron_url . '" > /dev/null &');
-		} elseif(
-			is_callable("shell_exec") &&
-			$curl !== ''
-		){
-			if($protocol ===  'https') shell_exec($curl . ' -I -k --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
-			else shell_exec($curl . ' -I --connect-timeout 1 "' . $cron_url . '" > /dev/null &');
-		} elseif(
-			is_callable("shell_exec") &&
-			$php !== ''
-		){
-			if($protocol ===  'https') {
-				shell_exec($php . ' -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["ssl"=>["verify_peer"=>false, "verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
-			} else {
-				shell_exec($php . ' -r \'file_get_contents("' . $cron_requests_events_url . '", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &');
 			}
 		} else {
 			@fclose( 
