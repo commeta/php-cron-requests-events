@@ -62,8 +62,6 @@ $cron_requests_events_settings= [
 	'url_key'=> 'my_secret_key',  // Ключ запуска в URI
 ];
 
-
-$paths= "/usr/bin:/usr/local/bin"; // Если переменная окружения PATH пуста, используем системные пути, каталоги поиска исполняемых файлов: wget, curl
 $profiler['time'] > $time - 15 // 15 сек. интервал проверки времени модификации cron.php, если новее то перезапуск
 $profiler['callback_time'] > $time - 60 // 60 сек. интервал проверки времени модификации include callback файлов, если новее то перезапуск
 $cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
