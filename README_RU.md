@@ -239,7 +239,7 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 #### Сценарий выполнения:
 - Подключите `include('cron/inc/example_parallel_function_launch_connector.php');` в месте вызова параллельной функции вашего скрипта
 - Расскоментируйте строку `include('cron/inc/example_parallel_function_launch_connector.php');` в файле `cron.php`
-- Возможна установка нескольких копий, в отдельном подкаталоге
+- Возможна установка нескольких копий, в разных подкаталогах
 
 
 Для передачи изменяемых данных воспользуйтесь функциями api: 
