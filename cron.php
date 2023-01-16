@@ -998,6 +998,7 @@ if(
 			}
 			
 			if(
+				$cron_requests_events_session[$job_process_id]['last_update'] !== 0 &&
 				$cron_requests_events_session[$job_process_id]['last_update'] < $time
 			){
 				$crontab= parse($job['crontab']);
