@@ -28,7 +28,6 @@
  
 // declare(strict_types = 1); // strict typing PHP > 7.0
 
-
 ###########################
 # System dirs
 
@@ -175,7 +174,7 @@ if(isset($_REQUEST["cron"])):
 				break 1;
 			} else { // Example handler
 
-				file_put_contents(
+				file_put_contents( // log
 					$cron_requests_events_log . 'cron.log', 
 					sprintf(
 						"%f Info: get_param while %s\n", 
@@ -190,7 +189,7 @@ if(isset($_REQUEST["cron"])):
 		if(
 			isset($cron_requests_events_resource) && 
 			is_resource($cron_requests_events_resource)
-		){// check global resource
+		){ 
 			flock($cron_requests_events_resource, LOCK_UN);
 			fclose($cron_requests_events_resource);
 		}
@@ -263,11 +262,11 @@ if(!function_exists('open_cron_socket')) {
 			if($protocol ===  'https') {
 				shell_exec(
 					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
-					'", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null &');
+					'", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null 2>/dev/null &');
 			} else {
 				shell_exec(
 					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
-					'", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null &');
+					'", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null 2>/dev/null &');
 			}
 		} else {
 			@fclose( 
@@ -509,7 +508,8 @@ if(
 					fwrite($queue_resource,$frame, 4096);
 					fflush($queue_resource);
 				} else { // frame error
-					file_put_contents(
+					
+					file_put_contents(  // log
 						$cron_requests_events_settings['log_file'], 
 						sprintf("%f ERROR: init boot frame\n", microtime(true)),
 						FILE_APPEND | LOCK_EX
@@ -604,7 +604,10 @@ if(
 					usleep(2000); // test load, micro delay 0.002 sec
 					
 					
-					if($cron_requests_events_settings['log_file'] && $cron_requests_events_settings['log_level'] > 3){
+					if( // log
+						$cron_requests_events_settings['log_file'] && 
+						$cron_requests_events_settings['log_level'] > 3
+					){
 						file_put_contents(
 							$cron_requests_events_settings['log_file'], 
 							sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
@@ -727,7 +730,7 @@ if(
 		) {
 			@rename($cron_requests_events_settings['log_file'], $cron_requests_events_settings['log_file'] . "." . (string) time());
 			
-			file_put_contents(
+			file_put_contents( // log
 				$cron_requests_events_settings['log_file'], 
 				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
 				FILE_APPEND | LOCK_EX
@@ -753,11 +756,13 @@ if(
 			if ($log_files_size >  $cron_requests_events_settings['log_rotate_max_size']) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
-					file_put_contents(
+					
+					file_put_contents( // log
 						$cron_requests_events_settings['log_file'], 
 						date('m/d/Y H:i:s', time()) . " INFO: log removal\n",
 						FILE_APPEND | LOCK_EX
 					);
+					
 				}
 			}
 		}
@@ -782,7 +787,8 @@ if(
 					
 			} elseif(!isset($job['function'])) {
 				if($cron_requests_events_settings['log_file'] != ''){
-					file_put_contents(
+					
+					file_put_contents(  // log
 						$cron_requests_events_settings['log_file'],
 						implode(' ', [
 							'date'=> date('m/d/Y H:i:s', time()),
@@ -793,6 +799,7 @@ if(
 						]) . "\n",
 						FILE_APPEND | LOCK_EX
 					);
+					
 				}
 			}
 			
@@ -924,7 +931,8 @@ if(
 			$profiler['memory_get_usage']= memory_get_usage();
 			
 			if($cron_requests_events_settings['log_file'] != '' && $cron_requests_events_settings['log_level'] > 3){
-				file_put_contents(
+				
+				file_put_contents( // log
 					$cron_requests_events_settings['log_file'],
 					implode(' ', [
 						'date'=> date('m/d/Y H:i:s', $time),
@@ -934,6 +942,7 @@ if(
 					]) . "\n",
 					FILE_APPEND | LOCK_EX
 				);
+				
 			}
 		} 
 		
