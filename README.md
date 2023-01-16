@@ -89,7 +89,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 
 ###########################
-$cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 2, multi-threading example
 	'interval' => 10, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
@@ -125,7 +125,7 @@ for( // CRON job 3, multicore example, four cores,
 
 
 ###########################
-$cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
+$cron_requests_events_jobs[]= [ // CRON Job 4, multi-threading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
@@ -374,7 +374,7 @@ cron.php works in 4 modes:
 - fallback launch via stream_context: 2 KB RAM, 0.0418 seconds (blocking).
 4. Separate process
 - 382KB RAM, priority 39 (nice 19), `MAX_EXECUTION_TIME` 600 seconds by default.
-5. Separate process using multithreading
+5. Separate process using multi-threading
 - just like the previous point, it is necessary to take into account the server parameters: the number of processor cores, limiting the number of simultaneous requests to the server, Apache\PHP FPM configuration parameters.
 6. Resident mode: 380Kb of RAM, priority 39 (nice 19)
 - if `'daemon_mode'=> true`, the control process will be constantly running.
