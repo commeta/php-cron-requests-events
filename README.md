@@ -73,7 +73,7 @@ When selecting the `$cron_requests_events_settings['delay']` parameter, you can 
 
 
 ## Task start example
-In the context of the `cron/inc/cron_settings.conf.php` file, the CRON Job section
+In the context of the `cron.php` file, the CRON Job section
 ```
 ###########################
 # EXAMPLES
@@ -212,20 +212,18 @@ Frame access time from 0.00001 second depending on the frame size, intensity of 
 
 
 ## CRON event handler
-### Example from file: `callback_cron.php`
+**Example from file: `callback_cron.php`**
 
 This file will be launched according to the schedule, the path to the file is specified in the field `$cron_requests_events_jobs[$job_process_id]['callback']`
 
 
 ## Parallel function launch
-### Example from file: `cron_launch.conf.php`
-#### Execution script:
-- Uncomment the line `include('cron/inc/cron_launch.conf.php');` in `cron.php`
-- Comment the line `include('cron/inc/cron_settings.conf.php');` in `cron.php`
-- Prepare array for transfer and run anywhere in your script
-
+- Specify the startup flag `$cron_requests_events_start= false;`
+- Connect `include('cron.php ');` in your script
+- Prepare the array for transmission and run it anywhere in your script
 ```
-include('cron/inc/cron_launch.conf.php');
+$cron_requests_events_start= false;
+include('cron.php');
 
 $frame_size= 64;
 
@@ -237,11 +235,11 @@ send_param_and_parallel_launch(serialize($params), $frame_size);
 ```
 
 Api functions are used to transmit the modified data:
-- `queue_address_push();` sending [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) is connected in the file where necessary call the parallel execution of the function.
-- `queue_address_pop();` delivery [cron_launch.conf.php](https://github.com/commeta/php-cron-requests-events/blob/main/cron/inc/cron_launch.conf.php) and defining the data handler function in a separate process.
+- `queue_address_push();` sending
+- `queue_address_pop();` delivery
 
 
-Handler function `get_param()` defined in the file `cron_launch.conf.php ` will be started immediately, in a parallel process.
+Handler function `get_param()` defined in the file `cron.php ` will be started immediately, in a parallel process.
 
 
 In the example above, an array is added to the queue and a parallel process is started.
@@ -249,8 +247,6 @@ The handler function in a parallel process takes one frame of data from the shar
 
 
 ## php multicore api multithreaded queue example
-### Example from file: `cron_launch.conf.php`
-
 - call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
 - call `queue_address_manager(false); // starts the micro task handler.`
 
@@ -414,11 +410,11 @@ After starting the control process, `'daemon_mode'=> false`, log on
 After starting the child process, `include callback_cron.php`, log on
 ![multithreading_start](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/multithreading_include_callback_cron.png "multithreading_include_callback_cron.png")
 
-After running the parameter passing script to run the function in a parallel process, `cron_launch.conf.php`
-![cron_launch.conf.php](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
+After running the parameter passing script to run the function in a parallel process
+![cron.php](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_connector.png "example_parallel_function_launch_connector.png")
 
-After running `cron.php` with a function to process data in a parallel process, `cron_launch.conf.php`
-![cron_launch.conf.php`](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
+After running `cron.php` with a function to process data in a parallel process
+![cron.php`](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_parallel_function_launch_cron_settings.png "example_parallel_function_launch_cron_settings.png")
 
 After starting the child process, an example `queue_address_manager(true)`, log on
 ![example_queue_address_manager_push](https://raw.githubusercontent.com/commeta/php-cron-requests-events/master/docs/example_queue_address_manager_push.png "example_queue_address_manager_push.png")
