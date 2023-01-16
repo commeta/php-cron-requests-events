@@ -252,7 +252,7 @@ send_param_and_parallel_launch(serialize($params), $frame_size);
 
 
 ## Пример многопоточной очереди php multicore api
-### Пример из файла: `cron_settings.conf.php`
+### Пример из файла: `cron_launch.conf.php`
 
 - вызов `queue_address_manager(true); // создает список микро задач и помещает их в очередь`
 - вызов `queue_address_manager(false); // запускает обработчик микро задачи`
