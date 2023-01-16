@@ -226,13 +226,14 @@ This file will be launched according to the schedule, the path to the file is sp
 $cron_requests_events_start= false;
 include('cron.php');
 
-$frame_size= 64;
+session_start();
 
 $params= [
+	'session_id'=> session_id(),
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), $frame_size);
+send_param_and_parallel_launch(serialize($params), 96);
 ```
 
 Api functions are used to transmit the modified data:
