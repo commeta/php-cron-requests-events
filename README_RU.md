@@ -229,13 +229,14 @@ $frame= queue_address_pop($frame_size, $frame_cursor= PHP_INT_MAX, $frame_replac
 $cron_requests_events_start= false;
 include('cron.php');
 
-$frame_size= 64;
+session_start();
 
 $params= [
+	'session_id'=> session_id(),
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), $frame_size);
+send_param_and_parallel_launch(serialize($params), 96);
 ```
 
 Для передачи изменяемых данных используются функции api: 
