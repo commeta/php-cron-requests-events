@@ -61,7 +61,7 @@ $cron_requests_events_settings= [
 	'log_level'=> 5, // Детализация журнала: 2 warning, 5 debug
 	'url_key'=> 'my_secret_key',  // Ключ запуска в URI
 ];
-date_default_timezone_set('Europe/Moscow'); // Временная зона
+date_default_timezone_set('Europe/Moscow'); // Временная зона по умолчанию
 $profiler['time'] > $time - 15 // 15 сек. интервал проверки времени модификации cron.php, если новее то перезапуск
 $profiler['callback_time'] > $time - 60 // 60 сек. интервал проверки времени модификации include callback файлов, если новее то перезапуск
 $cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 сек. задержка для ротации лог файлов
