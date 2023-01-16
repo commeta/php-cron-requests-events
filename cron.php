@@ -27,7 +27,7 @@
  */
  
 // declare(strict_types = 1); // strict typing PHP > 7.0
-////////////////////////////////////////////////////////////////////////
+
 
 ###########################
 # System dirs
@@ -54,6 +54,7 @@ $cron_requests_events_settings=[
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
 
+
 ###########################
 # EXAMPLES
 $cron_requests_events_jobs= [];
@@ -78,7 +79,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '03:39:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '06:03:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -92,7 +93,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '03:39:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '06:03:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -110,7 +111,6 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 	'multithreading' => true
 ];
 ##########
-
 
 
 ###########################
@@ -148,13 +148,19 @@ if(isset($_GET['parallel_start']) && !isset($cron_requests_events_start)){
 	}
 }
 
-if(isset($cron_requests_events_start)) $cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
+if(
+	isset($cron_requests_events_start)
+) $cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
 
-////////////////////////////////////////////////////////////////////////
-// Public functions
+if(
+	isset($_GET['parallel_start']) && 
+	isset($_REQUEST["cron"])
+) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
+
+###########################
+# Public functions
 
 if(isset($_REQUEST["cron"])):
-	if(isset($_GET['parallel_start']) && isset($_GET['parallel_start'])) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
 
 	function get_param($process_id){ // Example get param, function called in parallel process cron.php
 		global $cron_requests_events_settings, $cron_requests_events_resource, $cron_requests_events_log;
@@ -182,13 +188,17 @@ if(isset($_REQUEST["cron"])):
 			}
 		}
 		
-		if(isset($cron_requests_events_resource) && is_resource($cron_requests_events_resource)){// check global resource
+		if(
+			isset($cron_requests_events_resource) && 
+			is_resource($cron_requests_events_resource)
+		){// check global resource
 			flock($cron_requests_events_resource, LOCK_UN);
 			fclose($cron_requests_events_resource);
 		}
 		
 		_die();
 	}
+	
 endif;
 
 if(!function_exists('send_param_and_parallel_launch')) { 
@@ -394,14 +404,13 @@ if(!function_exists('queue_address_pop')) {
 
 
 
-////////////////////////////////////////////////////////////////////////
-// main
+###########################
+# Main functions, system api 
 if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] === $cron_requests_events_settings['url_key']
 ){
-	////////////////////////////////////////////////////////////////////////
-	// Functions: system api 
+
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
 		global $cron_requests_events_settings;
@@ -911,15 +920,6 @@ if(
 			_die('restart');
 		}
 		
-		if(!isset($profiler['filemtime_cron_settings.conf.php'])){
-			$profiler['filemtime_cron_settings.conf.php']= filemtime($cron_requests_events_inc . 'cron_settings.conf.php');
-		}
-		
-		if($profiler['filemtime_cron_settings.conf.php'] !== filemtime($cron_requests_events_inc . 'cron_settings.conf.php')){ // write in cron_settings file event, restart
-			_die('restart');
-		}
-		
-		
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
@@ -962,13 +962,13 @@ if(
 	}
 
 
-	////////////////////////////////////////////////////////////////////////
-	// start in background
+	###########################
+	# start in background
 	init_background_cron();
 	$cron_requests_events_session= [];
 	
-	////////////////////////////////////////////////////////////////////////
-	// multithreading Dispatcher
+	###########################
+	# multithreading Dispatcher
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
 		isset($_GET["job_process_id"])
 	){
@@ -1003,8 +1003,8 @@ if(
 	}
 
 	
-	////////////////////////////////////////////////////////////////////////
-	// Dispatcher init
+	###########################
+	# Dispatcher init
 	$cron_requests_events_dat_file= $cron_requests_events_settings['dat_file'];
 	
 	if(filemtime($cron_requests_events_settings['dat_file']) + $cron_requests_events_settings['delay'] > time()) _die();
@@ -1022,8 +1022,8 @@ if(
 			mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
 		}
 		
-		//###########################################
-		// check jobs
+		###########################
+		# check jobs
 		singlethreading_dispatcher();
 
 		while($cron_requests_events_settings['daemon_mode']){
@@ -1046,8 +1046,8 @@ if(
 	fclose($cron_requests_events_resource);
 	_die();
 } elseif(!isset($cron_requests_events_start)){
-	////////////////////////////////////////////////////////////////////////
-	// check time out to start in background 
+	###########################
+	# check time out to start in background 
 	if(file_exists($cron_requests_events_settings['dat_file'])){
 		if($cron_requests_events_settings['daemon_mode']){
 			$cron_requests_events_resource= fopen($cron_requests_events_settings['dat_file'], "r");
