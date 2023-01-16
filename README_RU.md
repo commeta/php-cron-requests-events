@@ -49,7 +49,7 @@ wget "https://github.com/commeta/php-cron-requests-events/archive/refs/heads/mai
 ## Параметры запуска
 ```
 $cron_requests_events_settings= [
-	'log_file'=> $cron_requests_events_root . 'cron.log', // Путь к файлу журнала, false - отключает журнал
+	'log_file'=> $cron_requests_events_root . 'cron.log', // Путь к файлу журнала, пустая строка '' - отключает журнал
 	'dat_file'=> $cron_requests_events_root . 'cron.dat', // Путь к системному файлу диспетчера потока
 	'delete_dat_file_on_exit'=> false, // Используется в задачах с указанным временем и\или датой, контроллируемый режим
 	'queue_file'=> $cron_requests_events_root . 'queue.dat', // Путь к системному файлу многопроцессной очереди
