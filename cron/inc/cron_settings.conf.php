@@ -4,7 +4,7 @@ $cron_settings_conf= true;
 include('cron_launch.conf.php');
 
 $cron_requests_events_settings=[
-	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, false - disables logging
+	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, empty string '' - disables logging
 	'dat_file'=> $cron_requests_events_dat . 'cron.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
 	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
@@ -41,7 +41,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '03:32:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:39:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -55,7 +55,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '03:32:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '03:39:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
