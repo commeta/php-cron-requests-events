@@ -222,7 +222,7 @@ if(
 		$cron_requests_events_session['log_rotate_last_update']= time();
 
 		if(
-			$cron_requests_events_settings['log_file'] && 
+			$cron_requests_events_settings['log_file'] != '' && 
 			@filesize($cron_requests_events_settings['log_file']) > $cron_requests_events_settings['log_rotate_max_size'] / $cron_requests_events_settings['log_rotate_max_files']
 		) {
 			@rename($cron_requests_events_settings['log_file'], $cron_requests_events_settings['log_file'] . "." . (string) time());
@@ -281,7 +281,7 @@ if(
 				include $job['callback'];
 					
 			} elseif(!isset($job['function'])) {
-				if($cron_requests_events_settings['log_file']){
+				if($cron_requests_events_settings['log_file'] != ''){
 					file_put_contents(
 						$cron_requests_events_settings['log_file'],
 						implode(' ', [
@@ -432,7 +432,7 @@ if(
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
-			if($cron_requests_events_settings['log_file'] && $cron_requests_events_settings['log_level'] > 3){
+			if($cron_requests_events_settings['log_file'] != '' && $cron_requests_events_settings['log_level'] > 3){
 				file_put_contents(
 					$cron_requests_events_settings['log_file'],
 					implode(' ', [
@@ -525,7 +525,7 @@ if(
 		if(is_array($cs)) $cron_requests_events_session= $cs;
 		
 		if(
-			$cron_requests_events_settings['log_file'] && 
+			$cron_requests_events_settings['log_file'] != '' && 
 			!is_dir(dirname($cron_requests_events_settings['log_file']))
 		) {
 			mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
@@ -539,7 +539,7 @@ if(
 			singlethreading_dispatcher();
 			memory_profiler();
 				
-			if($cron_requests_events_settings['log_file']){
+			if($cron_requests_events_settings['log_file'] != ''){
 				cron_log_rotate();
 			}
 				
@@ -547,7 +547,7 @@ if(
 		}
 		
 		//###########################################
-		if($cron_requests_events_settings['log_file']) cron_log_rotate();
+		if($cron_requests_events_settings['log_file'] != '') cron_log_rotate();
 		write_cron_session();
 		flock($cron_requests_events_resource, LOCK_UN);
 	}
@@ -582,7 +582,7 @@ if(
 			touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
 		}
 		
-		if($cron_requests_events_settings['log_file']) {
+		if($cron_requests_events_settings['log_file'] != '') {
 			if(!is_dir(dirname($cron_requests_events_settings['log_file']))) mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
 			touch($cron_requests_events_settings['log_file']);
 		}
