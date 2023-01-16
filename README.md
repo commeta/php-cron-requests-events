@@ -47,7 +47,7 @@ wget "https://github.com/commeta/php-cron-requests-events/archive/refs/heads/mai
 ## Launch parameters
 ```
 $cron_requests_events_settings=[
-	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, false - disables logging
+	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, empty string '' - disables logging
 	'dat_file'=> $cron_requests_events_dat . 'cron.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
 	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
