@@ -75,7 +75,7 @@ $host= "localhost"; // Для запуска через консоль CLI, вп
 
 
 ## Пример запуска задачи
-В контексте файла `cron/inc/cron_settings.conf.php` раздел CRON Job
+В контексте файла `cron.php` раздел CRON Job
 ```
 ###########################
 # EXAMPLES
