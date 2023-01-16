@@ -156,7 +156,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - `$cron_requests_events_session`, stores the service fields of the session of each `$cron_requests_events_jobs` job separately
 - `$job_process_id`, contains the job sequence number from `$cron_requests_events_jobs`
 - `$cron_requests_events_settings`, contains `cron.php` settings
-- `$cron_requests_events_start`,prohibits the automatic start of the control process
+- `$cron_requests_events_start`, prohibits the automatic start of the control process
 
 The variables will retain their values between scheduled task runs, but until the fields in `$cron_requests_events_jobs[$job_process_id]` are changed.
 ```
