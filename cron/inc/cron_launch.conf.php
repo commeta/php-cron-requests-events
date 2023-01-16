@@ -1,7 +1,5 @@
 <?php
 ##########
-// this code replace examples $cron_requests_events_settings and $cron_requests_events_jobs variables
-
 $process_id= getmypid();
 
 // System dirs
@@ -37,6 +35,9 @@ $cron_requests_events_jobs= [
 
 
 ###########################
+////////////////////////////////////////////////////////////////////////
+// Functions: system api
+
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){ 
 		global $cron_requests_events_settings, $cron_requests_events_root;
@@ -218,9 +219,6 @@ if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] === $cron_requests_events_settings['url_key']
 ){
-	////////////////////////////////////////////////////////////////////////
-	// Functions: system api
-	
 	function queue_address_manager($mode) // :void 
 	{ // example: multicore queue
 		global $cron_requests_events_settings;
