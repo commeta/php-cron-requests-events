@@ -37,6 +37,9 @@ $cron_requests_events_dat= $cron_requests_events_root . 'cron' . DIRECTORY_SEPAR
 $cron_requests_events_inc= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'inc' . DIRECTORY_SEPARATOR;
 $cron_requests_events_log= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 
+if(!is_dir($cron_requests_events_dat)) mkdir($cron_requests_events_dat, 0755, true);
+if(!is_dir($cron_requests_events_log)) mkdir($cron_requests_events_log, 0755, true);
+
 
 ###########################
 # Settings
@@ -134,9 +137,9 @@ if(isset($_GET['parallel_start']) && !isset($cron_requests_events_start)){
 	];
 }
 
-if(
-	isset($cron_requests_events_start)
-) $cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
+if(isset($cron_requests_events_start)){
+	$cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
+}
 
 if(
 	isset($_GET['parallel_start']) && 
@@ -417,8 +420,6 @@ if(
 		$frame_size= 95;
 		$process_id= getmypid();
 		$frame_completed= serialize([true]);
-
-		if(!file_exists($cron_requests_events_settings['queue_file'])) touch($cron_requests_events_settings['queue_file']);
 
 		if($mode){
 			// example: multicore queue worker
@@ -1061,14 +1062,8 @@ if(
 		}
 	} else {
 		if(basename($cron_requests_events_settings['dat_file']) === 'cron.dat') {
-			if(!is_dir(dirname($cron_requests_events_settings['dat_file']))) mkdir(dirname($cron_requests_events_settings['dat_file']), 0755, true);
 			file_put_contents($cron_requests_events_settings['dat_file'], serialize([]));
 			touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
-		}
-		
-		if($cron_requests_events_settings['log_file'] != '') {
-			if(!is_dir(dirname($cron_requests_events_settings['log_file']))) mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
-			touch($cron_requests_events_settings['log_file']);
 		}
 		
 		open_cron_socket($cron_requests_events_settings['url_key']);
