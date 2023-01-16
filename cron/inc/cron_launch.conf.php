@@ -10,7 +10,7 @@ $cron_requests_events_log= dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'l
 
 ###########################
 $cron_requests_events_settings=[
-	'log_file'=> false, // Path to log file, false - disables logging
+	'log_file'=> '', // Path to log file, empty string '' - disables logging
 	'dat_file'=> $cron_requests_events_dat . (string) $process_id . '.dat', // Path to the thread manager system file
 	'delete_dat_file_on_exit'=> true,
 	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
@@ -35,16 +35,23 @@ $cron_requests_events_jobs= [
 
 
 ###########################
+if($cron_requests_events_settings['queue_file'] !== ''){
+	if(!file_exists($cron_requests_events_settings['queue_file'])) {
+		if(!is_dir(dirname($cron_requests_events_settings['queue_file']))){
+			mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
+		}
+		
+		touch($cron_requests_events_settings['queue_file']);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Functions: system api
 
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){ 
 		global $cron_requests_events_settings, $cron_requests_events_root;
-		
-		if(!is_dir(dirname($cron_requests_events_settings['queue_file']))) mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
-		if(!file_exists($cron_requests_events_settings['queue_file'])) touch($cron_requests_events_settings['queue_file']);
-		
+				
 		queue_address_push($params, $frame_size);
 		
 		if(function_exists('open_cron_socket')) {
