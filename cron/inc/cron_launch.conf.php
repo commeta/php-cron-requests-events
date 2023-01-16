@@ -57,7 +57,6 @@ if(!function_exists('send_param_and_parallel_launch')) {
 
 
 if(isset($_REQUEST["cron"])):
-	//if(!function_exists('launch')) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
 	if(!isset($cron_settings_conf)) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
 
 	function get_param($process_id){ // Example get param, function called in parallel process cron.php
