@@ -147,13 +147,10 @@ if(
 ###########################
 if($cron_requests_events_settings['queue_file'] !== ''){
 	if(!file_exists($cron_requests_events_settings['queue_file'])) {
-		if(!is_dir(dirname($cron_requests_events_settings['queue_file']))){
-			mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
-		}
-			
 		touch($cron_requests_events_settings['queue_file']);
 	}
 }
+
 
 
 ###########################
@@ -164,8 +161,6 @@ if(isset($_REQUEST["cron"])):
 	function get_param($process_id){ // Example get param, function called in parallel process cron.php
 		global $cron_requests_events_settings, $cron_requests_events_resource, $cron_requests_events_log;
 		$frame_size= 64;
-	
-		if(!is_dir($cron_requests_events_log)) mkdir($cron_requests_events_log, 0755, true);
 
 		while(true){ // example: loop from the end
 			$frame= queue_address_pop($frame_size);
@@ -1019,14 +1014,7 @@ if(
 		$stat= fstat($cron_requests_events_resource);
 		$cs= unserialize(@fread($cron_requests_events_resource, $stat['size']));
 		if(is_array($cs)) $cron_requests_events_session= $cs;
-		
-		if(
-			$cron_requests_events_settings['log_file'] != '' && 
-			!is_dir(dirname($cron_requests_events_settings['log_file']))
-		) {
-			mkdir(dirname($cron_requests_events_settings['log_file']), 0755, true);
-		}
-		
+				
 		###########################
 		# check jobs
 		singlethreading_dispatcher();
