@@ -59,7 +59,7 @@ $cron_requests_events_settings=[
 	'log_level'=> 5, // Log verbosity: 2 warning, 5 debug info
 	'url_key'=> 'my_secret_key', // Launch key in URI
 ];
-
+date_default_timezone_set('Europe/Moscow'); // default timezone
 $profiler['time'] > $time - 15 // 15 sec. cron.php modification time check interval, if newer then restart
 $profiler['callback_time'] > $time - 60 // 60 sec. modification time interval check include callback files, if newer then restart
 $cron_requests_events_session['log_rotate_last_update'] > time() - 600 // 600 sec. delay for log file rotation
@@ -156,6 +156,7 @@ It is possible to run a task on multiple cores, a queue handler implementation w
 - `$cron_requests_events_session`, stores the service fields of the session of each `$cron_requests_events_jobs` job separately
 - `$job_process_id`, contains the job sequence number from `$cron_requests_events_jobs`
 - `$cron_requests_events_settings`, contains `cron.php` settings
+- `$cron_requests_events_start`,prohibits the automatic start of the control process
 
 The variables will retain their values between scheduled task runs, but until the fields in `$cron_requests_events_jobs[$job_process_id]` are changed.
 ```
