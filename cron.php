@@ -260,14 +260,17 @@ if(!function_exists('open_cron_socket')) {
 			is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php') 
 		){
 			if($protocol ===  'https') {
-				shell_exec(
-					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
-					'", false, stream_context_create(["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]));\' > /dev/null 2>/dev/null &');
+				$stream_context= '["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]';
 			} else {
-				shell_exec(
-					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . $cron_requests_events_url . 
-					'", false, stream_context_create(["http"=>["timeout"=>1]]));\' > /dev/null 2>/dev/null &');
+				$stream_context= '["http"=>["timeout"=>1]]';
 			}
+			
+			shell_exec(
+					PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . 
+					$cron_requests_events_url . '", false, stream_context_create('. 
+					$stream_context . '));\' > /dev/null 2>/dev/null &'
+			);
+			
 		} else {
 			@fclose( 
 				@fopen(
