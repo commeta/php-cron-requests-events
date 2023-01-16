@@ -83,7 +83,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '11:26:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '18:55:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -97,7 +97,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '11:26:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '18:55:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -427,9 +427,6 @@ if(
 			// example: multicore queue worker
 			// use:
 			// queue_address_push(serialize($value)); // add micro job in queue from worker process
-
-			unlink($cron_requests_events_settings['queue_file']); // reset DB file
-			touch($cron_requests_events_settings['queue_file']);
 
 			// Reserved index struct
 			$boot= [ // 0 sector, frame size 4096
