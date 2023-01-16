@@ -249,7 +249,7 @@ The handler function in a parallel process takes one frame of data from the shar
 
 
 ## php multicore api multithreaded queue example
-### Example from file: `cron_settings.conf.php`
+### Example from file: `cron_launch.conf.php`
 
 - call `queue_address_manager(true); // creates a list of micro tasks and puts them in the queue.`
 - call `queue_address_manager(false); // starts the micro task handler.`
