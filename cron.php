@@ -35,7 +35,7 @@
 $cron_requests_events_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $cron_requests_events_dat= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'dat' . DIRECTORY_SEPARATOR;
 $cron_requests_events_inc= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'inc' . DIRECTORY_SEPARATOR;
-$cron_requests_events_log= $cron_requests_events_root . 'cron' .  DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
+$cron_requests_events_log= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 
 
 ###########################
@@ -43,7 +43,6 @@ $cron_requests_events_log= $cron_requests_events_root . 'cron' .  DIRECTORY_SEPA
 $cron_requests_events_settings=[
 	'log_file'=> $cron_requests_events_log . 'cron.log', // Path to log file, empty string '' - disables logging
 	'dat_file'=> $cron_requests_events_dat . 'cron.dat', // Path to the thread manager system file
-	'delete_dat_file_on_exit'=> false, // Used in tasks with the specified time and/or date, controlled mode
 	'queue_file'=> $cron_requests_events_dat . 'queue.dat', // Path to the multiprocess queue system file
 	'site_root'=> '',
 	'delay'=> 1, // Timeout until next run in seconds
@@ -114,14 +113,13 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 
 
 ###########################
-# Settings parallel functiona start
+# Settings parallel function start
 if(isset($_GET['parallel_start']) && !isset($cron_requests_events_start)){
 	$process_id= getmypid();
 	
 	$cron_requests_events_settings['log_file']= '';
 	$cron_requests_events_settings['dat_file']= $cron_requests_events_dat . (string) $process_id . '.dat';
 	$cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
-	$cron_requests_events_settings['delete_dat_file_on_exit']= true;
 	$cron_requests_events_settings['delay']= -1;
 	$cron_requests_events_settings['daemon_mode']= false;
 	
@@ -134,18 +132,6 @@ if(isset($_GET['parallel_start']) && !isset($cron_requests_events_start)){
 			'multithreading' => false
 		]
 	];
-
-
-	###########################
-	if($cron_requests_events_settings['queue_file'] !== ''){
-		if(!file_exists($cron_requests_events_settings['queue_file'])) {
-			if(!is_dir(dirname($cron_requests_events_settings['queue_file']))){
-				mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
-			}
-			
-			touch($cron_requests_events_settings['queue_file']);
-		}
-	}
 }
 
 if(
@@ -156,6 +142,19 @@ if(
 	isset($_GET['parallel_start']) && 
 	isset($_REQUEST["cron"])
 ) touch($cron_requests_events_settings['dat_file'], time() - $cron_requests_events_settings['delay']);
+
+
+###########################
+if($cron_requests_events_settings['queue_file'] !== ''){
+	if(!file_exists($cron_requests_events_settings['queue_file'])) {
+		if(!is_dir(dirname($cron_requests_events_settings['queue_file']))){
+			mkdir(dirname($cron_requests_events_settings['queue_file']), 0755, true);
+		}
+			
+		touch($cron_requests_events_settings['queue_file']);
+	}
+}
+
 
 ###########################
 # Public functions
@@ -201,6 +200,7 @@ if(isset($_REQUEST["cron"])):
 	
 endif;
 
+
 if(!function_exists('send_param_and_parallel_launch')) { 
 	function send_param_and_parallel_launch($params, $frame_size){ 
 		global $cron_requests_events_settings;
@@ -212,6 +212,7 @@ if(!function_exists('send_param_and_parallel_launch')) {
 		}
 	}
 }
+
 
 if(!function_exists('open_cron_socket')) { 
 	function open_cron_socket($cron_requests_events_url_key, $job_process_id= '', $parallel_start= false) // :void 
@@ -285,6 +286,7 @@ if(!function_exists('open_cron_socket')) {
 	}
 }
 
+
 if(!function_exists('queue_address_push')) { 
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
@@ -334,6 +336,7 @@ if(!function_exists('queue_address_push')) {
 		return $return_cursor;
 	}
 }
+
 
 if(!function_exists('queue_address_pop')) { 
 	// frame_size - set frame size (int)
@@ -620,6 +623,7 @@ if(
 		}
 	}
 	
+	
 	function write_cron_session() // :void 
 	{
 		global  $cron_requests_events_resource, $cron_requests_events_session;
@@ -629,6 +633,7 @@ if(
 		fwrite($cron_requests_events_resource, $serialized);
 		ftruncate($cron_requests_events_resource, mb_strlen($serialized));
 	}
+
 
 	function _die($return= '') // :void 
 	{
@@ -646,7 +651,7 @@ if(
 		}
 		
 		if(
-			$cron_requests_events_settings['delete_dat_file_on_exit'] &&
+			isset($_GET['parallel_start']) &&
 			basename($cron_requests_events_settings['dat_file']) !== 'cron.dat'
 		) {
 			unlink($cron_requests_events_settings['dat_file']);
