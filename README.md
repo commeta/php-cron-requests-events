@@ -148,7 +148,7 @@ A CRON expression is a string representing the schedule for a particular command
     |    +-------------------- hour (0 - 23)
     +------------------------- min (0 - 59)
 
-Each of the parts supports wildcards (*), ranges (2-5), intervals (*/2) and lists (2,5,6,11).
+Each of the parts supports wildcards `(*)`, ranges `(2-5)`, intervals `(*/2)` and lists `(2,5,6,11)`
 
 
 - `'crontab'` - Basic cron syntax
