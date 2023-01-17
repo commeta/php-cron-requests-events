@@ -327,10 +327,14 @@ if(
 			}
 			
 			$boot= unserialize(queue_address_pop(4096, 0, '', "init_boot_frame"));
-			if(!is_array($boot)) return; // file read error
+			if(!is_array($boot)) {
+				cron_log(sprintf("%f ERROR: queue file read error", microtime(true)), 0);
+				return; // file read error
+			}
 				
 			$index_data= unserialize(queue_address_pop($boot['index_frame_size'], $boot['index_offset'])); 
 			if(!is_array($index_data)) {
+				cron_log(sprintf("%f ERROR: queue file read error", microtime(true)), 0);
 				return; // file read error
 			}
 
@@ -409,14 +413,7 @@ if(
 					
 					usleep(2000); // test load, micro delay 0.002 sec
 					
-					
-					if( // log
-						$cron_requests_events_settings['log_file'] && 
-						$cron_requests_events_settings['log_level'] > 3
-					){
-						cron_log(sprintf("%f INFO: queue_manager %d", microtime(true), $value['count']), 5);
-					}
-					
+					cron_log(sprintf("%f INFO: queue_manager %d", microtime(true), $value['count']), 5);
 				}
 			}
 			
@@ -434,6 +431,8 @@ endif;
 if(!function_exists('open_cron_socket')) { 
 	function open_cron_socket($cron_requests_events_url_key, $job_process_id= '', $parallel_start= false) // :void 
 	{ // Start job in parallel process
+		static $php= '';
+		
 		if(
 			isset($_SERVER['HTTPS']) &&
 			($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1) ||
@@ -471,11 +470,26 @@ if(!function_exists('open_cron_socket')) {
 			
 			
 		if($parallel_start !== false) $cron_requests_events_url.= '&parallel_start=true';
+		
+		
+		if(
+			!defined("PHP_BINDIR") &&
+			$php === ''
+		){
+			if(!getenv('PATH')) $paths= "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin";
+			else $paths= getenv('PATH');
 			
+			foreach(explode(':', $paths) as $path){
+				if(is_executable($path.'/php')) $php= $path.'/php';
+			}			
+		} elseif(is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php')){
+			$php= PHP_BINDIR . DIRECTORY_SEPARATOR . 'php';
+		}
+		
+		
 		if(
 			is_callable("shell_exec") && 
-			defined("PHP_BINDIR") && 
-			is_executable(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php') 
+			$php !== ''
 		){
 			if($protocol ===  'https') {
 				$stream_context= '["ssl"=>["verify_peer"=>false,"verify_peer_name"=>false],"http"=>["timeout"=>1]]';
@@ -484,7 +498,7 @@ if(!function_exists('open_cron_socket')) {
 			}
 			
 			shell_exec(
-				PHP_BINDIR . DIRECTORY_SEPARATOR . 'php -r \'file_get_contents("' . 
+				$php . ' -r \'file_get_contents("' . 
 				$cron_requests_events_url . '", false, stream_context_create('. 
 				$stream_context . '));\' > /dev/null 2>/dev/null &'
 			);
@@ -858,7 +872,6 @@ if(
 		if(isset($cron_requests_events_session[$job_process_id]['md5'])) {
 			if($cron_requests_events_session[$job_process_id]['md5'] !== md5(serialize($job))){
 				$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
-				unset($cron_requests_events_session[$job_process_id]['last_update']);
 				unset($cron_requests_events_session[$job_process_id]['next_start']);
 			}
 		} else {
@@ -875,12 +888,18 @@ if(
 				if($crontab !== 0) {
 					$cron_requests_events_session[$job_process_id]['next_start']= $crontab;
 				} else {
-					cron_log("ERROR: InvalidArgument in job settings: " . $job['crontab'], 0);
+					cron_log("ERROR: InvalidArgument in job settings: " . print_r($job, true), 0);
 				}
 			} elseif(isset($job['interval'])){
 				$cron_requests_events_session[$job_process_id]['next_start']= time() + $job['interval'];
 			} else {
-				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
+				$date_time= cron_check_date_time($job);
+				
+				if($date_time !== 0) {
+					$cron_requests_events_session[$job_process_id]['next_start']= $date_time;
+				} else {
+					cron_log("ERROR: InvalidArgument in job settings: " . print_r($job, true), 0);
+				}
 			}
 			
 			if(
@@ -890,10 +909,6 @@ if(
 			){
 				open_cron_socket($cron_requests_events_settings['url_key'], $job_process_id);
 			}
-		}
-						
-		if(!isset($cron_requests_events_session[$job_process_id]['last_update'])){
-			$cron_requests_events_session[$job_process_id]['last_update']= 0;
 		}
 	}
 	
@@ -922,27 +937,25 @@ if(
 	# |    |    +--------- day of month (1 - 31)
 	# |    +----------- hour (0 - 23)
 	# +------------- min (0 - 59)
-	# @param int $_after_timestamp timestamp [default=current timestamp]
 	# @return int unix timestamp - next execution time will be greater
 	#               than given timestamp (defaults to the current timestamp)
 	# @throws \InvalidArgumentException
 	#
-	function parse($_cron_string, $_after_timestamp = null) // : int
+	function parse($_cron_string) // : int
 	{
 		if(
-			!preg_match('/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', trim($_cron_string))
+			!preg_match(
+				'/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', 
+				trim($_cron_string)
+			)
 		){
-			return 0; // Invalid cron string:  $_cron_string
+			cron_log(sprintf("ERROR: Invalid cron string: ", $_cron_string), 0);
+			return 0;
 		}
-        
-		if($_after_timestamp && !is_numeric($_after_timestamp)){
-			return 0; // InvalidArgumentException $_after_timestamp must be a valid unix timestamp ($_after_timestamp given)
-		}
-		
-        $_after_timestamp= mktime(intval(date("H")), intval(date("i")), 0, intval(date("n")), intval(date("j")), intval(date("Y")));
-        
+		        
 		$cron = preg_split("/[\s]+/i", trim($_cron_string));
-		$start = empty($_after_timestamp) ? time() : $_after_timestamp;
+		$start = mktime(intval(date("H")), intval(date("i")), 0, intval(date("n")), intval(date("j")), intval(date("Y")));
+		
 		$date = array('minutes' => parseCronNumbers($cron[0], 0, 59),
 			'hours' => parseCronNumbers($cron[1], 0, 23),
 			'dom' => parseCronNumbers($cron[2], 1, 31),
@@ -952,15 +965,16 @@ if(
         
 		// limited to time()+366 - no need to check more than 1year ahead
 		for ($i = 60; $i <= 60 * 60 * 24 * 366; $i += 60) {
-			if (in_array(intval(date('j', $start + $i)), $date['dom'], true) &&
-				in_array(intval(date('n', $start + $i)), $date['month'], true) &&
-				in_array(intval(date('w', $start + $i)), $date['dow'], true) &&
-				in_array(intval(date('G', $start + $i)), $date['hours'], true) &&
-				in_array(intval(date('i', $start + $i)), $date['minutes'], true)
+			if (in_array(intval(date('j', $start + $i)), $date['dom']) &&
+				in_array(intval(date('n', $start + $i)), $date['month']) &&
+				in_array(intval(date('w', $start + $i)), $date['dow']) &&
+				in_array(intval(date('G', $start + $i)), $date['hours']) &&
+				in_array(intval(date('i', $start + $i)), $date['minutes'])
 			) {
-				return $start + $i;
+				return $start + $i - 1;
 			}
 		}
+		
 		return 0;
 	}
 
@@ -978,23 +992,26 @@ if(
 	{
 		$result = array();
 		$v = explode(',', $s);
+		
 		foreach ($v as $vv) {
 			$vvv = explode('/', $vv);
 			$step = empty($vvv[1]) ? 1 : $vvv[1];
 			$vvvv = explode('-', $vvv[0]);
 			$_min = count($vvvv) == 2 ? $vvvv[0] : ($vvv[0] == '*' ? $min : $vvv[0]);
 			$_max = count($vvvv) == 2 ? $vvvv[1] : ($vvv[0] == '*' ? $max : $vvv[0]);
+			
 			for ($i = $_min; $i <= $_max; $i += $step) {
 				$result[$i] = intval($i);
 			}
 		}
+		
 		ksort($result);
 
 		return $result;
 	}	
 	
 	
-
+	
 	
 	
 	###########################
@@ -1038,9 +1055,7 @@ if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
-
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
 		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix, beta
 			if(
@@ -1053,14 +1068,12 @@ if(
 				}
 
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
 		} else {
 			if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['last_update']= time();
 				$cron_requests_events_session[$job_process_id]['next_start']= $job['interval'] + $time;
 			}
 		}
@@ -1105,6 +1118,7 @@ if(
 		}
 		
 		if($profiler['filemtime'] !== filemtime(__FILE__) || !file_exists(__FILE__)){ // write in main file event, restart
+			cron_log('INFO: write in main file event, restart', 5);
 			_die('restart');
 		}
 		
@@ -1132,6 +1146,7 @@ if(
 				}
 				
 				if($profiler['filemtime_' . $job['callback']] !== $filemtime_callback){ // write in callback file event, restart
+					cron_log('INFO: write in callback file event, restart', 5);
 					_die('restart');
 				}
 			}
