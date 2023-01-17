@@ -7,3 +7,4 @@
 ### 2023-01-10 PHP > 7.0 strict mode: all test complete
 ### 2023-01-12 Multithread queue: all test complete
 ### 2023-01-14 Parallel function launch: all test complete
+### 2023-01-17 Functions: CRON expressions, date, time, intervals: all test complete
