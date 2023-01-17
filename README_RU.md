@@ -82,7 +82,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 0, // start interval 1 sec
+	'interval' => 9, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
@@ -91,7 +91,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'interval' => 10, // start interval 10 sec
+	'crontab'=> '*/5 * * * *', // start interval 1 in 5 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -100,7 +100,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '21:05:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:05:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -114,7 +114,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '21:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '03:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -133,6 +133,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 ];
 ##########
 ```
+- `'crontab'` - Базовый синтаксис cron '* * * * *' мин (0 - 59), час (0 - 23), число (1 - 31), месяц (1 - 12), день недели (0 - 6) (ВС=0)
 - `'interval'` - Задержка перед запуском
 - `'time'` - Устанавливает время для старта в 24-ом формате '07:20:00', если дата не указана то выполняет каждый день
 - `'date'` - Устанавливает дату для старта в формате '31-12-2022'
