@@ -1125,9 +1125,7 @@ if(
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
-			if($cron_requests_events_settings['log_level'] > 3){
-				cron_log('INFO: memory_get_usage ' . (string) $profiler['memory_get_usage'], 2);
-			}
+			cron_log('INFO: memory_get_usage ' . (string) $profiler['memory_get_usage'], 2);
 		} 
 		
 		if(!isset($profiler['callback_time'])) $profiler['callback_time']= $time;
