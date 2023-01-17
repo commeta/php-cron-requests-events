@@ -1037,7 +1037,12 @@ if(
 				$crontab= parse($job['crontab']);
 				callback_connector($job, $job_process_id, $mode);
 				$cron_requests_events_session[$job_process_id]['complete']= true;
-				if($crontab !== 0) $cron_requests_events_session[$job_process_id]['last_update']= $crontab + 60;
+				
+				if($crontab !== 0) {
+					if($crontab < $time + 60) $crontab+= 60;
+					$cron_requests_events_session[$job_process_id]['last_update']= $crontab;
+					
+				}
 			}
 			
 		} else {
