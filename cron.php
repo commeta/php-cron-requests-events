@@ -28,6 +28,8 @@
  
 // declare(strict_types = 1); // strict typing PHP > 7.0
 
+
+
 ###########################
 ###########################
 ###########################
@@ -40,6 +42,8 @@ $cron_requests_events_log= $cron_requests_events_root . 'cron' . DIRECTORY_SEPAR
 
 if(!is_dir($cron_requests_events_dat)) mkdir($cron_requests_events_dat, 0755, true);
 if(!is_dir($cron_requests_events_log)) mkdir($cron_requests_events_log, 0755, true);
+
+
 
 
 ###########################
@@ -58,6 +62,9 @@ $cron_requests_events_settings=[
 ];
 
 date_default_timezone_set('Europe/Moscow');
+
+
+
 
 
 ###########################
@@ -84,7 +91,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '18:55:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:05:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -98,7 +105,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '18:55:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '03:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -118,6 +125,8 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 ##########
 
 
+
+
 ###########################
 ###########################
 ###########################
@@ -128,7 +137,7 @@ if(
 ){ // Init multi-threading launch
 	$process_id= getmypid();
 	
-	$cron_requests_events_settings['log_file']= '';
+	$cron_requests_events_settings['log_file']= $cron_requests_events_log . 'cron.log';
 	$cron_requests_events_settings['dat_file']= $cron_requests_events_dat . (string) $process_id . '.dat';
 	$cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
 	$cron_requests_events_settings['delay']= -1;
@@ -178,11 +187,14 @@ if(!function_exists('send_param_and_parallel_launch')) {
 	}
 }
 
-if(isset($_REQUEST["cron"])):
 
+
+###########################
+# 
+if(isset($_REQUEST["cron"])):
 	function get_param($process_id){ // Example get param, function called in parallel process cron.php
-		global $cron_requests_events_settings, $cron_requests_events_resource, $cron_requests_events_log;
-		$frame_size= 96;
+		global $cron_requests_events_settings, $cron_requests_events_resource;
+		$frame_size= 128;
 
 		while(true){ // example: loop from the end
 			$frame= queue_address_pop($frame_size);
@@ -191,16 +203,7 @@ if(isset($_REQUEST["cron"])):
 			if($frame === '') { // end queue
 				break 1;
 			} else { // Example handler
-
-				file_put_contents( // log
-					$cron_requests_events_log . 'cron.log', 
-					sprintf(
-						"%f Info: get_param while %s\n", 
-						microtime(true), 
-						print_r($value, true)),
-					FILE_APPEND | LOCK_EX
-				);
-				
+				cron_log(sprintf("%f Info: get_param while %s", microtime(true), print_r($value, true)));
 			}
 		}
 		
@@ -215,6 +218,8 @@ if(isset($_REQUEST["cron"])):
 		_die();
 	}
 endif;
+
+
 
 
 ###########################
@@ -316,15 +321,9 @@ if(
 					fwrite($queue_resource,$frame, 4096);
 					fflush($queue_resource);
 				} else { // frame error
-					
-					file_put_contents(  // log
-						$cron_requests_events_settings['log_file'], 
-						sprintf("%f ERROR: init boot frame\n", microtime(true)),
-						FILE_APPEND | LOCK_EX
-					);
+					cron_log(sprintf("%f ERROR: init boot frame", microtime(true)));
 					
 					_die();				
-					
 				}
 			}
 			
@@ -416,11 +415,7 @@ if(
 						$cron_requests_events_settings['log_file'] && 
 						$cron_requests_events_settings['log_level'] > 3
 					){
-						file_put_contents(
-							$cron_requests_events_settings['log_file'], 
-							sprintf("%f INFO: queue_manager %d\n", microtime(true), $value['count']),
-							FILE_APPEND | LOCK_EX
-						);
+						cron_log(sprintf("%f INFO: queue_manager %d", microtime(true), $value['count']));
 					}
 					
 				}
@@ -429,6 +424,7 @@ if(
 		}
 	}
 endif;
+
 
 
 
@@ -512,6 +508,10 @@ if(!function_exists('open_cron_socket')) {
 }
 
 
+
+
+###########################
+# 
 if(!function_exists('queue_address_push')) { 
 	// frame - pushed frame (string)
 	// frame_size - set frame size (int)
@@ -563,6 +563,9 @@ if(!function_exists('queue_address_push')) {
 }
 
 
+
+###########################
+# 
 if(!function_exists('queue_address_pop')) { 
 	// frame_size - set frame size (int)
 	// frame_cursor - PHP_INT_MAX for LIFO mode, get frame from cursor position (int)
@@ -633,6 +636,27 @@ if(!function_exists('queue_address_pop')) {
 
 
 ###########################
+# system log
+if(!function_exists('cron_log')) { 
+	function cron_log($message){
+		global $cron_requests_events_settings;
+		
+		if($cron_requests_events_settings['log_file'] != ''){
+			file_put_contents(  // log
+				$cron_requests_events_settings['log_file'],
+				implode(' ', [
+					'date'=> date('m/d/Y H:i:s', time()),
+					'message'=> $message,
+				]) . "\n",
+				FILE_APPEND | LOCK_EX
+			);
+		}
+	}
+}
+
+
+
+###########################
 ###########################
 ###########################
 # Main functions, system api 
@@ -640,6 +664,9 @@ if(
 	isset($_REQUEST["cron"]) &&
 	$_REQUEST["cron"] === $cron_requests_events_settings['url_key']
 ){
+	
+	###########################
+	# 
 	function write_cron_session() // :void 
 	{
 		global  $cron_requests_events_resource, $cron_requests_events_session;
@@ -651,6 +678,9 @@ if(
 	}
 
 
+
+	###########################
+	# 
 	function _die($return= '') // :void 
 	{
 		global $cron_requests_events_resource, $cron_requests_events_dat_file, $cron_requests_events_settings;
@@ -677,6 +707,9 @@ if(
 	}
 	
 
+
+	###########################
+	# 
 	function fcgi_finish_request() // :void 
 	{
 		header($_SERVER['SERVER_PROTOCOL'] . " 200 OK");
@@ -699,6 +732,9 @@ if(
 	}
 
 
+
+	###########################
+	# 
 	function init_background_cron() // :void 
 	{
 		global $cron_requests_events_settings;
@@ -725,6 +761,10 @@ if(
 		register_shutdown_function('_die');
 	}
 
+
+
+	###########################
+	# 
 	function cron_log_rotate() // :void 
 	{ // LOG Rotate
 		global $cron_requests_events_session, $cron_requests_events_settings;
@@ -748,11 +788,7 @@ if(
 		) {
 			@rename($cron_requests_events_settings['log_file'], $cron_requests_events_settings['log_file'] . "." . (string) time());
 			
-			file_put_contents( // log
-				$cron_requests_events_settings['log_file'], 
-				date('m/d/Y H:i:s',time()) . " INFO: log rotate\n", 
-				FILE_APPEND | LOCK_EX
-			);
+			cron_log("INFO: log rotate");
 				
 			$the_oldest = time();
 			$log_old_file = '';
@@ -774,19 +810,16 @@ if(
 			if ($log_files_size >  $cron_requests_events_settings['log_rotate_max_size']) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
-					
-					file_put_contents( // log
-						$cron_requests_events_settings['log_file'], 
-						date('m/d/Y H:i:s', time()) . " INFO: log removal\n",
-						FILE_APPEND | LOCK_EX
-					);
-					
+					cron_log("INFO: log removal");
 				}
 			}
 		}
 	}
 
-	
+
+
+	###########################
+	# 
 	function callback_connector($job, $job_process_id, $mode) // :void 
 	{
 		global $cron_requests_events_session, $cron_requests_events_settings;
@@ -802,29 +835,16 @@ if(
 			
 			if(file_exists($job['callback'])) {
 				include $job['callback'];
-					
 			} elseif(!isset($job['function'])) {
-				if($cron_requests_events_settings['log_file'] != ''){
-					
-					file_put_contents(  // log
-						$cron_requests_events_settings['log_file'],
-						implode(' ', [
-							'date'=> date('m/d/Y H:i:s', time()),
-							'message'=> 'ERROR:',
-							'job_process_id' => (string) $job_process_id,
-							'callback' => $job['callback'],
-							'mode' => $job['multithreading'] ? 'multithreading' : 'singlethreading',
-						]) . "\n",
-						FILE_APPEND | LOCK_EX
-					);
-					
-				}
+				cron_log('ERROR: ' . (string) $job_process_id . ' file not found ' . $job['callback']);
 			}
-			
 		}
 	}
-			
 	
+	
+	
+	###########################
+	# 
 	function cron_session_init($job, $job_process_id) // :void 
 	{
 		global $cron_requests_events_session;
@@ -836,21 +856,33 @@ if(
 		if(isset($cron_requests_events_session[$job_process_id]['md5'])) {
 			if($cron_requests_events_session[$job_process_id]['md5'] !== md5(serialize($job))){
 				$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
-				$cron_requests_events_session[$job_process_id]['last_update']= 0;
+				unset($cron_requests_events_session[$job_process_id]['last_update']);
 				$cron_requests_events_session[$job_process_id]['complete']= false;
 			}
 		} else {
 			$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
 		}
 		
+		
 		if(!isset($cron_requests_events_session[$job_process_id]['last_update'])) {
-			$cron_requests_events_session[$job_process_id]['last_update']= 0;
+			
+			if(isset($job['crontab'])){
+				$crontab= parse($job['crontab']);
+				if($crontab !== 0) {
+					$cron_requests_events_session[$job_process_id]['last_update']= $crontab;
+				} else {
+					cron_log("ERROR: InvalidArgument in job settings: " . $job['crontab']);
+				}
+			} else {
+				$cron_requests_events_session[$job_process_id]['last_update']= 0;
+			}
 		}
 						
 		if(!isset($cron_requests_events_session[$job_process_id]['complete'])){
 			$cron_requests_events_session[$job_process_id]['complete']= false;
 		}
 	}
+	
 	
 	
 	
@@ -915,6 +947,7 @@ if(
 		return 0;
 	}
 
+
 	###########################
 	# Provides basic cron syntax parsing functionality
 	# get a single cron style notation and parse it into numeric value
@@ -944,6 +977,9 @@ if(
 	}	
 	
 	
+	
+	###########################
+	# 
 	function cron_check_job($job, $job_process_id, $mode) // :void 
 	{
 		global $cron_requests_events_session;
@@ -992,13 +1028,8 @@ if(
 			}
 			
 		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix!
-			if($cron_requests_events_session[$job_process_id]['last_update'] === 0){
-				$crontab= parse($job['crontab']);
-				if($crontab !== 0) $cron_requests_events_session[$job_process_id]['last_update']= $crontab;
-			}
 			
 			if(
-				$cron_requests_events_session[$job_process_id]['last_update'] !== 0 &&
 				$cron_requests_events_session[$job_process_id]['last_update'] < $time
 			){
 				$crontab= parse($job['crontab']);
@@ -1018,7 +1049,10 @@ if(
 		}
 	}
 	
- 
+	
+	
+	###########################
+	# 
 	function singlethreading_dispatcher() // :void 
 	{ // main loop job list
 		global $cron_requests_events_jobs;
@@ -1028,9 +1062,11 @@ if(
 			cron_check_job($job, $job_process_id, true);
 		}
 	}
-	
-	
 
+	
+	
+	###########################
+	# 
 	function memory_profiler() // :void 
 	{
 		global $cron_requests_events_jobs, $cron_requests_events_settings, $cron_requests_events_inc;
@@ -1058,19 +1094,8 @@ if(
 		if($profiler['memory_get_usage'] < memory_get_usage()){
 			$profiler['memory_get_usage']= memory_get_usage();
 			
-			if($cron_requests_events_settings['log_file'] != '' && $cron_requests_events_settings['log_level'] > 3){
-				
-				file_put_contents( // log
-					$cron_requests_events_settings['log_file'],
-					implode(' ', [
-						'date'=> date('m/d/Y H:i:s', $time),
-						'message'=> 'INFO:',
-						'name' => 'memory_get_usage',
-						'value' => (string) $profiler['memory_get_usage'],
-					]) . "\n",
-					FILE_APPEND | LOCK_EX
-				);
-				
+			if($cron_requests_events_settings['log_level'] > 3){
+				cron_log('INFO: memory_get_usage ' . (string) $profiler['memory_get_usage']);
 			}
 		} 
 		
@@ -1094,16 +1119,20 @@ if(
 				}
 			}
 		}
-		
-		
 	}
 
 
+
+
+
+	###########################
+	###########################
 	###########################
 	# start in background
 	init_background_cron();
 	$cron_requests_events_session= [];
 	
+	###########################
 	###########################
 	# multithreading Dispatcher
 	if( // job in parallel process. For long tasks, a separate dispatcher is needed
@@ -1141,6 +1170,7 @@ if(
 
 	
 	###########################
+	###########################
 	# Dispatcher init
 	$cron_requests_events_dat_file= $cron_requests_events_settings['dat_file'];
 	
@@ -1167,7 +1197,7 @@ if(
 			sleep($cron_requests_events_settings['delay']); // delay in infinite loop
 		}
 		
-		//###########################################
+		###########################
 		if($cron_requests_events_settings['log_file'] != '') cron_log_rotate();
 		write_cron_session();
 		flock($cron_requests_events_resource, LOCK_UN);
@@ -1176,6 +1206,8 @@ if(
 	fclose($cron_requests_events_resource);
 	_die();
 } elseif(!isset($cron_requests_events_start)){
+	###########################
+	###########################
 	###########################
 	# check time out to start in background 
 	if(file_exists($cron_requests_events_settings['dat_file'])){
