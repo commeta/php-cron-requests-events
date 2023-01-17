@@ -90,7 +90,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'crontab'=> '*/5 * * * *', // start interval 1 in 5 min
+	'crontab'=> '* * * * *', // start every min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -99,7 +99,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '03:05:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '05:47:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -113,7 +113,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '03:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '05:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
