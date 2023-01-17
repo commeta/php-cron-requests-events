@@ -233,7 +233,7 @@ $params= [
 	'process_id'=> getmypid(),
 ];
 
-send_param_and_parallel_launch(serialize($params), 96);
+send_param_and_parallel_launch(serialize($params), 128);
 ```
 
 Api functions are used to transmit the modified data:
