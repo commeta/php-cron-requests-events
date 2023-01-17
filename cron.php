@@ -73,7 +73,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 0, // start interval 1 sec
+	'interval' => 9, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
@@ -82,7 +82,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'interval' => 9, // start interval 10 sec
+	'crontab'=> '*/5 * * * *', // start interval 1 in 5 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -1029,7 +1029,7 @@ if(
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
 			
-		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix!
+		} elseif(isset($job['crontab'])){ // crontab syntax
 			
 			if(
 				$cron_requests_events_session[$job_process_id]['last_update'] < $time
@@ -1037,7 +1037,7 @@ if(
 				$crontab= parse($job['crontab']);
 				callback_connector($job, $job_process_id, $mode);
 				$cron_requests_events_session[$job_process_id]['complete']= true;
-				if($crontab !== 0) $cron_requests_events_session[$job_process_id]['last_update']= $crontab;
+				if($crontab !== 0) $cron_requests_events_session[$job_process_id]['last_update']= $crontab + 60;
 			}
 			
 		} else {
