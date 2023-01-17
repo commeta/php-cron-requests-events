@@ -951,7 +951,7 @@ if(
 		);
         
 		// limited to time()+366 - no need to check more than 1year ahead
-		for ($i = 0; $i <= 60 * 60 * 24 * 366; $i += 60) {
+		for ($i = 60; $i <= 60 * 60 * 24 * 366; $i += 60) {
 			if (in_array(intval(date('j', $start + $i)), $date['dom'], true) &&
 				in_array(intval(date('n', $start + $i)), $date['month'], true) &&
 				in_array(intval(date('w', $start + $i)), $date['dow'], true) &&
