@@ -33,7 +33,7 @@ php crontab process sheduler, based on url requests/event-loop, daemon mode, mul
 - Предотвращает запуск процесса если предыдущий не завершен
 - Есть режим ожидания пока предыдущий процесс не закончит работу - очередь
 - Работает на всех SAPI: (CLI только запуск), modApache, PHP-FPM, CGI. Версии PHP от 5.4 до 8.2.0
-- Минимальный объем PHP кода: 27.8 Кб (16.6 Кб без пробелов и комментариев)
+- Минимальный объем PHP кода:  38.2 Kб (23.7 Kб без пробелов и комментариев)
 - Дружественный код для opcache.jit компилятора
 
 
@@ -187,7 +187,6 @@ Array // $cron_requests_events_session
         (
             [md5] => 6e2ab79f4e8f5056a4f6a59475ffc31a
             [next_start] => 1673054971
-            [complete] => 1
         )
 
     [start_counter] => 37
