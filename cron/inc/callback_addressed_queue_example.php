@@ -8,9 +8,7 @@ if(isset($job['param'])){
 	queue_address_manager($job['param']);
 	$time= microtime(true) - $start;
 	
-	if($cron_requests_events_settings['log_level'] > 3){
-		sprintf("%f INFO: queue_manager %f %d %d", microtime(true), $time, getmypid(), $job_process_id);
-	}
+	cron_log(sprintf("%f INFO: queue_manager %f %d %d", microtime(true), $time, getmypid(), $job_process_id), 5);
 	
 
 // fragment log file
