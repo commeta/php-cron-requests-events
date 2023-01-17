@@ -35,7 +35,7 @@
 ###########################
 # System dirs
 
-$cron_requests_events_root= dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$cron_requests_events_root= __DIR__ . DIRECTORY_SEPARATOR;
 $cron_requests_events_dat= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'dat' . DIRECTORY_SEPARATOR;
 $cron_requests_events_inc= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'inc' . DIRECTORY_SEPARATOR;
 $cron_requests_events_log= $cron_requests_events_root . 'cron' . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
@@ -82,7 +82,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'crontab'=> '*/5 * * * *', // start interval 1 in 5 min
+	'crontab'=> '*/10 * * * *', // start interval 1 in 10 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -91,7 +91,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '03:05:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '05:47:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -105,7 +105,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '03:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '05:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -145,7 +145,7 @@ if(
 	###########################
 	$cron_requests_events_jobs= [
 		$process_id=>  [ // CRON Job
-			'interval'=> 0,
+			'interval'=> -1,
 			'function'=> 'get_param',
 			'param'=> $process_id,
 			'multithreading' => false
@@ -459,14 +459,14 @@ if(!function_exists('open_cron_socket')) {
 		) {
 			$protocol= 'https';
 			$host= "localhost";
-			$document_root= dirname(__FILE__) . DIRECTORY_SEPARATOR; // site root path
+			$document_root= __DIR__ . DIRECTORY_SEPARATOR; // site root path
 			
 			echo "Request: " . $protocol . '://' . $host . "/" . basename(__FILE__) . "?cron=" . $cron_requests_events_url_key . "\n";
 			echo 'or change $host= "localhost" to your domain' . "\n";
 		}
 		
 		$cron_requests_events_url= $protocol . '://' . $host . '/' . 
-			str_replace($document_root , '', dirname(__FILE__) . DIRECTORY_SEPARATOR) . 
+			str_replace($document_root , '', __DIR__ . DIRECTORY_SEPARATOR) . 
 			basename(__FILE__) ."?cron=" . $cron_requests_events_url_key;
 			
 			
@@ -849,7 +849,7 @@ if(
 	# 
 	function cron_session_init($job, $job_process_id) // :void 
 	{
-		global $cron_requests_events_session;
+		global $cron_requests_events_session, $cron_requests_events_settings;
 		static $init= [];
 		
 		if(isset($init[$job_process_id])) return;
@@ -859,29 +859,45 @@ if(
 			if($cron_requests_events_session[$job_process_id]['md5'] !== md5(serialize($job))){
 				$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
 				unset($cron_requests_events_session[$job_process_id]['last_update']);
-				$cron_requests_events_session[$job_process_id]['complete']= false;
+				unset($cron_requests_events_session[$job_process_id]['next_start']);
+				unset($cron_requests_events_session[$job_process_id]['complete']);
 			}
 		} else {
 			$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
 		}
 		
 		
-		if(!isset($cron_requests_events_session[$job_process_id]['last_update'])) {
-			
+		if(
+			!isset($cron_requests_events_session[$job_process_id]['next_start'])
+		) {
 			if(isset($job['crontab'])){
 				$crontab= parse($job['crontab']);
 				if($crontab !== 0) {
-					$cron_requests_events_session[$job_process_id]['last_update']= $crontab;
+					$cron_requests_events_session[$job_process_id]['next_start']= $crontab;
 				} else {
 					cron_log("ERROR: InvalidArgument in job settings: " . $job['crontab'], 0);
 				}
+			} elseif(isset($job['interval'])){
+				$cron_requests_events_session[$job_process_id]['next_start']= time() + $job['interval'];
 			} else {
-				$cron_requests_events_session[$job_process_id]['last_update']= 0;
+				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
+			}
+			
+			if(
+				$job['multithreading'] &&
+				!isset($_GET['job_process_id']) &&
+				!isset($_GET['parallel_start'])
+			){
+				open_cron_socket($cron_requests_events_settings['url_key'], $job_process_id);
 			}
 		}
 						
 		if(!isset($cron_requests_events_session[$job_process_id]['complete'])){
 			$cron_requests_events_session[$job_process_id]['complete']= false;
+		}
+		
+		if(!isset($cron_requests_events_session[$job_process_id]['last_update'])){
+			$cron_requests_events_session[$job_process_id]['last_update']= 0;
 		}
 	}
 	
@@ -980,6 +996,36 @@ if(
 	
 	
 	
+	
+	###########################
+	# 
+	function cron_check_date_time($job) // :void 
+	{
+		$time_stamp= 0;
+		
+		if(isset($job['date'])) $d= explode('-', $job['date']);		
+		if(isset($job['time'])) $t= explode(':', $job['time']);
+			
+		if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
+			$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
+			if($time_stamp < time()) return PHP_INT_MAX;
+		} else {
+			if(isset($job['date'])){ // check date, one - time
+				$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
+				if($time_stamp < time()) return PHP_INT_MAX;
+			}
+			if(isset($job['time'])){ // check time, every day
+				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
+				if($time_stamp < time()) return $time_stamp + 86400;
+			}
+		}
+			
+		return $time_stamp;
+	}
+	
+	
+	
+	
 	###########################
 	# 
 	function cron_check_job($job, $job_process_id, $mode) // :void 
@@ -988,70 +1034,37 @@ if(
 		$time= time();
 		
 		if(isset($job['date']) || isset($job['time'])){
-			$time_stamp= 0;
-			$unlocked= false;
-			
-			if( // unlock job
-				isset($job['time']) &&
-				!isset($job['date']) &&
-				$cron_requests_events_session[$job_process_id]['last_update'] !== 0 &&
-				$cron_requests_events_session[$job_process_id]['complete']  &&
-				date('d-m-Y', $time) !== date('d-m-Y', $cron_requests_events_session[$job_process_id]['last_update'])
+			if(
+				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
-				$cron_requests_events_session[$job_process_id]['complete']= false;
-			}
-			
-			if($cron_requests_events_session[$job_process_id]['complete']) return;
-			
-			if(isset($job['date'])) $d= explode('-', $job['date']);		
-			if(isset($job['time'])) $t= explode(':', $job['time']);
-			
-			if(isset($job['date']) && isset($job['time'])){ // check date time, one - time
-				$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]), intval($d[1]), intval($d[0]), intval($d[2]));
-				
-				if($time_stamp < $time) $unlocked= true;
-			} else {
-				if(isset($job['date'])){ // check date, one - time
-					$time_stamp= mktime(0, 0, 0, intval($d[1]), intval($d[0]), intval($d[2]));
-					
-					if($time_stamp < $time) $unlocked= true;
-				}
-				if(isset($job['time'])){ // check time, every day
-					$time_stamp= mktime(intval($t[0]), intval($t[1]), intval($t[2]));
-					
-					if($time_stamp < $time) $unlocked= true;
-				}
-			}
-			
-			if($unlocked){
+				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
+
 				callback_connector($job, $job_process_id, $mode);
 				$cron_requests_events_session[$job_process_id]['complete']= true;
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
-			
-		} elseif(isset($job['crontab'])){ // crontab syntax
-			
+		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix, beta
 			if(
-				$cron_requests_events_session[$job_process_id]['last_update'] < $time
+				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				$crontab= parse($job['crontab']);
-				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['complete']= true;
-				
 				if($crontab !== 0) {
 					if($crontab < $time + 60) $crontab+= 60;
-					$cron_requests_events_session[$job_process_id]['last_update']= $crontab;
-					
+					$cron_requests_events_session[$job_process_id]['next_start']= $crontab;
 				}
+
+				callback_connector($job, $job_process_id, $mode);
+				$cron_requests_events_session[$job_process_id]['complete']= true;
+				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
-			
 		} else {
 			if(
-				$cron_requests_events_session[$job_process_id]['last_update'] + $job['interval'] < $time
+				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				callback_connector($job, $job_process_id, $mode);
 				$cron_requests_events_session[$job_process_id]['complete']= true;
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
+				$cron_requests_events_session[$job_process_id]['next_start']= $job['interval'] + $time;
 			}
 		}
 	}
