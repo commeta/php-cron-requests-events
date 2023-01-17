@@ -9,13 +9,7 @@ if(isset($job['param'])){
 	$time= microtime(true) - $start;
 	
 	if($cron_requests_events_settings['log_level'] > 3){
-		if($cron_requests_events_settings['log_file']){
-			file_put_contents(
-				$cron_requests_events_settings['log_file'], 
-				sprintf("%f INFO: queue_manager %f %d %d\n", microtime(true), $time, getmypid(), $job_process_id),
-				FILE_APPEND | LOCK_EX
-			);
-		}
+		sprintf("%f INFO: queue_manager %f %d %d", microtime(true), $time, getmypid(), $job_process_id);
 	}
 	
 
@@ -43,10 +37,5 @@ if(isset($job['param'])){
 	// 1673479332.170225 INFO: queue_manager 0.432375 7469 5
 	// 1673479332.172232 INFO: queue_manager 0.376356 7470 6
 	// 1673479332.173088 INFO: queue_manager 0.500547 7467 4	
-	
-	
-	
 }
-
-
 ?>
