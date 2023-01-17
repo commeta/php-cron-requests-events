@@ -82,7 +82,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'crontab'=> '*/10 * * * *', // start interval 1 in 10 min
+	'crontab'=> '* * * * *', // start every min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -860,7 +860,6 @@ if(
 				$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
 				unset($cron_requests_events_session[$job_process_id]['last_update']);
 				unset($cron_requests_events_session[$job_process_id]['next_start']);
-				unset($cron_requests_events_session[$job_process_id]['complete']);
 			}
 		} else {
 			$cron_requests_events_session[$job_process_id]['md5']= md5(serialize($job));
@@ -892,10 +891,6 @@ if(
 			}
 		}
 						
-		if(!isset($cron_requests_events_session[$job_process_id]['complete'])){
-			$cron_requests_events_session[$job_process_id]['complete']= false;
-		}
-		
 		if(!isset($cron_requests_events_session[$job_process_id]['last_update'])){
 			$cron_requests_events_session[$job_process_id]['last_update']= 0;
 		}
@@ -999,7 +994,7 @@ if(
 	
 	###########################
 	# 
-	function cron_check_date_time($job) // :void 
+	function cron_check_date_time($job) // :int 
 	{
 		$time_stamp= 0;
 		
@@ -1040,7 +1035,6 @@ if(
 				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
 
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['complete']= true;
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
 		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix, beta
@@ -1054,7 +1048,6 @@ if(
 				}
 
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['complete']= true;
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
 			}
 		} else {
@@ -1062,7 +1055,6 @@ if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				callback_connector($job, $job_process_id, $mode);
-				$cron_requests_events_session[$job_process_id]['complete']= true;
 				$cron_requests_events_session[$job_process_id]['last_update']= time();
 				$cron_requests_events_session[$job_process_id]['next_start']= $job['interval'] + $time;
 			}
