@@ -137,7 +137,6 @@ if(
 ){ // Init multi-threading launch
 	$process_id= getmypid();
 	
-	$cron_requests_events_settings['log_file']= $cron_requests_events_log . 'cron.log';
 	$cron_requests_events_settings['dat_file']= $cron_requests_events_dat . (string) $process_id . '.dat';
 	$cron_requests_events_settings['queue_file']= $cron_requests_events_dat . 'parallel_queue.dat';
 	$cron_requests_events_settings['delay']= -1;
@@ -203,7 +202,7 @@ if(isset($_REQUEST["cron"])):
 			if($frame === '') { // end queue
 				break 1;
 			} else { // Example handler
-				cron_log(sprintf("%f Info: get_param while %s", microtime(true), print_r($value, true)));
+				cron_log(sprintf("%f Info: get_param while %s", microtime(true), print_r($value, true)), 5);
 			}
 		}
 		
@@ -321,7 +320,7 @@ if(
 					fwrite($queue_resource,$frame, 4096);
 					fflush($queue_resource);
 				} else { // frame error
-					cron_log(sprintf("%f ERROR: init boot frame", microtime(true)));
+					cron_log(sprintf("%f ERROR: init boot frame", microtime(true)), 0);
 					
 					_die();				
 				}
@@ -415,7 +414,7 @@ if(
 						$cron_requests_events_settings['log_file'] && 
 						$cron_requests_events_settings['log_level'] > 3
 					){
-						cron_log(sprintf("%f INFO: queue_manager %d", microtime(true), $value['count']));
+						cron_log(sprintf("%f INFO: queue_manager %d", microtime(true), $value['count']), 5);
 					}
 					
 				}
@@ -638,10 +637,13 @@ if(!function_exists('queue_address_pop')) {
 ###########################
 # system log
 if(!function_exists('cron_log')) { 
-	function cron_log($message){
+	function cron_log($message, $log_level= 5){
 		global $cron_requests_events_settings;
 		
-		if($cron_requests_events_settings['log_file'] != ''){
+		if(
+			$cron_requests_events_settings['log_file'] != '' &&
+			$cron_requests_events_settings['log_level'] <= $log_level
+		){
 			file_put_contents(  // log
 				$cron_requests_events_settings['log_file'],
 				implode(' ', [
@@ -788,7 +790,7 @@ if(
 		) {
 			@rename($cron_requests_events_settings['log_file'], $cron_requests_events_settings['log_file'] . "." . (string) time());
 			
-			cron_log("INFO: log rotate");
+			cron_log("INFO: log rotate", 2);
 				
 			$the_oldest = time();
 			$log_old_file = '';
@@ -810,7 +812,7 @@ if(
 			if ($log_files_size >  $cron_requests_events_settings['log_rotate_max_size']) {
 				if (file_exists($log_old_file)) {
 					unlink($log_old_file);
-					cron_log("INFO: log removal");
+					cron_log("INFO: log removal", 2);
 				}
 			}
 		}
@@ -836,7 +838,7 @@ if(
 			if(file_exists($job['callback'])) {
 				include $job['callback'];
 			} elseif(!isset($job['function'])) {
-				cron_log('ERROR: ' . (string) $job_process_id . ' file not found ' . $job['callback']);
+				cron_log('ERROR: ' . (string) $job_process_id . ' file not found ' . $job['callback'], 0);
 			}
 		}
 	}
@@ -871,7 +873,7 @@ if(
 				if($crontab !== 0) {
 					$cron_requests_events_session[$job_process_id]['last_update']= $crontab;
 				} else {
-					cron_log("ERROR: InvalidArgument in job settings: " . $job['crontab']);
+					cron_log("ERROR: InvalidArgument in job settings: " . $job['crontab'], 0);
 				}
 			} else {
 				$cron_requests_events_session[$job_process_id]['last_update']= 0;
@@ -1095,7 +1097,7 @@ if(
 			$profiler['memory_get_usage']= memory_get_usage();
 			
 			if($cron_requests_events_settings['log_level'] > 3){
-				cron_log('INFO: memory_get_usage ' . (string) $profiler['memory_get_usage']);
+				cron_log('INFO: memory_get_usage ' . (string) $profiler['memory_get_usage'], 2);
 			}
 		} 
 		
