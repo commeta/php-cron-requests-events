@@ -34,7 +34,7 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Prevents a process from starting if the previous one has not completed
 - There is a waiting mode until the previous process finishes work - queue
 - Works on all SAPIs: (CLI startup only), modApache, PHP-FPM, CGI. PHP versions from 5.4 to 8.2.0
-- Minimum PHP code size: 27.8 Kb (16.6 Kb without spaces and comments)
+- Minimum PHP code size: 38.2 Kb (23.7 Kb without spaces and comments)
 - Friendly code for opcache.jit compiler
 
 ## Install
@@ -186,7 +186,6 @@ Array // $cron_requests_events_session
         (
             [md5] => 6e2ab79f4e8f5056a4f6a59475ffc31a
             [next_start] => 1673054971
-            [complete] => 1
         )
 
     [start_counter] => 37
