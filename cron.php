@@ -82,7 +82,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'crontab'=> '* * * * *', // start every min
+	'crontab'=> '*/5 * * * *', // start 1 in 5 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -871,6 +871,7 @@ if(
 		) {
 			if(isset($job['crontab'])){
 				$crontab= parse($job['crontab']);
+				
 				if($crontab !== 0) {
 					$cron_requests_events_session[$job_process_id]['next_start']= $crontab;
 				} else {
@@ -895,6 +896,7 @@ if(
 			$cron_requests_events_session[$job_process_id]['last_update']= 0;
 		}
 	}
+	
 	
 	
 	
@@ -936,6 +938,8 @@ if(
 		if($_after_timestamp && !is_numeric($_after_timestamp)){
 			return 0; // InvalidArgumentException $_after_timestamp must be a valid unix timestamp ($_after_timestamp given)
 		}
+		
+        $_after_timestamp= mktime(intval(date("H")), intval(date("i")), 0, intval(date("n")), intval(date("j")), intval(date("Y")));
         
 		$cron = preg_split("/[\s]+/i", trim($_cron_string));
 		$start = empty($_after_timestamp) ? time() : $_after_timestamp;
@@ -948,11 +952,11 @@ if(
         
 		// limited to time()+366 - no need to check more than 1year ahead
 		for ($i = 0; $i <= 60 * 60 * 24 * 366; $i += 60) {
-			if (in_array(intval(date('j', $start + $i)), $date['dom']) &&
-				in_array(intval(date('n', $start + $i)), $date['month']) &&
-				in_array(intval(date('w', $start + $i)), $date['dow']) &&
-				in_array(intval(date('G', $start + $i)), $date['hours']) &&
-				in_array(intval(date('i', $start + $i)), $date['minutes'])
+			if (in_array(intval(date('j', $start + $i)), $date['dom'], true) &&
+				in_array(intval(date('n', $start + $i)), $date['month'], true) &&
+				in_array(intval(date('w', $start + $i)), $date['dow'], true) &&
+				in_array(intval(date('G', $start + $i)), $date['hours'], true) &&
+				in_array(intval(date('i', $start + $i)), $date['minutes'], true)
 			) {
 				return $start + $i;
 			}
@@ -990,6 +994,7 @@ if(
 	}	
 	
 	
+
 	
 	
 	###########################
