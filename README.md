@@ -132,7 +132,26 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 ];
 ##########
 ```
-- `'crontab'` - Basic cron syntax '* * * * *' min (0 - 59), hour (0 - 23), day of month (1 - 31), month (1 - 12), day of week (0 - 6) (Sunday=0)
+
+Crontab syntax
+--------------
+
+A CRON expression is a string representing the schedule for a particular command to execute.  The parts of a CRON schedule are as follows:
+
+    *    *    *    *    *
+    -    -    -    -    -
+    |    |    |    |    |
+    |    |    |    |    |
+    |    |    |    |    +----- day of week (0 - 7) (Sunday=0)
+    |    |    |    +---------- month (1 - 12)
+    |    |    +--------------- day of month (1 - 31)
+    |    +-------------------- hour (0 - 23)
+    +------------------------- min (0 - 59)
+
+Each of the parts supports wildcards (*), ranges (2-5), intervals (*/2) and lists (2,5,6,11).
+
+
+- `'crontab'` - Basic cron syntax
 - `'interval'` - Delay before starting
 - `'time'` - Sets the time to start in 24th format '07:20:00', if the date is not specified, it executes every day
 - `'date'` - Sets the start date in the format '31-12-2022'
