@@ -81,7 +81,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 0, // start interval 1 sec
+	'interval' => 9, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
@@ -89,8 +89,8 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 
 ###########################
-$cron_requests_events_jobs[]= [ // CRON Job 2, multi-threading example
-	'interval' => 10, // start interval 10 sec
+$cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
+	'crontab'=> '*/5 * * * *', // start interval 1 in 5 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
@@ -99,7 +99,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multi-threading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '21:05:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '03:05:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -113,7 +113,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '21:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '03:05:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -125,13 +125,14 @@ for( // CRON job 3, multicore example, four cores,
 
 
 ###########################
-$cron_requests_events_jobs[]= [ // CRON Job 4, multi-threading example
+$cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 	'date' => '10-01-2023', // "day-month-year" execute job on the specified date
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
 ##########
 ```
+- `'crontab'` - Basic cron syntax '* * * * *' min (0 - 59), hour (0 - 23), day of month (1 - 31), month (1 - 12), day of week (0 - 6) (Sunday=0)
 - `'interval'` - Delay before starting
 - `'time'` - Sets the time to start in 24th format '07:20:00', if the date is not specified, it executes every day
 - `'date'` - Sets the start date in the format '31-12-2022'
