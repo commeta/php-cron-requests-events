@@ -79,7 +79,6 @@ $host= "localhost"; // Для запуска через консоль CLI, вп
 ###########################
 # EXAMPLES
 $cron_requests_events_jobs= [];
-
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
 	'interval' => 9, // start interval 10 sec
@@ -91,7 +90,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 1, example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
-	'crontab'=> '* * * * *', // start every min
+	'crontab'=> '*/5 * * * *', // start 1 in 5 min
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => true
 ];
