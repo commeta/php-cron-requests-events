@@ -73,7 +73,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 9, // start interval 10 sec
+	'interval' => 900, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
@@ -131,10 +131,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 4, multithreading example
 ###########################
 ###########################
 # Settings parallel function start
-if(
-	isset($_GET['parallel_start']) && 
-	!isset($cron_requests_events_start)
-){ // Init multi-threading launch
+if(isset($_GET['parallel_start'])){ // Init multi-threading launch
 	$process_id= getmypid();
 	
 	$cron_requests_events_settings['dat_file']= $cron_requests_events_dat . (string) $process_id . '.dat';
@@ -838,12 +835,11 @@ if(
 	# 
 	function callback_connector($job, $job_process_id, $mode) // :void 
 	{
-		global $cron_requests_events_session, $cron_requests_events_settings;
+		global $cron_requests_events_session, $cron_requests_events_settings, $queue_resource;
 		
 		if($job['multithreading'] && $mode){ // multithreading\singlethreading
 			open_cron_socket($cron_requests_events_settings['url_key'], (string) $job_process_id); 
 		} else {
-			
 			if(isset($job['function'])){ // use call function mode
 				if(isset($job['param'])) call_user_func($job['function'], $job['param']);
 				else call_user_func($job['function']);
@@ -864,10 +860,6 @@ if(
 	function cron_session_init($job, $job_process_id) // :void 
 	{
 		global $cron_requests_events_session, $cron_requests_events_settings;
-		static $init= [];
-		
-		if(isset($init[$job_process_id])) return;
-		$init[$job_process_id]= true;
 		
 		if(isset($cron_requests_events_session[$job_process_id]['md5'])) {
 			if($cron_requests_events_session[$job_process_id]['md5'] !== md5(serialize($job))){
@@ -902,7 +894,7 @@ if(
 				}
 			}
 			
-			if(
+			if( // init alpha
 				$job['multithreading'] &&
 				!isset($_GET['job_process_id']) &&
 				!isset($_GET['parallel_start'])
@@ -1050,18 +1042,19 @@ if(
 		global $cron_requests_events_session;
 		$time= time();
 		
-		if(isset($job['date']) || isset($job['time'])){
+		if(isset($job['date']) || isset($job['time'])){ // date, time
 			if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
 				callback_connector($job, $job_process_id, $mode);
 			}
-		} elseif(isset($job['crontab'])){ // crontab syntax, bug fix, beta
+		} elseif(isset($job['crontab'])){ // crontab syntax
 			if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
 				$crontab= parse($job['crontab']);
+				
 				if($crontab !== 0) {
 					if($crontab < $time + 60) $crontab+= 60;
 					$cron_requests_events_session[$job_process_id]['next_start']= $crontab;
@@ -1069,15 +1062,16 @@ if(
 
 				callback_connector($job, $job_process_id, $mode);
 			}
-		} else {
+		} else { // interval
 			if(
 				$cron_requests_events_session[$job_process_id]['next_start'] < $time
 			){
-				callback_connector($job, $job_process_id, $mode);
 				$cron_requests_events_session[$job_process_id]['next_start']= $job['interval'] + $time;
+				callback_connector($job, $job_process_id, $mode);
 			}
 		}
 	}
+	
 	
 	
 	
@@ -1086,13 +1080,20 @@ if(
 	function singlethreading_dispatcher() // :void 
 	{ // main loop job list
 		global $cron_requests_events_jobs;
+		static $init= [];
+		
 		
 		foreach($cron_requests_events_jobs as $job_process_id=> $job){
-			cron_session_init($job, $job_process_id);
+			if(!isset($init[$job_process_id])) {
+				cron_session_init($job, $job_process_id);
+				$init[$job_process_id]= true;
+			}
+			
 			cron_check_job($job, $job_process_id, true);
 		}
 	}
 
+	
 	
 	
 	###########################
@@ -1110,7 +1111,7 @@ if(
 		$profiler['time']= $time;
 		
 		if(!isset($profiler['memory_get_usage'])){
-			$profiler['memory_get_usage']= 0;
+			$profiler['memory_get_usage']= memory_get_usage();
 		}
 		
 		if(!isset($profiler['filemtime'])){
@@ -1135,7 +1136,7 @@ if(
 		$profiler['callback_time']= $time;
 		
 		foreach($cron_requests_events_jobs as $job){
-			if(is_file($job['callback'])){
+			if(isset($job['callback']) && is_file($job['callback'])){
 				$filemtime_callback= filemtime($job['callback']);
 				
 				if(!isset($profiler['filemtime_' . $job['callback']])){
@@ -1150,7 +1151,6 @@ if(
 			}
 		}
 	}
-
 
 
 
@@ -1178,6 +1178,8 @@ if(
 				$cron_requests_events_dat_file= dirname($cron_requests_events_settings['dat_file']) . DIRECTORY_SEPARATOR . (string) $job_process_id . '.dat';
 				if(!file_exists($cron_requests_events_dat_file)) touch($cron_requests_events_dat_file);
 				
+				$filemtime= filemtime(__FILE__);
+				
 				$cron_requests_events_resource= fopen($cron_requests_events_dat_file, "r+");
 				if(flock($cron_requests_events_resource, LOCK_EX | LOCK_NB)) {
 					$stat= fstat($cron_requests_events_resource);
@@ -1186,12 +1188,20 @@ if(
 					
 					cron_session_init($job, $job_process_id);
 					cron_check_job($job, $job_process_id, false);
-					
+										
 					write_cron_session();
 					flock($cron_requests_events_resource, LOCK_UN);
 				}
 				
 				fclose($cron_requests_events_resource);
+				
+				
+				if( // reinit alpha
+					$filemtime !== filemtime(__FILE__) &&
+					!isset($_GET['parallel_start'])
+				){
+					open_cron_socket($cron_requests_events_settings['url_key'], $job_process_id);
+				}
 			}
 		}
 		
