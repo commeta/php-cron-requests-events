@@ -73,7 +73,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 900, // start interval 10 sec
+	'interval' => 9, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
