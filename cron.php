@@ -73,7 +73,7 @@ $cron_requests_events_jobs= [];
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 1, example
-	'interval' => 9, // start interval 10 sec
+	'interval' => 10, // start interval 10 sec
 	'callback' => $cron_requests_events_inc . "callback_cron.php",
 	'multithreading' => false
 ];
@@ -91,7 +91,7 @@ $cron_requests_events_jobs[]= [ // CRON Job 2, multithreading example
 
 ###########################
 $cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-	'time' => '05:47:00', // "hours:minutes:seconds" execute job on the specified time every day
+	'time' => '09:57:00', // "hours:minutes:seconds" execute job on the specified time every day
 	//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 	'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 	'param' => true, // use with queue_address_manager(true), in worker mode
@@ -105,7 +105,7 @@ for( // CRON job 3, multicore example, four cores,
 	$i++	
 ) {
 	$cron_requests_events_jobs[]= [ // CRON Job 3, multicore example
-		'time' => '05:47:10', //  "hours:minutes:seconds" execute job on the specified time every day
+		'time' => '09:57:10', //  "hours:minutes:seconds" execute job on the specified time every day
 		//'callback' => $cron_requests_events_inc . "callback_addressed_queue_example.php",
 		'function' => "queue_address_manager", // if need file include: comment this, uncomment callback
 		'param' => false, // use with queue_address_manager(false), in handler mode
@@ -963,7 +963,7 @@ if(
 				in_array(intval(date('G', $start + $i)), $date['hours']) &&
 				in_array(intval(date('i', $start + $i)), $date['minutes'])
 			) {
-				return $start + $i - 1;
+				return $start + $i;
 			}
 		}
 		
@@ -1044,14 +1044,14 @@ if(
 		
 		if(isset($job['date']) || isset($job['time'])){ // date, time
 			if(
-				$cron_requests_events_session[$job_process_id]['next_start'] < $time
+				$cron_requests_events_session[$job_process_id]['next_start'] <= $time
 			){
 				$cron_requests_events_session[$job_process_id]['next_start']= cron_check_date_time($job);
 				callback_connector($job, $job_process_id, $mode);
 			}
 		} elseif(isset($job['crontab'])){ // crontab syntax
 			if(
-				$cron_requests_events_session[$job_process_id]['next_start'] < $time
+				$cron_requests_events_session[$job_process_id]['next_start'] <= $time
 			){
 				$crontab= parse($job['crontab']);
 				
@@ -1064,7 +1064,7 @@ if(
 			}
 		} else { // interval
 			if(
-				$cron_requests_events_session[$job_process_id]['next_start'] < $time
+				$cron_requests_events_session[$job_process_id]['next_start'] <= $time
 			){
 				$cron_requests_events_session[$job_process_id]['next_start']= $job['interval'] + $time;
 				callback_connector($job, $job_process_id, $mode);
