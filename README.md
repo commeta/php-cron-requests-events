@@ -19,6 +19,7 @@ Procedural code based on built-in functions, no dependencies on third-party modu
 - Allows you to perform tasks that consume a lot of resources with low priority.
 - You can connect this CRON to any CMS, it will not affect performance in any way.
 - Allows to [execute functions in a parallel process](#parallel-function-launch).
+- Uses [An algorithm for implementing a transaction in PHP using file locking](https://github.com/commeta/fast_io/blob/main/test/transaction/README.md)
 
 
 ## CRON scheduler
